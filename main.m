@@ -1,5 +1,8 @@
+%Importa los datos txt sensor data
+%Datos tomados por el telefono
+
 %carpeta donde están los archivos .txt
-carpeta = 'C:\Users\jeiss\OneDrive\Documentos\universidad\9 noveno semestre\tesis\toma de datos 2';
+carpeta = '';
 
 % Obtén la lista de archivos .txt en la carpeta
 archivos = dir(fullfile(carpeta, '*.txt'));
@@ -10,15 +13,14 @@ datos = cell(1, numel(archivos));
 
 opts = delimitedTextImportOptions("NumVariables", 15);
 opts.DataLines = [1, Inf];
-opts.Delimiter = ";";
+opts.Delimiter = ",";
 opts.VariableNames = ["time", "ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"];
 opts.VariableTypes = ["datetime", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double"];
 opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
-opts = setvaropts(opts, "time", "InputFormat", "yyyy-MM-dd HH:mm:ss,SSS");
+opts = setvaropts(opts, "time", "InputFormat", "yyyy-MM-dd HH:mm:ss.SSS");
 opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "TrimNonNumeric", true);
-opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "DecimalSeparator", ",");
-opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "ThousandsSeparator", ".");
+opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "DecimalSeparator", ".");
 
 % Itera sobre cada archivo .txt
 for i = 1:numel(archivos)
@@ -26,10 +28,12 @@ for i = 1:numel(archivos)
     rutaArchivo = fullfile(carpeta, nombreArchivo);
     datos{i} = readtable(rutaArchivo, opts);
 end
-
+%%
 %parte para JSON
+%Datos extraidos del los logs del bus
+%Datos csv
 
-carpeta = 'C:\Users\jeiss\OneDrive\Documentos\universidad\9 noveno semestre\tesis\toma de datos 2\sts';
+carpeta = 'sts';
 nombre_archivo = 'p20.csv'; % Nombre del archivo a leer
 ruta_archivo = fullfile(carpeta, nombre_archivo);
 
