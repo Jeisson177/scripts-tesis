@@ -4,22 +4,15 @@ datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 datosP20 = ImportarDatos.P20();
 datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
-mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434', mymap);
+mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434');
 %%
 datosEventos = ImportarDatos.Evento1();
 datosEventosCord = ImportarDatos.Evento1Coordenadas(datosEventos);
-mymap = Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434');
+mymap = Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434', mymap);
  
 %%
 
-velocidadSensor = Calculos.calcularVelocidad(datosCordenadasSensor);
-geoscatter(datosCordenadasSensor{2:end, 2}, datosCordenadasSensor{2:end,3}, 10, velocidadSensor, 'filled');
-colormap(jet);
-    colorbar;  % Añade una barra de color para interpretar las velocidades
-    title(geoAx, 'Mapa de Calor de Velocidad');
-    
-    % Ajusta los límites para que incluyan todos los puntos
-    geolimits('auto');
+mymap = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 08:45:00.434', '2024-02-15 08:49:00.434');
 
 %%
 datos = datosSensor;

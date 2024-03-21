@@ -104,6 +104,64 @@ end
     geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'DisplayName', 'Posiciones');
     hold on
 end
+%%
+function mapa = FiltrarYDibujarVelocidad(datos, fechaInicio, fechaFin, mapa)
+    % Verificar que 'datos' sea una tabla
+    if ~istable(datos)
+        error('La entrada debe ser una tabla.');
+    end
+
+    % Comprobar si se ha pasado un mapa como argumento
+    % At the beginning of FiltrarYAgregarMarcadores function
+if nargin >= 4 && ishandle(mapa) && isa(mapa, 'matlab.ui.Figure')
+    figure(mapa); % Only set it as current figure if it's valid
+else
+    mapa = figure; % Create a new figure if mapa is not valid
+end
+
+    % Convertir las fechas de inicio y fin si son strings a datetime
+    % Asegurarse de que no tengan zona horaria para que coincidan con los datos
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    
+    % Convertir las fechas en 'datos' a datetimes sin zona horaria para la comparación
+    datos{:, 1} = datetime(datos{:, 1}, 'TimeZone', '');
+    
+    % Filtrar los datos entre las fechas de inicio y fin
+    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+    
+    % Verificar si hay datos para trazar
+    if height(datosFiltrados) < 1
+        warning('No hay suficientes datos entre las fechas proporcionadas para agregar marcadores.');
+        return;
+    end
+    
+    % Seleccionar el mapa para trazar
+    if ~exist('mapa', 'var') || isempty(mapa)
+        mapa = figure;
+        %geoAx = geoaxes; % Crea nuevos ejes geográficos si no se ha proporcionado 'mapa'
+    else
+        figure(mapa); % Activa la figura dada
+        %geoAx = gca; % Asume que los ejes actuales son los que se deben usar
+    end
+
+
+    velocidadSensor = Calculos.calcularVelocidad(datosFiltrados);
+geoscatter(datosFiltrados{2:end, 2}, datosFiltrados{2:end,3}, 10, velocidadSensor, 'filled');
+colormap(jet);
+    colorbar;  % Añade una barra de color para interpretar las velocidades
+    title('Mapa de Calor de Velocidad');
+    
+    % Ajusta los límites para que incluyan todos los puntos
+    geolimits('auto');
+
+    hold on
+end
+
 
 
     end
