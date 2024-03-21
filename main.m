@@ -1,5 +1,6 @@
 datosSensor = ImportarDatos.Sensor();
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
+velocidadSensor = Calculos.calcularVelocidad(datosCordenadasSensor);
 %%
 datosP20 = ImportarDatos.P20();
 datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
