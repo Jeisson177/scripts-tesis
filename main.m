@@ -1,5 +1,6 @@
 datosSensor = ImportarDatos.Sensor();
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
+
 Graficas.velocidadTiempo(datosCordenadasSensor, '2024-02-15 00:30:00.434', '2024-02-15 23:35:00.434')
 Graficas.aceleracionTiempo(datosCordenadasSensor, '2024-02-15 00:30:00.434', '2024-02-15 23:35:00.434')
 %%
@@ -20,259 +21,53 @@ Graficas.Evento1(datosEventosCord, '2024-02-14 00:30:00.434', '2024-02-15 23:35:
 
 %mymap = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 08:45:00.434', '2024-02-15 08:49:00.434');
 mymap = Map.FiltrarYDibujarCurvatura(datosCordenadasSensor, '2024-02-15 08:00:00.434', '2024-02-15 08:49:00.434');
-
 %%
-datos = datosSensor;
-% Especifica el número de filas y columnas para los subplots
-num_filas = ceil(sqrt(numel(datos)));  % Calcula el número de filas
-num_columnas = ceil(numel(datos) / num_filas);  % Calcula el número de columnas
-
-num_datos = numel(datos);
-max_num_puntos = max(cellfun(@(x) numel(x.time), datos));
-velocidades_matriz = cell(num_datos, 1);
-
-aceleraciones_matriz = cell(num_datos, 1);
-
-% Itera sobre cada conjunto de datos en el arreglo
-for i = 1:numel(datos)
-    % Obtener las coordenadas de latitud y longitud del conjunto de datos actual
-    lat = datos{i}.lat;
-    lon = datos{i}.lon;
-    
-    % Calcular la diferencia de tiempo en segundos
-    tiempo = datos{i}.time;
-    diferencia_tiempo = seconds(diff(tiempo)); % Diferencia de tiempo entre cada punto menos el primero
-    
-    % vector para almacenar las velocidades
-    velocidad = zeros(size(lat));
-    curvaturas= zeros(size(lat));
-    %guardar datos de tipo lat y lon pa usarlo en la funcion de curvatura
-    Coordenada = struct('lat', 0, 'lon', 0);
-    p1 = Coordenada;
-    p2 = Coordenada;
-    p3 = Coordenada;
-    % Calcular la velocidad para cada punto
-    for j = 2:numel(lat)
-        % Calcular la distancia entre los puntos consecutivos
-        distancia = gps_distance(lat(j-1), lon(j-1), lat(j), lon(j));
-        
-        % Calcular la velocidad en grados por segundo
-        velocidad(j) = distancia / (diferencia_tiempo(j-1)*0.000277778); % velocidad en m/s o en km/h dependiendo 
-        if(velocidad(j)>60)%60 km/h o 16.6667m/s
-            velocidad(j)=60;
-        end
-        
-    end
-    
-    for j=1:numel(lat)-3
-       p1.lat=lat(j);
-       p2.lat=lat(j+1);
-       p3.lat=lat(j+2);
-       p1.lon=lon(j);
-       p2.lon=lon(j+1);
-       p3.lon=lon(j+2);
-       
-       curvaturas(j)=determinar_curvatura_3puntos(p1, p2, p3);
-       if  (curvaturas(j)>100)
-           curvaturas(j)=-1;%curvatura negativa es que es muy leve 
-       end
-    end
-    
-    
-    % Crear una nueva ventana
-    figure;
-    
-    % Trazar el conjunto de datos actual utilizando geoscatter y especificando el tamaño de los puntos basado en la velocidad
-    geoscatter(lat(2:end), lon(2:end), [], curvaturas(2:end)); % Excluye el primer punto
-    colormap(jet); % Selecciona un mapa de colores (en este caso, un gradiente de colores)
-    
-    % Agregar título para distinguir los conjuntos de datos
-    title(sprintf('Datos %d', i));
-    
-    % Ajustar la vista
-    geolimits('auto');
-    
-    % Añadir una barra de color para mostrar la escala de velocidad
-    colorbar;
-    
-    % Restaurar el estado de hold para permitir que otras funciones tracen en la misma figura
-    hold off;
-    
-    velocidades_matriz{i} = velocidad;%velocidad en km/h
-    velocidades_matriz{i,4}=diferencia_tiempo;
-    velocidades_matriz{i,3}=diff(velocidad);%diferencia velocidad
-    velocidades_matriz{i,5}=tiempo;
-    velocidades_matriz{i,2}=(velocidades_matriz{i,3}./velocidades_matriz{i,4}).*0.277778;%velocidad sobre dif tiempo por constante de km/h a m/s
-    velocidades_matriz{i,6}=curvaturas;%arreglo de curvaturas
-end
-
-% Agregar título global
-%suptitle('Mapas de conjuntos de datos con velocidad calculada');
-
-% Ajustar la posición de los subplots
-%set(gcf, 'Position', get(0, 'Screensize')); % Maximizar la ventana
-
-% Restaurar el estado de hold para permitir que otras funciones tracen en la misma figura
-%hold off;
-
+velocidadSensor = Calculos.calcularVelocidad(datosCordenadasSensor);
+aceleracion= Calculos.calcularAceleracion(datosCordenadasSensor);
+%%
+datosP20 = ImportarDatos.P20();
+datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
+%mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434');
+%%
+datosEventos = ImportarDatos.Evento1();
+datosEventosCord = ImportarDatos.Evento1Coordenadas(datosEventos);
+%mymap = Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434', mymap);
 
 
 %%
-%imprimir ambos cosos en un sola figura, cambiar para imprimir en una lado
-%velocidad y en otro el radio ambos con mapas de calor
-
-for i=1:numel(datos)
-    velocidad=velocidades_matriz{i,1};
-    lat = datos{i}.lat;
-    lon = datos{i}.lon;
-    
-    % Crear una nueva figura con dos subgráficos
-    figure;
-
-    % Primer subgráfico
-    subplot(1,2,1); % Define la disposición de subgráficos como 1 fila, 2 columnas, y selecciona el primero
-    geoscatter(lat(2:end), lon(2:end), [], velocidad(2:end)); % Excluye el primer punto
-    colormap(jet); % Selecciona un mapa de colores (en este caso, un gradiente de colores)
-    j=i+1;
-    title('figura ruta desde las ',j); % Título del primer subgráfico
-    geolimits('auto'); % Ajustar la vista automáticamente
-    colorbar; % Añadir una barra de color para mostrar la escala de velocidad
-
-    % Segundo subgráfico
-    subplot(1,2,2); % Define la disposición de subgráficos como 1 fila, 2 columnas, y selecciona el segundo
-    
-    
-    hora_inicio = datetime(2024,2,14,j-1,0,0); % Hora de inicio
-    hora_fin = datetime(2024,2,14,j,0,0); % Hora de fin,como los datos del celular son de una hora a otra pues aja
-    
-    datos_en_rango = sts(sts.fechaHoraEnvioDato >= hora_inicio & sts.fechaHoraEnvioDato <= hora_fin, :);
-    lat2=datos_en_rango.latitud;
-    lon2=datos_en_rango.longitud;
-    velocidad2=datos_en_rango.velocidadVehiculo;
-    geoscatter(lat2, lon2, [], velocidad2); % Trazar todos los datos
-    colormap(jet); % Selecciona un mapa de colores (en este caso, un gradiente de colores)
-    title('datos sts'); % Título del segundo subgráfico
-    geolimits('auto'); % Ajustar la vista automáticamente
-    colorbar; % Añadir una barra de color para mostrar la escala de velocidad
-
-end
+mymap = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 08:45:00.434', '2024-02-15 08:49:00.434');
 %%
-%pruebas
-subplot(3, 2, 5);
-plot(velocidades_matriz{3,5},velocidades_matriz{3, 1});
-grid on;
-subplot(3, 2, 6);
-plot(velocidades_matriz{3,5}(2:end),velocidades_matriz{3, 2});
-grid on;
+%calcular aceleración
+%T=seconds(diff(datosCordenadasSensor.time));
 
 %%
-%recalculo de aceleración
-
-for i=1:16
-    velocidad =velocidades_matriz{i} ;%velocidad en km/h
-    velocidades_matriz{i,3}=diff(velocidad);%diferencia velocidad
-    velocidades_matriz{i,2}=(velocidades_matriz{i,3}./velocidades_matriz{i,4}).*0.277778;%velocidad sobre dif tiempo por constante de km/h a m/s
-end
-%%
-%correción de velocidad
-
-for j = 1:16%cantidad de archivos txt
-    for k = 1:numel(velocidades_matriz{j, 2})%columna de aceleraciones sobre tiempo
-        
-        try
-            if (abs(velocidades_matriz{j, 2}(k))>2)%determina el limite de aceleración 
-                for b=k:numel(velocidades_matriz{j, 2})
-                    if(abs(velocidades_matriz{j, 2}(b))<2)%busca el siguiente punto bueno
+for k=1:size(aceleracion)
+    try
+            if (abs(aceleracion(k))>3)%determina el limite de aceleración 
+                for b=k:size(aceleracion)
+                    if(abs(aceleracion(b))<3)%busca el siguiente punto bueno
                         a=b;
                         break;
                     end
                 end
-                p=((velocidades_matriz{j, 1}(b)-velocidades_matriz{j, 1}(k-1))/(b-k));
-                z=1;
+                p=((velocidadSensor(b)-velocidadSensor(k-1))/(b-k));
+                z=0;
                 for b=k:a
-                    velocidades_matriz{j, 1}(b)=(z*p)+velocidades_matriz{j, 1}(k-1);
+                    velocidadSensor(b)=(z*p)+velocidadSensor(k-1);
                     z=z+1;
                 end
                 %velocidades_matriz{j, 1} =correccion(velocidades_matriz,j,k); %se igual a la velocidad normal
-                k=a;
-                for i=1:16%recalcular aceleración
-                    velocidad =velocidades_matriz{i} ;%velocidad en km/h
-                    velocidades_matriz{i,3}=diff(velocidad);%diferencia velocidad
-                    velocidades_matriz{i,2}=(velocidades_matriz{i,3}./velocidades_matriz{i,4}).*0.277778;%velocidad sobre dif tiempo por constante de km/h a m/s
-                end
+                k=a;                
             end
         catch
-            velocidades_matriz{j, 1}=velocidades_matriz{j, 1};
+            velocidadSensor=velocidadSensor;
         end
-        
-    end
-    
-end
-%velocidades_matriz{i,2}=(velocidades_matriz{i,3}./velocidades_matriz{i,4}).*0.277778;%velocidad sobre dif tiempo por constante de km/h a m/s
-    
-
-
-function matriz_corregida=correccion(velocidades_matriz,j,k)
-    for a=k:numel(velocidades_matriz{j, 2})
-        
-        
-    end 
-    
-    
-    
-    matriz_corregida = velocidades_matriz{j, 1}; % Devuelve la matriz modificada
 end
 
-%%
-%codigo para ver que pasa con los datos, primero grafique los datos con el
-%codigo anterior, luego vi que en datos 14 hay varios puntos rojos mayores
-%a 60km/h, estos datos son unicos, por ende no son fisicamente posibles asi
-%que 
-% tiempo = datos{14}.time;
-% diferencia_tiempo = seconds(diff(tiempo));
-% b=1;
-% lat = datos{14}.lat;
-% lon = datos{14}.lon;
-% raros=zeros(numel(tiempo));
-  
-% for a=2:numel(tiempo)
-%     distancia = gps_distance(lat(a-1), lon(a-1), lat(a), lon(a));
-%     
-%     vel=distancia / (diferencia_tiempo(a-1)*0.000277778);
-%     if(vel>55)
-%               
-%         % Calcular la velocidad en grados por segundo
-%         raros(b,6)= gps_distance(lat(a), lon(a), lat(a+1), lon(a+1));
-%         raros(b,5)= gps_distance(lat(a-2), lon(a-2), lat(a-1), lon(a-1));
-%         raros(b,4)= distancia;
-%         raros(b,3)= vel; 
-%         raros(b)=diferencia_tiempo(a-1);
-%         raros(b,2)=a-1;
-%         b=b+1;
-%     end
-%     
-% end
-% raros(1,8)=gps_distance(lat(50), lon(50), lat(51), lon(51));  
+%aceleracion= Calculos.calcularAceleracion(datosCordenadasSensor);
 
-%%
 
-% 
-% lat = datos{1,12}.lat;
-% lon = datos{1,12}.lon;
-% tiempo = datos{1,12}.time;
-% diferencia_tiempo = seconds(diff(tiempo)); % Diferencia de tiempo entre cada punto menos el primero
-% % vector para almacenar las velocidades
-% velocidad = zeros(size(lat));
-% % Calcular la velocidad para cada punto
-% for j = 2:numel(lat)
-%         % Calcular la distancia entre los puntos consecutivos
-%     distancia = gps_distance(lat(j-1), lon(j-1), lat(j), lon(j));
-%         
-%         % Calcular la velocidad en grados por segundo
-%     velocidad(j) = distancia / (diferencia_tiempo(j-1)*0.000277778); % Excluye el primer punto
-% end
-% 
-% plot(tiempo,velocidad);
+
 
 
 function d = gps_distance(lat1,lon1,lat2,lon2)
