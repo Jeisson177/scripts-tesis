@@ -76,7 +76,36 @@ end
             
             sts = readtable(ruta_archivo, opts);
         end
+%%
+        function datosVelocidad = P20Velocidad(carpeta)
+    % Verificar si se ha proporcionado el argumento de la carpeta
+    if nargin < 1
+        carpeta = 'sts'; % Carpeta predeterminada
+    end
+
+    nombre_archivo = 'p20.csv';
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 17);
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama','idRegistro','idOperador','idVehiculo','idRuta','idConductor','fechaHoraLecturaDato','fechaHoraEnvioDato','tipoBus','tipoTrama','tecnologiaMotor','tramaRetransmitida','tipoFreno','velocidadVehiculo','aceleracionVehiculo','latitud','longitud'};
+    opts.VariableTypes = {'double','double','double','double','double','double','datetime','datetime','double','double','double','double','logical','double','double','double','double'};
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+    opts = setvaropts(opts, {'latitud','longitud'}, 'DecimalSeparator', ".");
     
+    % Leer el archivo CSV
+    sts = readtable(ruta_archivo, opts);
+
+    % Seleccionar solo las columnas de fecha de lectura y velocidad del vehículo
+    datosVelocidad = sts(:, {'fechaHoraLecturaDato', 'velocidadVehiculo'});
+end
+
+
+    %%
         function resultado = P20Cordenadas(sts)
     % Verificar que la entrada sts sea una tabla
     if ~istable(sts)
@@ -120,6 +149,8 @@ end
         end
     
         function resultado = Evento1Coordenadas(datos)
+
+
     % Verificar que los datos sean una tabla
     if ~istable(datos)
         error('La entrada debe ser una tabla.');

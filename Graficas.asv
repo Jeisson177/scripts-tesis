@@ -122,7 +122,7 @@ function grafica = graficarVelocidadSts(datos, fechaInicio, fechaFin, grafica)
     end
     
     % Trazar velocidad en función del tiempo
-    plot(fechas, velocidad, 'LineWidth', 2, 'Color', 'green');
+    plot(fechas, velocidad, 'LineWidth', 2);
     title('Velocidad en Función del Tiempo');
     xlabel('Tiempo');
     ylabel('Velocidad (km/h)');
