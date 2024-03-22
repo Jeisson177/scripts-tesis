@@ -1,18 +1,15 @@
 datosSensor = ImportarDatos.Sensor();
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
-
-Graficas.velocidadTiempo(datosCordenadasSensor, '2024-02-15 00:30:00.434', '2024-02-15 23:35:00.434')
-Graficas.aceleracionTiempo(datosCordenadasSensor, '2024-02-15 00:30:00.434', '2024-02-15 23:35:00.434')
-%%
 datosP20 = ImportarDatos.P20();
 datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
-mygrafica = Graficas.velocidadTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
-Graficas.aceleracionTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434')
+%%
+Graficas.Distanciavstiempo(datosCordenadasSensor,datosCordenadasP20);
 
-
-
-
-mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434');
+%Graficas.aceleracionTiempo(datosCordenadasSensor, '2024-02-15 00:30:00.434', '2024-02-15 23:35:00.434')
+%Graficas.velocidadTiempo(datosCordenadasSensor, '2024-02-15 00:30:00.434', '2024-02-15 23:35:00.434')
+%mygrafica = Graficas.velocidadTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
+%Graficas.aceleracionTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434')
+%mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434');
 %%
 datosEventos = ImportarDatos.Evento1();
 datosEventosCord = ImportarDatos.Evento1Coordenadas(datosEventos);
@@ -22,7 +19,7 @@ Graficas.Evento1(datosEventosCord, '2024-02-14 00:30:00.434', '2024-02-15 23:35:
 %mymap = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 08:45:00.434', '2024-02-15 08:49:00.434');
 mymap = Map.FiltrarYDibujarCurvatura(datosCordenadasSensor, '2024-02-15 08:00:00.434', '2024-02-15 08:49:00.434');
 %%
-velocidadSensor = Calculos.calcularVelocidad(datosCordenadasSensor);
+velocidadSensor = Calculos.calcularVelocidadKH(datosCordenadasSensor);
 aceleracion= Calculos.calcularAceleracion(datosCordenadasSensor);
 %%
 datosP20 = ImportarDatos.P20();
@@ -36,37 +33,16 @@ datosEventosCord = ImportarDatos.Evento1Coordenadas(datosEventos);
 
 %%
 mymap = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 08:45:00.434', '2024-02-15 08:49:00.434');
-%%
-%calcular aceleración
-%T=seconds(diff(datosCordenadasSensor.time));
+
+
+
 
 %%
-for k=1:size(aceleracion)
-    try
-            if (abs(aceleracion(k))>3)%determina el limite de aceleración 
-                for b=k:size(aceleracion)
-                    if(abs(aceleracion(b))<3)%busca el siguiente punto bueno
-                        a=b;
-                        break;
-                    end
-                end
-                p=((velocidadSensor(b)-velocidadSensor(k-1))/(b-k));
-                z=0;
-                for b=k:a
-                    velocidadSensor(b)=(z*p)+velocidadSensor(k-1);
-                    z=z+1;
-                end
-                %velocidades_matriz{j, 1} =correccion(velocidades_matriz,j,k); %se igual a la velocidad normal
-                k=a;                
-            end
-        catch
-            velocidadSensor=velocidadSensor;
-        end
-end
+
 
 %aceleracion= Calculos.calcularAceleracion(datosCordenadasSensor);
 
-
+%%
 
 
 
