@@ -103,7 +103,7 @@ end
             end
         end
         
-        function aceleracion = calcularAceleracion(datos)
+        function aceleracion = calcularAceleracion2(datos)
                 % Calcular la velocidad usando la función existente
             velocidad = Calculos.calcularVelocidad(datos);
 
