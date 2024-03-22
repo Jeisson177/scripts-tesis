@@ -1,0 +1,31 @@
+function datos = importarDatosSensor(nombreCarpeta) %#ok<FNDEF>
+    % Verifica si se proporcionó el nombre de la carpeta
+    if nargin < 1
+        nombreCarpeta = pwd; % Utiliza el directorio actual si no se proporciona la carpeta
+    end
+
+    % Obtén la lista de archivos .txt en la carpeta
+    archivos = dir(fullfile(nombreCarpeta, '*.txt'));
+
+    % Inicializa un arreglo de celdas para almacenar los datos
+    datos = cell(1, numel(archivos));
+
+    % Opciones para la importación de los datos
+    opts = delimitedTextImportOptions("NumVariables", 15);
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = ["time", "ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"];
+    opts.VariableTypes = ["datetime", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double"];
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, "time", "InputFormat", "yyyy-MM-dd HH:mm:ss.SSS");
+    opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "TrimNonNumeric", true);
+    opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "DecimalSeparator", ".");
+
+    % Itera sobre cada archivo .txt
+    for i = 1:numel(archivos)
+        nombreArchivo = archivos(i).name;
+        rutaArchivo = fullfile(nombreCarpeta, nombreArchivo);
+        datos{i} = readtable(rutaArchivo, opts);
+    end
+end

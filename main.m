@@ -1,86 +1,22 @@
-%carpeta donde están los archivos .txt
-carpeta = 'C:\Users\jeiss\OneDrive\Documentos\universidad\9 noveno semestre\tesis\toma de datos 2';
-
-% Obtén la lista de archivos .txt en la carpeta
-archivos = dir(fullfile(carpeta, '*.txt'));
-
-% Inicializa un arreglo de celdas para almacenar los datos
-datos = cell(1, numel(archivos));
-
-
-opts = delimitedTextImportOptions("NumVariables", 15);
-opts.DataLines = [1, Inf];
-opts.Delimiter = ";";
-opts.VariableNames = ["time", "ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"];
-opts.VariableTypes = ["datetime", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double"];
-opts.ExtraColumnsRule = "ignore";
-opts.EmptyLineRule = "read";
-opts = setvaropts(opts, "time", "InputFormat", "yyyy-MM-dd HH:mm:ss,SSS");
-opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "TrimNonNumeric", true);
-opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "DecimalSeparator", ",");
-opts = setvaropts(opts, ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"], "ThousandsSeparator", ".");
-
-% Itera sobre cada archivo .txt
-for i = 1:numel(archivos)
-    nombreArchivo = archivos(i).name;
-    rutaArchivo = fullfile(carpeta, nombreArchivo);
-    datos{i} = readtable(rutaArchivo, opts);
-end
-
-%parte para JSON
-
-carpeta = 'C:\Users\jeiss\OneDrive\Documentos\universidad\9 noveno semestre\tesis\toma de datos 2\sts';
-nombre_archivo = 'p20.csv'; % Nombre del archivo a leer
-ruta_archivo = fullfile(carpeta, nombre_archivo);
-
-opts = delimitedTextImportOptions("NumVariables", 17);
-opts.DataLines = [1, Inf];
-opts.Delimiter = ",";
-opts.VariableNames = {'versionTrama','idRegistro','idOperador','idVehiculo','idRuta','idConductor','fechaHoraLecturaDato','fechaHoraEnvioDato','tipoBus','tipoTrama','tecnologiaMotor','tramaRetransmitida','tipoFreno','velocidadVehiculo','aceleracionVehiculo','latitud','longitud'};
-opts.VariableTypes = {'double','double','double','double','double','double','datetime','datetime','double','double','double','double','logical','double','double','double','double'};
-opts.ExtraColumnsRule = "ignore";
-opts.EmptyLineRule = "read";
-opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
-opts = setvaropts(opts, {'latitud','longitud'}, 'DecimalSeparator', ".");    
-    % Leer el archivo CSV
-sts = readtable(ruta_archivo, opts);
-
-
+datosSensor = ImportarDatos.Sensor();
+datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
+velocidadSensor = Calculos.calcularVelocidad(datosCordenadasSensor);
 %%
-%geoplot(datos{2}.lat,datos{2}.lon,'x')
+datosP20 = ImportarDatos.P20();
+datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
-% Especifica el número de filas y columnas para los subplots
-num_filas = ceil(sqrt(numel(datos)));  % Calcula el número de filas
-num_columnas = ceil(numel(datos) / num_filas);  % Calcula el número de columnas
-
-% Itera sobre cada conjunto de datos en el arreglo
-for i = 1:numel(datos)
-    % Obtener las coordenadas de latitud y longitud del conjunto de datos actual
-    lat = datos{i}.lat;
-    lon = datos{i}.lon;
-    
-    % Crea un nuevo subplot
-    subplot(num_filas, num_columnas, i);
-    
-    % Trazar el conjunto de datos actual utilizando geoplot
-    geoplot(lat, lon);
-    
-    % Agregar título para distinguir los conjuntos de datos
-    title(sprintf('Datos %d', i));
-    
-    % Ajustar la vista
-    geolimits('auto');
-end
-
-% Agregar título global
-suptitle('Mapas de conjuntos de datos');
-
-% Ajustar la posición de los subplots
-set(gcf, 'Position', get(0, 'Screensize')); % Maximizar la ventana
-hold off;
+mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434');
+%%
+datosEventos = ImportarDatos.Evento1();
+datosEventosCord = ImportarDatos.Evento1Coordenadas(datosEventos);
+mymap = Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434', mymap);
+ 
 %%
 
+mymap = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 08:45:00.434', '2024-02-15 08:49:00.434');
 
+%%
+datos = datosSensor;
 % Especifica el número de filas y columnas para los subplots
 num_filas = ceil(sqrt(numel(datos)));  % Calcula el número de filas
 num_columnas = ceil(numel(datos) / num_filas);  % Calcula el número de columnas
