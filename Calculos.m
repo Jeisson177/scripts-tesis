@@ -19,9 +19,10 @@ classdef Calculos
             
             % Calcular la velocidad para cada punto
             for i = 1:length(lat)-1
-                distancia = gps_distance(lat(i), lon(i), lat(i+1), lon(i+1));
-                velocidad(i) = distancia / (diferenciaTiempo(i)*0.000277778);  % Velocidad en metros/segundo
+                distancia = gps_distance(lat(i), lon(i), lat(i+1), lon(i+1));%en km
+                velocidad(i) = distancia / (diferenciaTiempo(i)*0.000277778);  % Velocidad en km/h
             end
+            
         end
         
         function curvatura = calcularCurvatura(datos)
@@ -44,6 +45,26 @@ classdef Calculos
                 p3 = [lat(i+2), lon(i+2)];
                 
                 curvatura(i) = determinarCurvatura3Puntos(p1, p2, p3);
+            end
+        end
+        
+        function aceleracion = calcularAceleracion(datos)
+                % Calcular la velocidad usando la función existente
+            velocidad = Calculos.calcularVelocidad(datos);
+
+            % Asumiendo que las columnas son: tiempo, latitud, longitud
+            tiempo = datos{:, 1};
+    
+                     % Calcular la diferencia de tiempo en segundos
+            diferenciaTiempo = seconds(diff(tiempo(2:end)));  % Se ajusta el tiempo a la longitud de 'velocidad'
+    
+             % Preallocando para la aceleración
+            aceleracion = zeros(size(velocidad) - [1 0]);
+    
+             % Calcular la aceleración para cada punto
+            for i = 1:length(velocidad)-1
+                cambioVelocidad = velocidad(i+1) - velocidad(i);
+                aceleracion(i) = cambioVelocidad / diferenciaTiempo(i);  % Aceleración en metros/segundo^2
             end
         end
     end
