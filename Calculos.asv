@@ -90,15 +90,11 @@ end
             
             % Calcular la curvatura para cada conjunto de tres puntos
             for i = 1:length(lat)-2
-    p1 = struct('lat', lat(i), 'lon', lon(i));
-    p2 = struct('lat', lat(i+1), 'lon', lon(i+1));
-    p3 = struct('lat', lat(i+2), 'lon', lon(i+2));
-    
-    curvatura(i) = determinarCurvatura3Puntos(p1, p2, p3);
-
-    if (curvatura(i) > 100)
-        curvatura(i) = -1;  % Ajustar el valor de la curvatura si es necesario
-    end
+                p1 = [lat(i), lon(i)];
+                p2 = [lat(i+1), lon(i+1)];
+                p3 = [lat(i+2), lon(i+2)];
+                
+                curvatura(i) = Calculos.determinarCurvatura3Puntos(p1, p2, p3);
             end
         end
     end
