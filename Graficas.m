@@ -94,7 +94,23 @@ function grafica = Evento1(datos, fechaInicio, fechaFin, grafica)
     grid on;
     hold on
 
-        end
+end
+function Distanciavstiempo(datos,datosCordenadasP20)
+    
+    distancia=Calculos.CalcularDistancia(datos);
+    velocidad=Calculos.calcularVelocidadKH(datos);
+    plot(distancia(1:end-1),velocidad);
+    title('Velocidad vs ditancia');
+    xlabel('Distancia(m)');
+    ylabel('Velocidad(m/s)');
+    grid on;
+    hold on
+    distancia=Calculos.CalcularDistancia(datosCordenadasP20);
+    velocidad=Calculos.calcularVelocidadKH(datosCordenadasP20);
+    plot(distancia(1:end-1),velocidad);
+end
+
+
 
     end
 end
