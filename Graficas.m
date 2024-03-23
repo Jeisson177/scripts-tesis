@@ -96,7 +96,6 @@ function grafica = Evento1(datos, fechaInicio, fechaFin, grafica)
 
 end
 
-
 %%
 function grafica = graficarVelocidadSts(datos, fechaInicio, fechaFin, grafica)
     % Convertir fechas de inicio y fin a datetime si son strings
@@ -128,6 +127,21 @@ function grafica = graficarVelocidadSts(datos, fechaInicio, fechaFin, grafica)
     ylabel('Velocidad (km/h)');
     grid on;
     hold on;
+end
+
+function Distanciavstiempo(datos,datosCordenadasP20)
+    
+    distancia=Calculos.CalcularDistancia(datos);
+    velocidad=Calculos.calcularVelocidadKH(datos);
+    plot(distancia(1:end-1),velocidad);
+    title('Velocidad vs ditancia');
+    xlabel('Distancia(m)');
+    ylabel('Velocidad(m/s)');
+    grid on;
+    hold on
+    distancia=Calculos.CalcularDistancia(datosCordenadasP20);
+    velocidad=Calculos.calcularVelocidadKH(datosCordenadasP20);
+    plot(distancia(1:end-1),velocidad);
 end
 
 

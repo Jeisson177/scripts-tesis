@@ -67,12 +67,12 @@ end
             opts = delimitedTextImportOptions("NumVariables", 17);
             opts.DataLines = [1, Inf];
             opts.Delimiter = ",";
-            opts.VariableNames = {'versionTrama','idRegistro','idOperador','idVehiculo','idRuta','idConductor','fechaHoraLecturaDato','fechaHoraEnvioDato','tipoBus','tipoTrama','tecnologiaMotor','tramaRetransmitida','tipoFreno','velocidadVehiculo','aceleracionVehiculo','latitud','longitud'};
+            opts.VariableNames = {'versionTrama','idRegistro','idOperador','idVehiculo','idRuta','idConductor','fechaHoraLecturaDato','fechaHoraEnvioDato','tipoBus','tipoTrama','tecnologiaMotor','tramaRetransmitida','tipoFreno','velocidadVehiculo','aceleracionVehiculo','lat','lon'};
             opts.VariableTypes = {'double','double','double','double','double','double','datetime','datetime','double','double','double','double','logical','double','double','double','double'};
             opts.ExtraColumnsRule = "ignore";
             opts.EmptyLineRule = "read";
             opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
-            opts = setvaropts(opts, {'latitud','longitud'}, 'DecimalSeparator', ".");
+            opts = setvaropts(opts, {'lat','lon'}, 'DecimalSeparator', ".");
             
             sts = readtable(ruta_archivo, opts);
         end
@@ -113,7 +113,7 @@ end
     end
     
     % Verificar que las columnas necesarias existen en sts
-    requiredColumns = {'fechaHoraLecturaDato', 'latitud', 'longitud'};
+    requiredColumns = {'fechaHoraLecturaDato', 'lat', 'lon'};
     if ~all(ismember(requiredColumns, sts.Properties.VariableNames))
         error('La tabla de entrada no contiene las columnas necesarias.');
     end
