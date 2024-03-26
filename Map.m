@@ -203,7 +203,44 @@ function mapa = FiltrarYDibujarCurvatura(datos, fechaInicio, fechaFin, mapa)
     hold on;  % Finalizar el modo hold
 end
 
+function mapa=FiltrarYDibujarDireccion(datos, fechaInicio, fechaFin, mapa)
+     %Verificar que 'datos' sea una tabla
+    if ~istable(datos)
+        error('La entrada debe ser una tabla.');
+    end
 
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+
+    % Filtrar los datos entre las fechas de inicio y fin
+    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+    
+    % direccion
+    dire = Calculos.detectardireccion(datosFiltrados);
+
+    % Preparar el mapa
+    if nargin < 4 || isempty(mapa)
+        mapa = figure;  % Crear una nueva figura si no se proporciona un objeto gráfico
+    else
+        figure(mapa);  % Usar la figura proporcionada
+    end
+
+    % Dibujar los valores de curvatura en el mapa como puntos
+    % La curvatura se calcula a partir del segundo punto, por lo que ajustamos los datos en el plot
+    geoscatter(datosFiltrados{2:end, 2}, datosFiltrados{2:end, 3}, 10, dire, 'filled');
+    colormap(jet);  % Usa un mapa de colores para representar los valores de curvatura
+    colorbar;  % Añade una barra de color para interpretar la curvatura
+
+    title('Mapa de Calor de Curvatura');
+    geolimits('auto');  % Ajusta los límites para incluir todos los puntos
+
+    hold on;  % Finalizar el modo hold
+end
 
 
     end
