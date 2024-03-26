@@ -133,9 +133,32 @@ end
                 distancia(a) = distancia(a-1)+gps_distance(datos.lat(a), datos.lon(a), datos.lat(a+1), datos.lon(a+1));
             end
         end
+        
+        function direction=detectardireccion(datos)
+            lat=datos.lat;
+            lon=datos.lon;
+            direction = zeros(size(lat) - [1 0]);
+            curva=Calculos.calcularCurvatura(datos);
+            for i=1:length(lat)-2
+                if curva(i)~= -1
+                    direction(i)=direccion(lat(i:i+2),lon(i:i+2));
+                else
+                    direction(i)=0;
+                end          
+            end
+        end
     end
 end
-
+function dir=direccion(latitud,longitud)
+    vecAB = [latitud(2:end) - latitud(1:end-1); longitud(2:end) - longitud(1:end-1)];
+    vecBC = [latitud(3:end) - latitud(2:end-1); longitud(3:end) - longitud(2:end-1)];
+    % Calcular el producto cruzado
+    productoCruz= vecAB(1, :) .* vecBC(2, :) - vecAB(2, :) .* vecBC(1, :);
+    % Si el producto cruzado es positivo, la curva es hacia la izquierda.
+    % Si es negativo, la curva es hacia la derecha.
+    % Si es cero, la curva es recta.
+    dir=sign(sum(productoCruz));
+end
 function radio = determinarCurvatura3Puntos(p1, p2, p3)
     % Determina la curvatura de una curva definida por tres puntos en un plano cartesiano.
     % :param p1: Coordenadas del primer punto (x, y).
