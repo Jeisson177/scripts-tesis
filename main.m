@@ -3,12 +3,15 @@ datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 datosP20 = ImportarDatos.P20();
 datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
-mygraficaV = Graficas.velocidadTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
-mygraficaA = Graficas.aceleracionTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
+%mygraficaV = Graficas.velocidadTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
+%mygraficaA = Graficas.aceleracionTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
 
 
-mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 09:59:00.434');
-
+%mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 09:59:00.434');
+%%
+mymap=Map.FiltrarYDibujarCurvatura(datosCordenadasSensor, '2024-02-15 07:30:00.434', '2024-02-15 08:30:00.434');
+%%
+mymap=Map.FiltrarYDibujarDireccion(datosCordenadasSensor, '2024-02-15 07:30:00.434', '2024-02-15 08:30:00.434');
 %%
 velocidadp20 = ImportarDatos.P20Velocidad();
 mygraficaV = Graficas.graficarVelocidadSts(velocidadp20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434', mygraficaV);
