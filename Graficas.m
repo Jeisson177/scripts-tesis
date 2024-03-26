@@ -129,7 +129,7 @@ function grafica = graficarVelocidadSts(datos, fechaInicio, fechaFin, grafica)
     hold on;
 end
 
-function Distanciavstiempo(datos,datosCordenadasP20)
+function DistanciavsVelocidad(datos,datosCordenadasP20)
     
     distancia=Calculos.CalcularDistancia(datos);
     velocidad=Calculos.calcularVelocidadKH(datos);
@@ -143,6 +143,8 @@ function Distanciavstiempo(datos,datosCordenadasP20)
     velocidad=Calculos.calcularVelocidadKH(datosCordenadasP20);
     plot(distancia(1:end-1),velocidad);
 end
+
+
 
 
     end
