@@ -58,7 +58,7 @@ end
         function sts = P20(carpeta)
 
             if nargin < 1
-                carpeta = 'sts'; % Carpeta predeterminada
+                carpeta = '4001_15_02'; % Carpeta predeterminada
             end
 
             nombre_archivo = 'p20.csv';
@@ -128,7 +128,7 @@ end
 
         function mar = Evento1(carpeta)
             if nargin < 1
-                carpeta = 'sts'; % Carpeta predeterminada
+                carpeta = '4001_15_02'; % Carpeta predeterminada
             end
 
             nombre_archivo = 'EV1.csv'; % Nombre del archivo a leer

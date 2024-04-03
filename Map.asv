@@ -152,7 +152,7 @@ end
     end
 
 
-    velocidadSensor = Calculos.calcularVelocidadKH(datosFiltrados);
+    velocidadSensor = Calculos.calcularVelocidad(datosFiltrados);
 geoscatter(datosFiltrados{2:end, 2}, datosFiltrados{2:end,3}, 10, velocidadSensor, 'filled');
 colormap(jet);
     colorbar;  % Añade una barra de color para interpretar las velocidades
