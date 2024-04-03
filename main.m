@@ -7,8 +7,8 @@ datosP20 = ImportarDatos.P20();
 datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
 %Trama de los eventos del bus
-datosEventos = ImportarDatos.Evento1();
-datosEventosCord = ImportarDatos.Evento1Coordenadas(datosEventos);
+datosEventos = ImportarDatos.Evento19();
+datosEventosCord = ImportarDatos.Evento19Coordenadas(datosEventos);
 
 %%
 myMapaV = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 10:30:00.434', '2024-02-15 11:35:00.434')

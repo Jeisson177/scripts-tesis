@@ -163,7 +163,55 @@ end
     
     % Extraer solo las columnas necesarias
     resultado = datos(:, {'fechaHoraLecturaDato', 'latitud', 'longitud'});
+        end
+
+function mar = Evento19(carpeta)
+    % Comprueba si se ha proporcionado el argumento 'carpeta'; si no, usa un valor predeterminado
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
+    end
+
+    nombre_archivo = 'EV19.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo); % Construye la ruta completa del archivo
+
+    % Opciones para la importación de datos desde un archivo CSV
+    opts = delimitedTextImportOptions("NumVariables", 17); % Número de variables esperadas en el archivo
+    opts.DataLines = [1, Inf]; % Líneas del archivo que contienen datos
+    opts.Delimiter = ","; % Delimitador de campos en el archivo CSV
+    % Nombres de las variables correspondientes a las columnas del archivo
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'codigoEvento', 'codigoComportamientoAnomalo'};
+    % Tipos de datos para cada columna
+    opts.VariableTypes = {'string', 'string', 'string', 'string', 'string', 'string', 'datetime', 'datetime', 'string', 'double', 'double', 'string', 'string', 'logical', 'string', 'string', 'string'};
+    opts.ExtraColumnsRule = "ignore"; % Instrucción sobre cómo manejar columnas adicionales
+    opts.EmptyLineRule = "read"; % Instrucción sobre cómo manejar líneas vacías
+    % Especifica el formato de las columnas de fecha y hora
+    opts = setvaropts(opts, {'fechaHoraLecturaDato', 'fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+    
+    % Leer el archivo CSV en una tabla de MATLAB
+    mar = readtable(ruta_archivo, opts);
 end
+
+function resultado = Evento19Coordenadas(datos)
+    % Verificar que los datos sean una tabla
+    if ~istable(datos)
+        error('La entrada debe ser una tabla.');
+    end
+    
+    % Verificar que las columnas requeridas existan
+    columnasRequeridas = {'fechaHoraLecturaDato', 'latitud', 'longitud', 'codigoEvento'};
+    if ~all(ismember(columnasRequeridas, datos.Properties.VariableNames))
+        error('La tabla de entrada no contiene las columnas necesarias.');
+    end
+    
+    % Filtrar solo los datos del evento 19
+    datosEvento19 = datos(datos.codigoEvento == "EV19", :);
+    
+    % Extraer solo las columnas necesarias
+    resultado = datosEvento19(:, {'fechaHoraLecturaDato', 'latitud', 'longitud'});
+end
+
+
+
 
     end
 end
