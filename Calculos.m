@@ -23,7 +23,10 @@ classdef Calculos
                 distancia = gps_distance(lat(i), lon(i), lat(i+1), lon(i+1));
                 velocidad(i) = distancia / (diferenciaTiempo(i)*0.000277778);
             end
+            
+            
             velocidad=Calculos.corregirV(velocidad,datos);
+            
         end
 
         %%
@@ -52,32 +55,40 @@ classdef Calculos
         end
 %%
         function velocidad=corregirV(velocidad,datos)
-            aceleracion = Calculos.calcularAceleracion(datos);
+            aceleracion = Calculos.calcularAceleracion(Calculos.calcularVelocidadMS(datos),datos);
             for k=1:size(aceleracion)%corrección de velocidad
                 try
-                    if (abs(aceleracion(k))>3)%determina el limite de aceleración 
+                    if (abs(aceleracion(k))>2)%determina el limite de aceleración 
                         for b=k:size(aceleracion)
-                            if(abs(aceleracion(b))<3)%busca el siguiente punto bueno
+                            if(abs(aceleracion(b))<2)%busca el siguiente punto bueno
                                 a=b;
                                 break;
                             end
                         end
-                    p=((velocidad(b)-velocidad(k-1))/(b-k));
-                    z=0;
-                    for b=k:a
-                        velocidad(b)=(z*p)+velocidad(k-1);
-                        z=z+1;
-                    end
-                    k=a;                
+                        p=((velocidad(b)-velocidad(k-1))/(b-k));
+                        z=0;
+                        for b=k:a
+                            velocidad(b)=(z*p)+velocidad(k-1);
+                            z=z+1;
+                        end
+                        k=a;                
                     end
                 catch
                     velocidad=velocidad;
                 end
             end
+            %[peaks, locs] = findpeaks(aceleracion);
+            %picos_mayores_a_2 = peaks > 2;
+            %peaks(picos_mayores_a_2);
+
+            %if numel(locs) > 0
+             %   velocidad=Calculos.corregirV(velocidad,datos);
+            %end
         end
         %%
-        function aceleracion = calcularAceleracion(datos)
+        function aceleracion = calcularAceleracion(velocidad,datos)
     % Calcular la velocidad en m/s usando la función de velocidad modificada
+
     velocidad = Calculos.calcularVelocidadKH(datos);
     
     % Asumiendo que las columnas son: tiempo, latitud, longitud
@@ -92,7 +103,7 @@ classdef Calculos
     aceleracion = zeros(length(velocidad) - 1, 1);
     
     % Calcular la aceleración para cada punto
-    for i = 1:length(velocidad)-1
+    for i = 1:length(aceleracion)-1
         cambioVelocidad = velocidad(i+1) - velocidad(i);
         aceleracion(i) = cambioVelocidad / diferenciaTiempo(i);  % Aceleración en metros/segundo^2
     end
