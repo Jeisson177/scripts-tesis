@@ -78,7 +78,7 @@ classdef Calculos
         %%
         function aceleracion = calcularAceleracion(datos)
     % Calcular la velocidad en m/s usando la función de velocidad modificada
-    velocidad = Calculos.calcularVelocidadMS(datos);
+    velocidad = Calculos.calcularVelocidadKH(datos);
     
     % Asumiendo que las columnas son: tiempo, latitud, longitud
     tiempo = datos{:, 1};
