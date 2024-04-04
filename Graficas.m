@@ -15,7 +15,7 @@ function grafica = velocidadTiempo(datos, fechaInicio, fechaFin, grafica)
     datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
     
     % Calcular la velocidad usando la función proporcionada
-    velocidad = Calculos.calcularVelocidadMS(datosFiltrados);
+    velocidad = Calculos.calcularVelocidadKH(datosFiltrados);
     
     % Crear un nuevo gráfico o utilizar uno existente
     if nargin < 4 || isempty(grafica)
@@ -28,7 +28,7 @@ function grafica = velocidadTiempo(datos, fechaInicio, fechaFin, grafica)
     plot(datosFiltrados{:, 1}(2:end), velocidad, 'LineWidth', 2);  % Se asume que la velocidad se calcula entre puntos consecutivos
     title('Velocidad en Función del Tiempo');
     xlabel('Tiempo');
-    ylabel('Velocidad (unidad)');
+    ylabel('Velocidad (Km/h)');
     grid on;
     hold on
         end
@@ -47,7 +47,9 @@ function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin, grafica)
     datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
     
     % Calcular la aceleración usando la función proporcionada
-    aceleracion = Calculos.calcularAceleracion(datosFiltrados);
+    velocidad=Calculos.calcularVelocidadKH(datos);
+    velocidad=velocidad .* 0.277778;
+    aceleracion = Calculos.calcularAceleracion(velocidad,datosFiltrados);
     
     % Crear un nuevo gráfico o utilizar uno existente
     if nargin < 4 || isempty(grafica)
@@ -133,15 +135,22 @@ function DistanciavsVelocidad(datos,datosCordenadasP20)
     
     distancia=Calculos.CalcularDistancia(datos);
     velocidad=Calculos.calcularVelocidadKH(datos);
+    subplot(2,1,1);
     plot(distancia(1:end-1),velocidad);
-    title('Velocidad vs ditancia');
-    xlabel('Distancia(m)');
-    ylabel('Velocidad(m/s)');
+    title('Velocidad vs ditancia (celular)');
+    xlabel('Distancia(km)');
+    ylabel('Velocidad(km/h)');
     grid on;
-    hold on
+    
+    
     distancia=Calculos.CalcularDistancia(datosCordenadasP20);
     velocidad=Calculos.calcularVelocidadKH(datosCordenadasP20);
+    subplot(2,1,2);
     plot(distancia(1:end-1),velocidad);
+    title('Velocidad vs ditancia (sts)');
+    xlabel('Distancia(km)');
+    ylabel('Velocidad(km/h)');
+    grid on;
 end
 
 
