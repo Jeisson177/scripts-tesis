@@ -89,8 +89,8 @@ end
     figure(mapa);
 
     % Agregar marcadores con el color y la forma especificados
-    geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'Marker', formaMarcador, 'MarkerEdgeColor', colorMarcador, 'DisplayName', 'Posiciones', 'SizeData', 1000);
-    hold on
+    geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'Marker', formaMarcador, 'MarkerEdgeColor', colorMarcador, 'DisplayName', 'Posiciones', 'SizeData', 750);
+    hold on; % Mantener el gráfico actual para añadir texto
 end
 
 
@@ -231,6 +231,36 @@ function mapa=FiltrarYDibujarDireccion(datos, fechaInicio, fechaFin, mapa)
 
     hold on;  % Finalizar el modo hold
 end
+
+
+%%
+function AgregarEtiquetasAEventos(datos, mapa)
+    % Verificar que los datos sean una tabla
+    if ~istable(datos)
+        error('La entrada debe ser una tabla.');
+    end
+    
+    % Asegurarse de que las columnas requeridas existan en 'datos'
+    columnasRequeridas = {'latitud', 'longitud', 'codigoComportamientoAnomalo'};
+    if ~all(ismember(columnasRequeridas, datos.Properties.VariableNames))
+        error('La tabla de entrada no contiene las columnas necesarias.');
+    end
+
+    % Seleccionar el mapa para agregar las etiquetas
+    figure(mapa);
+
+    % Mantener los marcadores existentes y solo agregar etiquetas
+    hold on;
+
+    % Añadir texto a cada marcador con información del código anómalo
+    for i = 1:height(datos)
+        etiquetaTexto = sprintf('CA: %s', datos.codigoComportamientoAnomalo{i});
+        text(datos.latitud(i), datos.longitud(i), etiquetaTexto, 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
+    end
+
+    hold on;
+end
+
 
 
     end
