@@ -89,7 +89,7 @@ end
     figure(mapa);
 
     % Agregar marcadores con el color y la forma especificados
-    geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'Marker', formaMarcador, 'MarkerEdgeColor', colorMarcador, 'DisplayName', 'Posiciones');
+    geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'Marker', formaMarcador, 'MarkerEdgeColor', colorMarcador, 'DisplayName', 'Posiciones', 'SizeData', 1000);
     hold on
 end
 
@@ -140,7 +140,7 @@ end
     end
 
 
-    %velocidadSensor = Calculos.calcularVelocidadKH(datosFiltrados);
+    velocidadSensor = Calculos.calcularVelocidadKH(datosFiltrados);
 geoscatter(datosFiltrados{2:end, 2}, datosFiltrados{2:end,3}, 10, velocidadSensor, 'filled');
 colormap(jet);
     colorbar;  % Añade una barra de color para interpretar las velocidades

@@ -14,7 +14,7 @@ datosEventosCord = ImportarDatos.Evento19Coordenadas(datosEventos);
 myMapaV = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 10:30:00.434', '2024-02-15 11:20:00.434')
 
 %%
-Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-15 10:30:00.434', '2024-02-15 11:35:00.434', myMapaV, 'x', 'red')
+Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-15 10:30:00.434', '2024-02-15 11:35:00.434', myMapaV, 'red', 'x')
 
 %%
 mygraficaV = Graficas.velocidadTiempo(datosCordenadasSensor, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
