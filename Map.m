@@ -51,21 +51,20 @@ classdef Map
 end
 %%
 %Creo que agrega donde se ubican en el mapa las posiciones 
-        function mapa = FiltrarYAgregarMarcadores(datos, fechaInicio, fechaFin, mapa)
+        function mapa = FiltrarYAgregarMarcadores(datos, fechaInicio, fechaFin, mapa, colorMarcador, formaMarcador)
     % Verificar que 'datos' sea una tabla
     if ~istable(datos)
         error('La entrada debe ser una tabla.');
     end
 
     % Comprobar si se ha pasado un mapa como argumento
-    % At the beginning of FiltrarYAgregarMarcadores function
-if nargin >= 4 && ishandle(mapa) && isa(mapa, 'matlab.ui.Figure')
-    figure(mapa); % Only set it as current figure if it's valid
-else
-    mapa = figure; % Create a new figure if mapa is not valid
-end
+    if nargin >= 4 && ishandle(mapa) && isa(mapa, 'matlab.ui.Figure')
+        figure(mapa); % Solo establecerlo como figura actual si es válido
+    else
+        mapa = figure; % Crear una nueva figura si 'mapa' no es válido
+    end
 
-    % Convertir las fechas de inicio y fin si son strings a datetime
+    % Convertir las fechas de inicio y fin si son cadenas a datetime
     % Asegurarse de que no tengan zona horaria para que coincidan con los datos
     if ischar(fechaInicio) || isstring(fechaInicio)
         fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
@@ -87,25 +86,14 @@ end
     end
     
     % Seleccionar el mapa para trazar
-    if ~exist('mapa', 'var') || isempty(mapa)
-        mapa = figure;
-        %geoAx = geoaxes; % Crea nuevos ejes geográficos si no se ha proporcionado 'mapa'
-    else
-        figure(mapa); % Activa la figura dada
-        %geoAx = gca; % Asume que los ejes actuales son los que se deben usar
-    end
+    figure(mapa);
 
-
-    % Asegurarte de que estás trabajando con GeographicAxes
-    % if ~isa(geoAx, 'matlab.graphics.axis.GeographicAxes')
-    %     error('Los ejes actuales no son ejes geográficos. Se requiere un GeographicAxes para geoscatter.');
-    % end
-
-
-    % Agregar marcadores en lugar de trazar una línea
-    geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'DisplayName', 'Posiciones');
+    % Agregar marcadores con el color y la forma especificados
+    geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'Marker', formaMarcador, 'MarkerEdgeColor', colorMarcador, 'DisplayName', 'Posiciones');
     hold on
 end
+
+
 %%
 function mapa = FiltrarYDibujarVelocidad(datos, fechaInicio, fechaFin, mapa)
     % Verificar que 'datos' sea una tabla
@@ -152,7 +140,7 @@ end
     end
 
 
-    velocidadSensor = Calculos.calcularVelocidadKH(datosFiltrados);
+    %velocidadSensor = Calculos.calcularVelocidadKH(datosFiltrados);
 geoscatter(datosFiltrados{2:end, 2}, datosFiltrados{2:end,3}, 10, velocidadSensor, 'filled');
 colormap(jet);
     colorbar;  % Añade una barra de color para interpretar las velocidades
