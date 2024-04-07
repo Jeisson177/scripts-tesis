@@ -49,7 +49,7 @@ function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin, grafica)
     % Calcular la aceleración usando la función proporcionada
     velocidad=Calculos.calcularVelocidadKH(datos);
     velocidad=velocidad .* 0.277778;
-    aceleracion = Calculos.calcularAceleracion(velocidad,datosFiltrados);
+    aceleracion = Calculos.calcularAceleracion2(velocidad,datosFiltrados);
     
     % Crear un nuevo gráfico o utilizar uno existente
     if nargin < 4 || isempty(grafica)

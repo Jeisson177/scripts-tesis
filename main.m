@@ -26,7 +26,7 @@ nombresLeyenda = {'Código Anómalo 1', 'Código Anómalo 2', 'Código Anómalo 
 tablas = {tabla1, tabla2, tabla3, tabla4};
 
 % Iterar sobre cada tabla para agregar marcadores
-for i = 1:length(tablas)
+for i = 1:1
     tablaActual = tablas{i};
     
     % Verificar si la tabla está vacía
@@ -37,7 +37,7 @@ for i = 1:length(tablas)
     % Agregar marcadores al mapa para cada tabla
     Map.FiltrarYAgregarMarcadores(tablaActual, '2024-02-14 10:30:00.434', '2024-02-16 11:35:00.434', myMapaV, colores{i}, formas{i});
 
-Map.AgregarEtiquetasAEventos(tablaActual, myMapaV);
+%Map.AgregarEtiquetasAEventos(tablaActual, myMapaV);
 
 leyenda{end+1} = sprintf('Código Anómalo %d', i);
 end
@@ -57,7 +57,10 @@ hold off;
 mygraficaV = Graficas.velocidadTiempo(datosCordenadasSensor, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
 mygraficaA = Graficas.aceleracionTiempo(datosCordenadasSensor, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
 mymap = Map.FiltrarYMostrarRuta(datosCordenadasSensor, '2024-02-14 07:30:00.434', '2024-02-16 09:59:00.434');
-
+%%
+%Comparacion aceleraciones
+mygraficaAc = Graficas.aceleracionTiempo(datosCordenadasSensor, '2024-02-15 9:30:00.434', '2024-02-15 9:35:00.434');
+mygraficaAs = Graficas.aceleracionTiempo(datosCordenadasP20, '2024-02-15 9:30:00.434', '2024-02-15 9:35:00.434', mygraficaAc);
 
 %%
 Graficas.DistanciavsVelocidad(datosCordenadasSensor,datosCordenadasP20)

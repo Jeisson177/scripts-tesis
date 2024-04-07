@@ -106,6 +106,30 @@ classdef Calculos
             aceleracion(i) = NaN; % Manejar el caso de división por cero
         end
     end
+       end
+
+
+       function aceleracion = calcularAceleracion2(velocidad,datos)
+    % Calcular la velocidad en m/s usando la función de velocidad modificada
+
+    velocidad = Calculos.calcularVelocidadKH(datos);
+
+    % Asumiendo que las columnas son: tiempo, latitud, longitud
+    tiempo = datos{:, 1};
+
+    % Calcular la diferencia de tiempo en segundos
+    % Nota: Se calcula desde el segundo punto ya que la primera velocidad se calcula entre el primer y segundo punto
+    diferenciaTiempo = seconds(diff(tiempo(2:end)));
+
+    % Preasignando espacio para la aceleración
+    % La longitud de la aceleración será una menos que la de la velocidad, ya que se calcula entre velocidades sucesivas
+    aceleracion = zeros(length(velocidad) - 1, 1);
+
+    % Calcular la aceleración para cada punto
+    for i = 1:length(aceleracion)-1
+        cambioVelocidad = velocidad(i+1) - velocidad(i);
+        aceleracion(i) = cambioVelocidad / diferenciaTiempo(i);  % Aceleración en metros/segundo^2
+    end
 end
 %%
         

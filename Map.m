@@ -89,7 +89,7 @@ end
     figure(mapa);
 
     % Agregar marcadores con el color y la forma especificados
-    geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'Marker', formaMarcador, 'MarkerEdgeColor', colorMarcador, 'DisplayName', 'Posiciones', 'SizeData', 750);
+    geoscatter(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'Filled', 'Marker', formaMarcador, 'MarkerEdgeColor', colorMarcador, 'DisplayName', 'Posiciones', 'SizeData', 250);
     hold on; % Mantener el gráfico actual para añadir texto
 end
 
