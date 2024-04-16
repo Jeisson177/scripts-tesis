@@ -134,11 +134,12 @@ function mar = P60(carpeta)
     ruta_archivo = fullfile(carpeta, nombre_archivo);
 
     % Opciones para la importación de datos
-    opts = delimitedTextImportOptions("NumVariables", 33); % Ajuste el número de variables
+    opts = delimitedTextImportOptions("NumVariables", 34); % Ajuste el número de variables
     opts.DataLines = [1, Inf];
     opts.Delimiter = ",";
-    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'temperaturaMotor', 'presionAceiteMotor', 'velocidadVehiculo', 'aceleracionVehiculo', 'revolucionesMotor', 'estadoDesgasteFrenos', 'kilometrosOdometro', 'consumoCombustible', 'nivelTanqueCombustible', 'consumoEnergia', 'regeneracionEnergia', 'nivelRestanteEnergia', 'porcentajeEnergiaGenerada', 'temperaturaSts', 'usoCpuSts', 'memRamSts', 'memDiscoSts', 'temperaturaBaterias', 'sentidoMarcha'}; % Añadir las nuevas variables
-    opts.VariableTypes = {'string','string','string','string','string','string','datetime','datetime','string','double','double','string','logical','string','string','double','double','double','double','double','double','double','double','double','double','double','double','double','double','double','double','double','double','double','double','string'}; % Ajustar los tipos de variables
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'lat', 'lon', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'temperaturaMotor', 'presionAceiteMotor', 'velocidadVehiculo', 'aceleracionVehiculo', 'revolucionesMotor', 'estadoDesgasteFrenos', 'kilometrosOdometro', 'consumoCombustible', 'nivelTanqueCombustible', 'consumoEnergia', 'regeneracionEnergia', 'nivelRestanteEnergia', 'porcentajeEnergiaGenerada', 'temperaturaSts', 'usoCpuSts', 'memRamSts', 'memDiscoSts', 'temperaturaBaterias', 'sentidoMarcha'}; % Añadir las nuevas variables
+   opts.VariableTypes = {'string'       ,'string'     ,'string'     ,'string'     ,'string' ,'string'      ,'datetime'             ,'datetime'           ,'string'  ,'double'  ,'double'   ,'string'    ,'double'         ,'string'              ,'string'   ,'double'           ,'double'             ,'double'            ,'double'              ,'double'            ,'double'               ,'double'             ,'double'             ,'double'                 ,'double'         ,'double'              ,'double'               ,'double'                    ,'double'         ,'double'    ,'double'    ,'double'      ,'double'              ,'double'};
+
     opts.ExtraColumnsRule = "ignore";
     opts.EmptyLineRule = "read";
     opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
@@ -146,6 +147,7 @@ function mar = P60(carpeta)
     % Leer el archivo CSV
     mar = readtable(ruta_archivo, opts);
 end
+
 
         function mar = Evento1(carpeta)
             if nargin < 1
