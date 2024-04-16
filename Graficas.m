@@ -68,7 +68,18 @@ function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin, grafica)
     hold on
 end
 
-%%
+function grafica=DistanciavsEnergia()
+    datosp60=ImportarDatos.P60();
+    distancia=Calculos.CalcularDistancia(datosp60);
+    % Crear un nuevo gráfico o utilizar uno existente
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+    else
+        figure(grafica);
+    end
+    plot(distancia,datosp60.nivelRestanteEnergia);
+    
+end
 function grafica = Evento1(datos, fechaInicio, fechaFin, grafica)
     % Convertir fechas de inicio y fin a datetime si son strings
     if ischar(fechaInicio) || isstring(fechaInicio)
