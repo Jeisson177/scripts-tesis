@@ -80,6 +80,15 @@ function grafica=DistanciavsEnergia()
     plot(distancia,datosp60.nivelRestanteEnergia);
     
 end
+function grafica=TiempovsEnergia()
+    datosp60=ImportarDatos.P60();
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+    else
+        figure(grafica);
+    end
+    plot(datosp60.fechaHoraLecturaDato,datosp60.nivelRestanteEnergia);
+end
 function grafica = Evento1(datos, fechaInicio, fechaFin, grafica)
     % Convertir fechas de inicio y fin a datetime si son strings
     if ischar(fechaInicio) || isstring(fechaInicio)
