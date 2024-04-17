@@ -181,6 +181,15 @@ end
                 end          
             end
         end
+
+        function velocidadm=maximaVelocidadCurva()
+            distancia=Calculos.calcularCurvatura(datosCordenadasSensor);
+            velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            datossss=[distancia,velocidad(2:end)];
+            datoF=datossss(datossss(:,1)<50,:);
+            datoF=datoF(datoF(:,1)>0,:);
+            velocidadm=max(datoF(:, 2));
+        end
     end
 end
 function dir=direccion(latitud,longitud)
