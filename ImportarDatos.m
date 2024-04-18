@@ -125,6 +125,29 @@ end
     resultado = sortrows(resultado, 'fechaHoraLecturaDato');
 end
 
+function mar = P60(carpeta)
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
+    end
+
+    nombre_archivo = 'P60.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 34); % Ajuste el número de variables
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'lat', 'lon', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'temperaturaMotor', 'presionAceiteMotor', 'velocidadVehiculo', 'aceleracionVehiculo', 'revolucionesMotor', 'estadoDesgasteFrenos', 'kilometrosOdometro', 'consumoCombustible', 'nivelTanqueCombustible', 'consumoEnergia', 'regeneracionEnergia', 'nivelRestanteEnergia', 'porcentajeEnergiaGenerada', 'temperaturaSts', 'usoCpuSts', 'memRamSts', 'memDiscoSts', 'temperaturaBaterias', 'sentidoMarcha'}; % Añadir las nuevas variables
+   opts.VariableTypes = {'string'       ,'string'     ,'string'     ,'string'     ,'string' ,'string'      ,'datetime'             ,'datetime'           ,'string'  ,'double'  ,'double'   ,'string'    ,'double'         ,'string'              ,'string'   ,'double'           ,'double'             ,'double'            ,'double'              ,'double'            ,'double'               ,'double'             ,'double'             ,'double'                 ,'double'         ,'double'              ,'double'               ,'double'                    ,'double'         ,'double'    ,'double'    ,'double'      ,'double'              ,'double'};
+
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+
+    % Leer el archivo CSV
+    mar = readtable(ruta_archivo, opts);
+end
+
 
         function mar = Evento1(carpeta)
             if nargin < 1
@@ -147,23 +170,116 @@ end
             % Leer el archivo CSV
             mar = readtable(ruta_archivo, opts);
         end
-    
-        function resultado = Evento1Coordenadas(datos)
-
-
-    % Verificar que los datos sean una tabla
-    if ~istable(datos)
-        error('La entrada debe ser una tabla.');
+ function mar = Evento2(carpeta)
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
     end
-    
-    % Verificar que las columnas requeridas existan
-    if ~all(ismember({'fechaHoraLecturaDato', 'latitud', 'longitud'}, datos.Properties.VariableNames))
-        error('La tabla de entrada no contiene las columnas necesarias.');
+
+    nombre_archivo = 'EV2.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 18); 
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'codigoEvento', 'estadoAperturaCierrePuertas'}; 
+    opts.VariableTypes = {'string','string','string','string','string','string','datetime','datetime','string','double','double','string','logical','string','string','string','logical'}; 
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+
+    % Leer el archivo CSV
+    mar = readtable(ruta_archivo, opts);
+       end
+
+function mar = Evento8(carpeta)
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
     end
-    
-    % Extraer solo las columnas necesarias
-    resultado = datos(:, {'fechaHoraLecturaDato', 'latitud', 'longitud'});
-        end
+
+    nombre_archivo = 'EV8.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 18); % Ajuste el número de variables
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'codigoEvento', 'fotoConductor'}; % Añadir la nueva variable
+    opts.VariableTypes = {'string','string','string','string','string','string','datetime','datetime','string','double','double','string','logical','string','string','string','string'}; % Ajustar los tipos de variables
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+
+    % Leer el archivo CSV
+    mar = readtable(ruta_archivo, opts);
+end
+
+function mar = Evento18(carpeta)
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
+    end
+
+    nombre_archivo = 'EV18.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 18); % Ajuste el número de variables
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'codigoEvento', 'fotoConductor'}; % Añadir la nueva variable
+    opts.VariableTypes = {'string','string','string','string','string','string','datetime','datetime','string','double','double','string','logical','string','string','string','string'}; % Ajustar los tipos de variables
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+
+    % Leer el archivo CSV
+    mar = readtable(ruta_archivo, opts);
+end
+
+function mar = Evento20(carpeta)
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
+    end
+
+    nombre_archivo = 'EV20.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 18); % Ajuste el número de variables
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'codigoEvento', 'porcentajeCargaBaterias'}; % Añadir la nueva variable
+    opts.VariableTypes = {'string','string','string','string','string','string','datetime','datetime','string','double','double','string','logical','string','string','string','double'}; % Ajustar los tipos de variables
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+
+    % Leer el archivo CSV
+    mar = readtable(ruta_archivo, opts);
+end
+
+function mar = Evento21(carpeta)
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
+    end
+
+    nombre_archivo = 'EV21.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 18); % Ajuste el número de variables
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'codigoEvento', 'porcentajeCargaBaterias'}; % Añadir la nueva variable
+    opts.VariableTypes = {'string','string','string','string','string','string','datetime','datetime','string','double','double','string','logical','string','string','string','double'}; % Ajustar los tipos de variables
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+
+    % Leer el archivo CSV
+    mar = readtable(ruta_archivo, opts);
+end   
+        
 %%
 function mar = Evento19(carpeta)
     % Comprueba si se ha proporcionado el argumento 'carpeta'; si no, usa un valor predeterminado

@@ -68,7 +68,53 @@ function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin, grafica)
     hold on
 end
 
-%%
+function grafica=DistanciavsEnergia()
+    datosp60=ImportarDatos.P60();
+    distancia=Calculos.CalcularDistancia(datosp60);
+    % Crear un nuevo gráfico o utilizar uno existente
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+    else
+        figure(grafica);
+    end
+    plot(distancia,datosp60.nivelRestanteEnergia);
+    
+end
+function grafica=TiempovsEnergia()
+    datosp60=ImportarDatos.P60();
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+    else
+        figure(grafica);
+    end
+    plot(datosp60.fechaHoraLecturaDato,datosp60.nivelRestanteEnergia);
+end
+function grafica=Evento20(grafica)%como se va a cargar en un solo lugar no se tiene en cuenta para la distancia
+    EV20=ImportarDatos.Evento20();
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+    else
+        figure(grafica);
+    end
+    
+    plot(EV20.fechaHoraLecturaDato, zeros(size(EV20.fechaHoraLecturaDato)), 'ro', 'MarkerSize', 5);
+    title('Energia en Función del Tiempo');
+
+end
+
+function grafica=Evento21(grafica)%como se va a cargar en un solo lugar no se tiene en cuenta para la distancia
+    EV20=ImportarDatos.Evento21();
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+    else
+        figure(grafica);
+    end
+    
+    plot(EV20.fechaHoraLecturaDato, zeros(size(EV20.fechaHoraLecturaDato)), 'rx', 'MarkerSize', 5);
+    title('Energia en Función del Tiempo');
+
+end
+
 function grafica = Evento1(datos, fechaInicio, fechaFin, grafica)
     % Convertir fechas de inicio y fin a datetime si son strings
     if ischar(fechaInicio) || isstring(fechaInicio)
