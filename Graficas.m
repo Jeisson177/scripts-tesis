@@ -109,14 +109,13 @@ function analizarAceleraciones(datos, fechaInicio, fechaFin)
     datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
     
     % Calcular la aceleración usando la función proporcionada
-    velocidad=Calculos.calcularVelocidadKH(datosFiltrados);
-    velocidad=velocidad .* 0.277778;
+    velocidad=Calculos.calcularVelocidadMS(datosFiltrados);
 
 
 
 
     % Calcular aceleraciones usando la función previa
-    aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,3);
+    aceleracion = Calculos.calcularAceleracion(velocidad, datos);
     
     % Filtrar aceleraciones para encontrar valores significativos (mayores a 2 m/s^2)
     aceleracionesSignificativas = abs(aceleracion) > 2;
@@ -130,14 +129,16 @@ function analizarAceleraciones(datos, fechaInicio, fechaFin)
     
     % Crear un histograma de todas las aceleraciones
     figure;
-    histogram(aceleracion, 50); % 50 bins para el histograma
+    % Definir los bordes de los bins del histograma en pasos de 0.5 desde el mínimo hasta el máximo de 3
+    binEdges = -3:0.5:3; % Asumiendo que también consideramos aceleraciones negativas hasta -3
+    histogram(aceleracion, binEdges);
     title('Histograma de Aceleraciones');
     xlabel('Aceleración (m/s^2)');
     ylabel('Frecuencia');
     
     % Marcar las aceleraciones bruscas en el histograma
     hold on;
-    histogram(aceleracion(aceleracionesSignificativas), 50);
+    histogram(aceleracion(aceleracionesSignificativas), binEdges);
     legend('Todas las Aceleraciones', 'Aceleraciones > 2 m/s^2');
     hold off;
     
@@ -147,6 +148,7 @@ function analizarAceleraciones(datos, fechaInicio, fechaFin)
     else
         fprintf('No se encontraron aceleraciones bruscas mayores a 2 m/s^2.\n');
     end
+
 end
 
 
