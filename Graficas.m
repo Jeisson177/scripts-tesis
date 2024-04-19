@@ -14,8 +14,11 @@ function grafica = velocidadTiempo(datos, fechaInicio, fechaFin, grafica)
     % Filtrar los datos por el rango de fechas
     datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
     
+aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,20);
+
+
     % Calcular la velocidad usando la función proporcionada
-    velocidad = Calculos.calcularVelocidadKH(datosFiltrados);
+    velocidad = Calculos.corregirVelocidad3(datosFiltrados, aceleracion, 80, 100000000);
     
     % Crear un nuevo gráfico o utilizar uno existente
     if nargin < 4 || isempty(grafica)
@@ -34,7 +37,10 @@ function grafica = velocidadTiempo(datos, fechaInicio, fechaFin, grafica)
         end
 %%
 
-function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin, grafica)
+function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin,metodoAceleracion, grafica)
+
+
+
     % Convertir fechas de inicio y fin a datetime si son strings
     if ischar(fechaInicio) || isstring(fechaInicio)
         fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
@@ -43,16 +49,33 @@ function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin, grafica)
         fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
     end
     
-    % Filtrar los datos por el rango de fechas
+    % Obtener los datos en el rango de fechas
     datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
     
     % Calcular la aceleración usando la función proporcionada
-    velocidad=Calculos.calcularVelocidadKH(datos);
+    velocidad=Calculos.calcularVelocidadKH(datosFiltrados);
     velocidad=velocidad .* 0.277778;
-    aceleracion = Calculos.calcularAceleracion2(velocidad,datosFiltrados);
+    
+
+        % Elegir la función de cálculo de aceleración basada en el parámetro 'metodoAceleracion'
+    switch metodoAceleracion
+        case 'metodo1'
+            aceleracion = Calculos.calcularAceleracion(velocidad, datosFiltrados);
+        case 'metodo2'
+            aceleracion = Calculos.calcularAceleracion2(velocidad, datosFiltrados);
+        case 'filtrar'
+            aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,0.8);
+        otherwise
+            error('Método de cálculo de aceleración no reconocido');
+    end
+
+
+    disp(['Longitud de tiempo: ', num2str(length(datosFiltrados{:, 1}(3:end)))]);
+disp(['Longitud de aceleración: ', num2str(length(aceleracion))]);
+
     
     % Crear un nuevo gráfico o utilizar uno existente
-    if nargin < 4 || isempty(grafica)
+    if nargin < 5 || isempty(grafica)
         grafica = figure;
     else
         figure(grafica);
@@ -67,7 +90,68 @@ function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin, grafica)
     grid on;
     hold on
 end
+%%
 
+
+function analizarAceleraciones(datos, fechaInicio, fechaFin)
+
+
+
+     % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    
+    % Obtener los datos en el rango de fechas
+    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+    
+    % Calcular la aceleración usando la función proporcionada
+    velocidad=Calculos.calcularVelocidadKH(datosFiltrados);
+    velocidad=velocidad .* 0.277778;
+
+
+
+
+    % Calcular aceleraciones usando la función previa
+    aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,3);
+    
+    % Filtrar aceleraciones para encontrar valores significativos (mayores a 2 m/s^2)
+    aceleracionesSignificativas = abs(aceleracion) > 2;
+    
+    % Encontrar los picos de aceleraciones significativas
+    [pks, locs] = findpeaks(aceleracion(aceleracionesSignificativas));
+    
+    % Mostrar los picos de aceleraciones bruscas
+    fprintf('Picos de aceleraciones significativas:\n');
+    disp(table(pks, datos{locs, 1}, 'VariableNames', {'Aceleracion', 'Tiempo'}));
+    
+    % Crear un histograma de todas las aceleraciones
+    figure;
+    histogram(aceleracion, 50); % 50 bins para el histograma
+    title('Histograma de Aceleraciones');
+    xlabel('Aceleración (m/s^2)');
+    ylabel('Frecuencia');
+    
+    % Marcar las aceleraciones bruscas en el histograma
+    hold on;
+    histogram(aceleracion(aceleracionesSignificativas), 50);
+    legend('Todas las Aceleraciones', 'Aceleraciones > 2 m/s^2');
+    hold off;
+    
+    % Reporte adicional si es necesario
+    if ~isempty(pks)
+        fprintf('Se encontraron %d aceleraciones bruscas mayores a 2 m/s^2.\n', length(pks));
+    else
+        fprintf('No se encontraron aceleraciones bruscas mayores a 2 m/s^2.\n');
+    end
+end
+
+
+
+%%
 function grafica=DistanciavsEnergia()
     datosp60=ImportarDatos.P60();
     distancia=Calculos.CalcularDistancia(datosp60);
@@ -80,6 +164,8 @@ function grafica=DistanciavsEnergia()
     plot(distancia,datosp60.nivelRestanteEnergia);
     
 end
+
+%%
 function grafica=TiempovsEnergia()
     datosp60=ImportarDatos.P60();
     if nargin < 4 || isempty(grafica)
@@ -89,6 +175,9 @@ function grafica=TiempovsEnergia()
     end
     plot(datosp60.fechaHoraLecturaDato,datosp60.nivelRestanteEnergia);
 end
+
+%%
+
 function grafica=Evento20(grafica)%como se va a cargar en un solo lugar no se tiene en cuenta para la distancia
     EV20=ImportarDatos.Evento20();
     if nargin < 4 || isempty(grafica)
@@ -102,6 +191,8 @@ function grafica=Evento20(grafica)%como se va a cargar en un solo lugar no se ti
 
 end
 
+%%
+
 function grafica=Evento21(grafica)%como se va a cargar en un solo lugar no se tiene en cuenta para la distancia
     EV20=ImportarDatos.Evento21();
     if nargin < 4 || isempty(grafica)
@@ -114,6 +205,8 @@ function grafica=Evento21(grafica)%como se va a cargar en un solo lugar no se ti
     title('Energia en Función del Tiempo');
 
 end
+
+%%
 
 function grafica = Evento1(datos, fechaInicio, fechaFin, grafica)
     % Convertir fechas de inicio y fin a datetime si son strings

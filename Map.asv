@@ -192,8 +192,8 @@ function mapa = Curvatura(datos, fechaInicio, fechaFin, mapa)
 
     hold on;  % Finalizar el modo hold
 end
-%%
-function mapa = Direccion(datos, fechaInicio, fechaFin, mapa)
+
+function mapa=FiltrarYDibujarDireccion(datos, fechaInicio, fechaFin, mapa)
      %Verificar que 'datos' sea una tabla
     if ~istable(datos)
         error('La entrada debe ser una tabla.');

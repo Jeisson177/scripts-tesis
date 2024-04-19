@@ -199,8 +199,6 @@ end
 
        % ccori
 
-       
-
        %%
 
        function aceleracion = calcularAceleracion2(velocidad,datos)
