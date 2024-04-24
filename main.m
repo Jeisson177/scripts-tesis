@@ -56,7 +56,9 @@ hold off;
 %% Aqui mostramos la grafica de velocidad y aceleración 
 
 mygraficaV = Graficas.velocidadTiempo(datosCordenadasSensor, '2024-02-15 0:30:00.434', '2024-02-15 23:35:00.434');
-Graficas.analizarAceleraciones(datosCordenadasSensor, '2024-02-15 0:30:00.434', '2024-02-15 23:35:00.434')
+mygraficaV = Graficas.velocidadTiempoCorregida(datosCordenadasSensor, '2024-02-15 0:30:00.434', '2024-02-15 23:35:00.434', mygraficaV);
+
+%%Graficas.analizarAceleraciones(datosCordenadasSensor, '2024-02-15 0:30:00.434', '2024-02-15 23:35:00.434')
 %mygraficaA = Graficas.aceleracionTiempo(datosCordenadasSensor, '2024-02-15 9:30:00.434', '2024-02-15 9:35:00.434');
 
 

@@ -172,6 +172,107 @@ end
              %   velocidad=Calculos.corregirV(velocidad,datos);
             %end
         end
+
+
+        %%
+
+       
+        function velocidadCorregida = corregirVelocidadFiltrada(datos, umbral)
+    % Asumimos que los datos contienen: tiempo, latitud, longitud
+    tiempo = datos{:, 1};    % Extraer columna de tiempo
+    velocidad = Calculos.calcularVelocidadKH(datos); % Calcular velocidad en km/h
+    velocidad = velocidad * 0.277778; % Convertir velocidad a m/s
+    
+    % Calcular la diferencia de tiempo en segundos
+    diferenciaTiempo = seconds(diff(tiempo));
+    
+    % Preasignar espacio para la velocidad corregida
+    n = length(velocidad);
+    velocidadCorregida = velocidad;
+    
+    % Iterar sobre los puntos de velocidad
+    puntoInicial = 1;
+    while puntoInicial < n
+        puntoFinal = puntoInicial + 1;
+        
+        % Buscar el siguiente punto final donde la pendiente esté por debajo del umbral
+        while puntoFinal <= n && abs((velocidad(puntoFinal) - velocidad(puntoInicial)) / diferenciaTiempo(puntoFinal-1)) > umbral
+            puntoFinal = puntoFinal + 1;
+        end
+        
+        % Si se supera el umbral en el tramo, ajustar la velocidad entre los puntos inicial y final
+        if puntoFinal <= n
+            % Calcular la pendiente entre el punto inicial y final
+            pendiente = (velocidad(puntoFinal) - velocidad(puntoInicial)) / diferenciaTiempo(puntoFinal-1);
+            
+            % Ajustar la velocidad entre los puntos inicial y final para que la pendiente esté por debajo del umbral
+            for i = puntoInicial:puntoFinal-1
+                velocidadCorregida(i) = velocidad(puntoInicial) + pendiente * diferenciaTiempo(i-puntoInicial);
+            end
+        end
+        
+        % Mover el punto inicial al siguiente punto final
+        puntoInicial = puntoFinal;
+    end
+    
+    return;
+end
+
+        %%
+
+
+        function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
+    tiempo = datos{:, 1};    
+    velocidad = Calculos.calcularVelocidadMS(datos);
+    n = length(velocidad);
+    velocidadCorregida = velocidad;
+    
+    i = 1;
+    while i < n - 1
+        % Convertir los objetos duration a segundos
+        dt = seconds(tiempo(i+1) - tiempo(i));
+        
+        % Calcular la pendiente entre dos puntos consecutivos
+        pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
+        
+        % Si la pendiente supera el umbral, encontrar un punto donde no lo haga
+        if abs(pendiente) > umbral
+            j = i + 2; % Iniciar con el siguiente punto
+            while j < n && abs(pendiente) > umbral
+                % Convertir los objetos duration a segundos
+                dt = seconds(tiempo(j) - tiempo(i));
+                
+                pendiente = (velocidadCorregida(j) - velocidadCorregida(i)) / dt;
+                j = j + 1;
+            end
+            
+            % Si encontramos un punto donde la pendiente es menor al umbral
+            if abs(pendiente) <= umbral
+                % Interpolación lineal entre los puntos i y j
+                x = [tiempo(i); tiempo(j)];
+                y = [velocidadCorregida(i); velocidadCorregida(j)];
+                p = polyfit(seconds(x - x(1)), y, 1); % Coeficientes de la regresión lineal
+                t = tiempo(i+1:j-1);
+                velocidadCorregida(i+1:j-1) = polyval(p, seconds(t - x(1))); % Evaluar la regresión lineal
+                
+                % Actualizar el punto inicial y continuar
+                i = j - 1;
+            else
+                % Si no encontramos un punto dentro del umbral, avanzamos al siguiente punto
+                i = i + 1;
+            end
+        else
+            % Si la pendiente está dentro del umbral, avanzamos al siguiente punto
+            i = i + 1;
+        end
+    end
+    
+    % Retornar el vector de velocidad corregida
+    return;
+end
+
+
+
         %%
        function aceleracion = calcularAceleracion(velocidad, datos)
     % Asumiendo que las columnas son: tiempo, latitud, longitud

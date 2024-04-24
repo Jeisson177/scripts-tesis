@@ -18,7 +18,7 @@ aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,20);
 
 
     % Calcular la velocidad usando la función proporcionada
-    velocidad = Calculos.corregirVelocidad3(datosFiltrados, aceleracion, 80, 100000000);
+    velocidad = Calculos.calcularVelocidadMS(datosFiltrados);
     
     % Crear un nuevo gráfico o utilizar uno existente
     if nargin < 4 || isempty(grafica)
@@ -35,6 +35,44 @@ aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,20);
     grid on;
     hold on
         end
+
+%%
+
+function grafica = velocidadTiempoCorregida(datos, fechaInicio, fechaFin, grafica)
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    
+    % Filtrar los datos por el rango de fechas
+    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+    
+aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,20);
+
+
+    % Calcular la velocidad usando la función proporcionada
+    velocidad = Calculos.corregirVelocidadPendiente(datosFiltrados, 3);
+    
+    % Crear un nuevo gráfico o utilizar uno existente
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+    else
+        figure(grafica);
+    end
+    
+    % Trazar velocidad en función del tiempo
+    plot(datosFiltrados{:, 1}(2:end), velocidad, 'LineWidth', 2);  % Se asume que la velocidad se calcula entre puntos consecutivos
+    title('Velocidad en Función del Tiempo');
+    xlabel('Tiempo');
+    ylabel('Velocidad (Km/h)');
+    grid on;
+    hold on
+        end
+
+
 %%
 
 function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin,metodoAceleracion, grafica)
