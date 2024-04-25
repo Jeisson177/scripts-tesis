@@ -1,9 +1,17 @@
+
+
+vector = [0.84, 1.56, 2.03, 2.68, 3.37, 4.09, 4.75, 5.58, 6.42, 7.26, 8.24, 9.18, 10.21, 11.29, 12.34, 13.49, 14.62, 15.83, 16.97, 18.14, 19.25, 20.28, 20.96, 21.57, 21.98, 22.27, 22.53, 22.79, 22.88];
+
+
+
+
+%%
 %Datos del telefono
-datosSensor = ImportarDatos.Sensor();% Importar los datos del telefono
+datosSensor = ImportarDatos.Sensor("semana 1\viernes\mujer\4104_CodConductor1_CodConductor2\");% Importar los datos del telefono
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);%Importar coordenadas y stampas de tiempo del telefono
 
 %Tramas de p20 recolectadas del bus
-datosP20 = ImportarDatos.P20();
+datosP20 = ImportarDatos.P20("4104-19-04-2024");
 datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
 % Trama de los eventos del bus
@@ -11,7 +19,11 @@ datosEventos = ImportarDatos.Evento19();
 [tabla1, tabla2, tabla3, tabla4] = ImportarDatos.Evento19Coordenadas(datosEventos);
 
 %%
-myMapaV = Map.Velocidad(datosCordenadasSensor, '2024-02-15 10:30:00.434', '2024-02-15 11:20:00.434');
+myMapaV = Map.Velocidad(datosCordenadasSensor, '2024-04-19 14:35:00.434', '2024-04-19 16:35:00.434');
+mygraficaV = Graficas.velocidadTiempoCorregida(datosCordenadasSensor, '2024-04-19 3:11:00.434', '2024-04-19 8:13:00.434');
+%%
+Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, '2024-04-19 14:35:00.434', '2024-04-19 16:35:00.434')
+
 
 %% Aqui mostramos los marcadores para el evento 19 en el mapa para los 4 codigos anomalos
 
