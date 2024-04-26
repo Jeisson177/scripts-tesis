@@ -261,6 +261,56 @@ function AgregarEtiquetasAEventos(datos, mapa)
     hold on;
 end
 
+%%
+
+function mapa = MarcadoresEspeciales(datos, fechaInicio, fechaFin, mapa, formaMarcador, puntosKm)
+    % Verificar que 'datos' sea una tabla
+    if ~istable(datos)
+        error('La entrada debe ser una tabla.');
+    end
+
+    % Comprobar si se ha pasado un mapa como argumento
+    if nargin >= 4 && ishandle(mapa) && isa(mapa, 'matlab.ui.Figure')
+        figure(mapa); % Solo establecerlo como figura actual si es válido
+    else
+        mapa = figure; % Crear una nueva figura si 'mapa' no es válido
+    end
+
+    % Convertir las fechas de inicio y fin si son cadenas a datetime
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    
+    % Convertir las fechas en 'datos' a datetimes sin zona horaria para la comparación
+    datos{:, 1} = datetime(datos{:, 1}, 'TimeZone', '');
+
+    % Filtrar los datos entre las fechas de inicio y fin
+    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+
+    % Calcular distancia para datos filtrados
+    distancia = Calculos.CalcularDistancia(datosFiltrados);
+
+    % Verificar si hay datos para trazar
+    if height(datosFiltrados) < 1
+        warning('No hay suficientes datos entre las fechas proporcionadas para agregar marcadores.');
+        return;
+    end
+    
+    % Seleccionar el mapa para trazar
+    figure(mapa);
+
+    % Agregar marcadores especiales en los puntos de kilómetros especificados en puntosKm
+    for i = 1:length(puntosKm)
+        kmIndex = find(distancia >= puntosKm(i), 1, 'first'); % Encuentra el primer índice donde la distancia supera cada punto en puntosKm
+        if ~isempty(kmIndex) && kmIndex <= height(datosFiltrados)
+            geoscatter(datosFiltrados{kmIndex, 2}, datosFiltrados{kmIndex, 3}, 'Marker', formaMarcador, 'MarkerEdgeColor', 'red', 'DisplayName', ['Km ' num2str(puntosKm(i))], 'SizeData', 300);
+        end
+    end
+    hold off; % Finalizar la edición del gráfico
+end
 
 
     end
