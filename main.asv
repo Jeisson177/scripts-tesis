@@ -82,7 +82,7 @@ Graficas.analizarAceleraciones(datosCordenadasSensor, '2024-02-15 0:30:00.434', 
 mygraficaA = Graficas.aceleracionTiempo(datosCordenadasSensor, '2024-02-15 9:30:00.434', '2024-02-15 9:35:00.434');
 
 
-%% comparativa, velocidad del sts y velocidad del celular
+%%
 mygraficaV = Graficas.velocidadTiempo(datosCordenadasSensor, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
 
 mygraficaV2 = Graficas.graficarVelocidadSts(datosP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
@@ -91,20 +91,53 @@ mygraficaV2 = Graficas.graficarVelocidadSts(datosP20, '2024-02-14 00:30:00.434',
 %mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-16 09:59:00.434');
 
 
-%% Muetra las curvaturas en el mapa
+%%
 mymap=Map.FiltrarYDibujarCurvatura(datosCordenadasSensor, '2024-02-15 07:30:00.434', '2024-02-15 08:30:00.434');
-
-%% Grafica la velocidad registrada por el sts
+%%
+mymap=Map.FiltrarYDibujarDireccion(datosCordenadasSensor, '2024-02-15 07:30:00.434', '2024-02-15 08:30:00.434');
+%%
 velocidadp20 = ImportarDatos.P20Velocidad();
 mygraficaV = Graficas.graficarVelocidadSts(velocidadp20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
 
-%% Importa los datos del evento 1 y los grafica
+
+%%
+Graficas.Distanciavstiempo(datosCordenadasSensor,datosCordenadasP20);
+
+%Graficas.aceleracionTiempo(datosCordenadasSensor, '2024-02-15 00:30:00.434', '2024-02-15 23:35:00.434')
+%Graficas.velocidadTiempo(datosCordenadasSensor, '2024-02-15 00:30:00.434', '2024-02-15 23:35:00.434')
+%mygrafica = Graficas.velocidadTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434');
+%Graficas.aceleracionTiempo(datosCordenadasP20, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434')
+%mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434');
+
+%%
 datosEventos = ImportarDatos.Evento1();
 datosEventosCord = ImportarDatos.Evento1Coordenadas(datosEventos);
 Graficas.Evento1(datosEventosCord, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434', mygraficaV)
 Graficas.Evento1(datosEventosCord, '2024-02-14 00:30:00.434', '2024-02-15 23:35:00.434', mygraficaA)
 
 Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434', mymap)
+%%
+
+%mymap = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 08:45:00.434', '2024-02-15 08:49:00.434');
+mymap = Map.FiltrarYDibujarCurvatura(datosCordenadasSensor, '2024-02-15 08:00:00.434', '2024-02-15 08:49:00.434');
+%%
+velocidadSensor = Calculos.calcularVelocidadKH(datosCordenadasSensor);
+aceleracion= Calculos.calcularAceleracion(datosCordenadasSensor);
+%%
+datosP20 = ImportarDatos.P20();
+datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
+%mymap = Map.FiltrarYMostrarRuta(datosCordenadasP20, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434');
+%%
+datosEventos = ImportarDatos.Evento1();
+datosEventosCord = ImportarDatos.Evento1Coordenadas(datosEventos);
+%mymap = Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434', mymap);
+
+
+%%
+mymap = Map.FiltrarYDibujarVelocidad(datosCordenadasSensor, '2024-02-15 08:45:00.434', '2024-02-15 08:49:00.434');
+
+
+
 
 %%
 
