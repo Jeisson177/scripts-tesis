@@ -1,0 +1,2 @@
+versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoEvento
+E.1.0.0,70456,PB,Z374020,EM,No Disponible,2024-04-18 22:12:34.446,2024-04-18 22:12:34.616,T,4.593133,-74.181975,2,3,False,2,EV12
