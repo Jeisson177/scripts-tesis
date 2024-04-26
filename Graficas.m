@@ -368,7 +368,50 @@ function DistanciavsVelocidad2(datos, datosCordenadasP20, fechaInicio, fechaFin)
 end
 
 
+%%
 
+function DistanciavsVelocidad3(datos, datosCordenadasP20, fechaInicio, fechaFin, puntosVerticales)
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+    end
+    
+    % Filtrar los datos por el rango de fechas
+    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+    datosCordenadasP20Filtrados = datosCordenadasP20(datosCordenadasP20{:, 1} >= fechaInicio & datosCordenadasP20{:, 1} <= fechaFin, :);
+    
+    % Calcular distancia y velocidad para datos filtrados
+    distancia = Calculos.CalcularDistancia(datosFiltrados);
+    velocidad = Calculos.calcularVelocidadKH(datosFiltrados);
+    subplot(2, 1, 1);
+    plot(distancia(1:end-1), velocidad);
+    title('Velocidad vs distancia (celular)');
+    xlabel('Distancia (km)');
+    ylabel('Velocidad (km/h)');
+    grid on;
+    hold on;
+    for i = 1:length(puntosVerticales)
+        xline(puntosVerticales(i), '--r'); % Líneas verticales en rojo punteado
+    end
+    hold off;
+    
+    distancia = Calculos.CalcularDistancia(datosCordenadasP20Filtrados);
+    velocidad = Calculos.calcularVelocidadKH(datosCordenadasP20Filtrados);
+    subplot(2, 1, 2);
+    plot(distancia(1:end-1), velocidad);
+    title('Velocidad vs distancia (P20)');
+    xlabel('Distancia (km)');
+    ylabel('Velocidad (km/h)');
+    grid on;
+    hold on;
+    for i = 1:length(puntosVerticales)
+        xline(puntosVerticales(i), '--r'); % Líneas verticales en rojo punteado
+    end
+    hold off;
+end
 
 
     end

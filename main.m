@@ -7,7 +7,7 @@ vector = [0.84, 1.56, 2.03, 2.68, 3.37, 4.09, 4.75, 5.58, 6.42, 7.26, 8.24, 9.18
 
 %%
 %Datos del telefono
-datosSensor = ImportarDatos.Sensor("semana 1\viernes\mujer\4104_CodConductor1_CodConductor2\");% Importar los datos del telefono
+datosSensor = ImportarDatos.Sensor("semana 1\viernes\4104\");% Importar los datos del telefono
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);%Importar coordenadas y stampas de tiempo del telefono
 
 %Tramas de p20 recolectadas del bus
@@ -22,7 +22,7 @@ datosEventos = ImportarDatos.Evento19();
 myMapaV = Map.Velocidad(datosCordenadasSensor, '2024-04-19 14:35:00.434', '2024-04-19 16:35:00.434');
 mygraficaV = Graficas.velocidadTiempoCorregida(datosCordenadasSensor, '2024-04-19 3:11:00.434', '2024-04-19 8:13:00.434');
 %%
-Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, '2024-04-19 14:35:00.434', '2024-04-19 16:35:00.434')
+Graficas.DistanciavsVelocidad3(datosCordenadasSensor, datosCordenadasP20, '2024-04-19 14:35:00.434', '2024-04-19 16:35:00.434', vector)
 
 
 %% Aqui mostramos los marcadores para el evento 19 en el mapa para los 4 codigos anomalos
