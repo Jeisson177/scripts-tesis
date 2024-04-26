@@ -60,6 +60,13 @@ Graficas.aceleracionTiempo(datosCordenadasSensor, HoraInicio, HoraFinal, 'filtra
 % Analisis de aceleraciones
 Graficas.analizarAceleraciones(datosCordenadasSensor, HoraInicio, HoraFinal)
 
+% Velocidad vs distancia
+Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, HoraInicio, HoraFinal);
+
+% Grafica Distancia vs energia
+
+
+
 
 %% Mapa de calor velocidad
 myMapaV = Map.Velocidad(datosCordenadasSensor, HoraInicio, HoraFinal);

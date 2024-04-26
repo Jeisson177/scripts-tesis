@@ -55,10 +55,14 @@ Map.Velocidad(datosCordenadasSensor, HoraInicio, HoraFinal)
 Graficas.velocidadTiempoCorregida(datosCordenadasSensor, HoraInicio, HoraFinal)
 
 % Grafica de aceleracion
-Graficas.aceleracionTiempo(datosCordenadasSensor, HoraInicio, HoraFinal)
+Graficas.aceleracionTiempo(datosCordenadasSensor, HoraInicio, HoraFinal, 'filtrar')
 
 % Analisis de aceleraciones
 Graficas.analizarAceleraciones(datosCordenadasSensor, HoraInicio, HoraFinal)
+
+% Velocidad vs distancia
+Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, HoraInicio, HoraFinal);
+
 
 
 %% Mapa de calor velocidad
