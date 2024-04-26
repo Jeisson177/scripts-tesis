@@ -1,6 +1,10 @@
-
+%% Segmentación de las rutas
 Ruta4104 = [3.30, 5.96, 9.84, 14.55, 17.19, 18.52, 19.21, 20.44];
 Ruta4020 = [3.40, 5.26, 8.42, 12.03, 17.39, 19.87, 23.80, 29.78, 35.07, 36.21, 38.22, 40.03];
+
+%% Horarios conductores por ID
+
+%% Horarios hora pico y hora valle
 
 %%
 %Datos del telefono
@@ -18,6 +22,44 @@ datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 % Trama de los eventos del bus
 datosEventos = ImportarDatos.Evento19();
 [tabla1, tabla2, tabla3, tabla4] = ImportarDatos.Evento19Coordenadas(datosEventos);
+
+
+%% Todas la graficas en un día 
+Dia = 'lunes';
+Semana = '1';
+IDbus = '4020';
+
+HoraInicio = '2024-04-15 1:00:00.434';
+HoraFinal  = '2024-04-15 23:59:00.434';
+
+fechaArchivoP20 = '15-04-2024';
+
+
+% Datos del telefono
+rutaSensor = fullfile(['semana ' Semana], Dia, IDbus);
+datosSensor = ImportarDatos.Sensor(rutaSensor); % Importar los datos del telefono
+datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor); % Importar coordenadas y timestamps del telefono
+
+% Tramas de P20 recolectadas del bus
+rutaP20 = fullfile( ['semana ' Semana], Dia, IDbus, [IDbus '-' fechaArchivoP20]); % Construir la ruta completa del archivo P20
+datosP20 = ImportarDatos.P20(rutaP20);
+datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
+
+% Mapa de ruta
+Map.Ruta(datosCordenadasSensor, HoraInicio, HoraFinal)
+
+% Mapa velocidad
+Map.Velocidad(datosCordenadasSensor, HoraInicio, HoraFinal)
+
+% Grafica de velocidad
+Graficas.velocidadTiempoCorregida(datosCordenadasSensor, HoraInicio, HoraFinal)
+
+% Grafica de aceleracion
+Graficas.aceleracionTiempo(datosCordenadasSensor, HoraInicio, HoraFinal, 'filtrar')
+
+% Analisis de aceleraciones
+Graficas.analizarAceleraciones(datosCordenadasSensor, HoraInicio, HoraFinal)
+
 
 %% Mapa de calor velocidad
 myMapaV = Map.Velocidad(datosCordenadasSensor, HoraInicio, HoraFinal);

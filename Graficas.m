@@ -102,7 +102,7 @@ function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin,metodoAcelerac
         case 'metodo2'
             aceleracion = Calculos.calcularAceleracion2(velocidad, datosFiltrados);
         case 'filtrar'
-            aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,0.8);
+            aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados,3);
         otherwise
             error('Método de cálculo de aceleración no reconocido');
     end
