@@ -309,7 +309,23 @@ function grafica = graficarVelocidadSts(datos, fechaInicio, fechaFin, grafica)
     grid on;
     hold on;
 end
+function grafica=OcupacionVsTiempo()
+    EV1=ImportarDatos.Evento1();
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+    else
+        figure(grafica);
+    end
+    
+    plot(EV1.fechaHoraLecturaDato,EV1.estimacionOcupacionAbordo);
+    
+    title('Ocupacion en Función del Tiempo');
+    xlabel('Tiempo');
+    ylabel('Personas'); 
 
+    hold on
+    plot(EV1.fechaHoraLecturaDato,EV1.peso);
+end
 function DistanciavsVelocidad(datos,datosCordenadasP20)
     
     distancia=Calculos.CalcularDistancia(datos);
