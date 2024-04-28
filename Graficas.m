@@ -211,6 +211,52 @@ function DistanciavsEnergia(datosp60,fechaInicio, fechaFin, conductor, bus)
     xlabel('Distancia');
     ylabel('Porcentaje de energía');
 end
+function riesgoVsCurva(datosCordenadasSensor,fechaInicio, fechaFin)
+
+    datos=Calculos.riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin);
+   
+
+cantd=1;
+max_c = [];
+    valores_a = [];
+    valores_b = [];
+    Ncurvas = [];
+% Iteramos sobre los datos
+for n = 1:length(datos)
+    % Verificamos si hay datos en la matriz actual
+    if ~isempty(datos{n})
+        % Extraemos el máximo de la columna 3
+        max_c(end+1) = max(datos{n}(:,3));
+        % Obtenemos el índice de la fila donde se encuentra el máximo
+        indice_max = find(datos{n}(:,3) == max_c(end));
+        % Guardamos los valores correspondientes de las columnas 1 y 2
+        valores_a(end+1) = datos{n}(indice_max, 1);
+        valores_b(end+1) = datos{n}(indice_max, 2);
+        Ncurvas(end+1)=cantd;
+        cantd=cantd+1;
+    end
+end
+
+% Graficamos los valores de las columnas 1 y 2 correspondientes al máximo
+% de la columna 3 en función de n
+figure;
+
+subplot(3,1,1);
+plot( Ncurvas(end -1), max_c);
+xlabel('Numero de cruva');
+ylabel('Maximo indice de riesgo de volcamiento en vurva');
+
+subplot(3,1,2);
+plot(Ncurvas(end -1), valores_a);
+xlabel('Numero de cruva');
+ylabel('Velocidad');
+
+subplot(3,1,3);
+plot(Ncurvas(end -1), valores_b);
+xlabel('Numero de cruva');
+ylabel('Radio curva');
+    
+end
 
 
 %%
