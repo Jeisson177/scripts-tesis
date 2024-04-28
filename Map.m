@@ -4,14 +4,14 @@ classdef Map
     methods (Static)
 
         %Muestra la ruta recorrida
-        function mapa = Ruta(datos, fechaInicio, fechaFin, mapa)
+        function mapa = Ruta(datos, fechaInicio, fechaFin, colorYlinea, mapa)
     % Verificar que 'datos' sea una tabla
     if ~istable(datos)
         error('La entrada debe ser una tabla.');
     end
 
     % % Comprobar si se ha pasado un mapa como argumento
-    if nargin < 4 || isempty(mapa)
+    if nargin < 5 || isempty(mapa)
         mapa = figure; % Crear una nueva figura si no se proporciona el mapa
     else
         if ~isa(mapa, 'matlab.ui.Figure')
@@ -44,7 +44,7 @@ classdef Map
     % Seleccionar el mapa para trazar
     figure(mapa);
 
-    geoplot(datosFiltrados{:, 2}, datosFiltrados{:, 3}, 'r-', 'LineWidth', 2);
+    geoplot(datosFiltrados{:, 2}, datosFiltrados{:, 3}, colorYlinea, 'LineWidth', 2);
     title('Ruta entre las fechas especificadas');
     geolimits('auto'); % Ajustar los límites para mostrar toda la ruta
     hold on

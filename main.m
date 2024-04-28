@@ -2,7 +2,18 @@
 Ruta4104 = [3.30, 5.96, 9.84, 14.55, 17.19, 18.52, 19.21, 20.44];
 Ruta4020 = [3.40, 5.26, 8.42, 12.03, 17.39, 19.87, 23.80, 29.78, 35.07, 36.21, 38.22, 40.03];
 
+
+% Coordenadas del punto de inicio
+puntoIda = [4.593216, -74.178910];  % Latitud y longitud del inicio
+
+% Coordenadas del punto de final
+puntoVuelta = [4.6096941, -74.0738544];  % Latitud y longitud del final
+
+
+
 %% Horarios conductores por ID
+%Lunes primer conductor una ruta ida y vuelta
+horariosLunes = [['2024-04-15 3:44:35.434', '2024-04-15 4:49:30.434', '2024-04-15 6:00:45.434']]
 
 %% Horarios hora pico y hora valle
 
@@ -12,16 +23,37 @@ datosSensor = ImportarDatos.Sensor("semana 1\lunes\4020\");% Importar los datos 
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);%Importar coordenadas y stampas de tiempo del telefono
 
 %Hora de inicio y hora final
-HoraInicio = '2024-04-15 3:33:00.434';
-HoraFinal  = '2024-04-15 6:09:00.434';
+HoraInicio = '2024-04-15 3:44:35.434';
+HoraFinal  = '2024-04-15 4:49:30.434';
 
 %Tramas de p20 recolectadas del bus
 datosP20 = ImportarDatos.P20("4104-19-04-2024");
 datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
 % Trama de los eventos del bus
-datosEventos = ImportarDatos.Evento19();
+datosEventos = ImportarDatos.Evento19(); 
 [tabla1, tabla2, tabla3, tabla4] = ImportarDatos.Evento19Coordenadas(datosEventos);
+
+tiemposViaje = Calculos.Ruta(datosCordenadasSensor, puntoIda, puntoVuelta, 20);
+
+%%
+% Verificar si hay datos en tiemposViaje
+if isempty(tiemposViaje)
+    disp('No hay datos suficientes para dibujar rutas.');
+else
+    % Bucle sobre cada fila en tiemposViaje para dibujar las rutas en mapas individuales
+    for i = 1:size(tiemposViaje, 1)
+        HoraInicio = tiemposViaje{i, 1};  % Tiempo de inicio del viaje
+        HoraRetorno = tiemposViaje{i, 2};  % Tiempo de llegada al punto de retorno
+        HoraFinal = tiemposViaje{i, 3};   % Tiempo de regreso al inicio
+
+        % Crear un nuevo mapa para cada viaje
+        mapa = Map.Ruta(datosCordenadasSensor, HoraInicio, HoraRetorno, 'b-'); % Azul para la ida
+
+        % Dibujar el trayecto de regreso al inicio en el mismo mapa
+        mapa = Map.Ruta(datosCordenadasSensor, HoraRetorno, HoraFinal, 'r-', mapa); % Rojo para la vuelta
+    end
+end
 
 
 %% Todas la graficas en un día 

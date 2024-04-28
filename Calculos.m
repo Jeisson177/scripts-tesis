@@ -442,6 +442,73 @@ function aceleracion = calcularAceleracionFiltrada(datos, umbral)
     return;
 end
 
+function tiempos = Ruta(datos, puntoInicioFinal, puntoRegreso, distanciaUmbral)
+    % Esta función devuelve un array con los tiempos de salida, llegada al punto de regreso,
+    % y regreso al punto de inicio para cada viaje.
+    
+    % Convertir las fechas en 'datos' a datetimes sin zona horaria para la comparación
+    datos{:, 1} = datetime(datos{:, 1}, 'TimeZone', '');
+    
+    % Inicializar variables
+    estadoViaje = 0;  % Estado del viaje: 0 = en recarga, 1 = hacia regreso, 2 = regreso a inicio
+    tiempos = [];     % Inicializar una matriz para guardar los tiempos de cada viaje
+    tiempoRecarga = minutes(5); % Tiempo mínimo de recarga antes de iniciar nueva ruta
+    lastTime = datetime('0000-01-01', 'TimeZone', ''); % Inicializar la última hora registrada para comparaciones
+    
+    % Recorrer todos los datos
+    for i = 1:height(datos)
+        % Calcular la distancia al punto de inicio/final y al punto de regreso
+        distInicioFinal = Calculos.geodist(datos.lat(i), datos.lon(i), puntoInicioFinal(1), puntoInicioFinal(2));
+        distRegreso = Calculos.geodist(datos.lat(i), datos.lon(i), puntoRegreso(1), puntoRegreso(2));
+        
+        % Control de estados según la ubicación del bus
+        switch estadoViaje
+            case 0  % Bus en recarga
+                if distInicioFinal < distanciaUmbral && (isempty(tiempos) || (datos{:, 1}(i) - lastTime > tiempoRecarga))
+                    salidaIda = datos{:, 1}(i);
+                    estadoViaje = 1;  % Cambiar al estado de viaje hacia el regreso
+                end
+                
+            case 1  % Bus hacia punto de regreso
+                if distRegreso < distanciaUmbral
+                    llegadaIda = datos{:, 1}(i);
+                    salidaVuelta = llegadaIda;
+                    estadoViaje = 2;  % Cambiar al estado de regreso al inicio
+                end
+                
+            case 2  % Bus regresando al inicio
+                if distInicioFinal < distanciaUmbral
+                    llegadaVuelta = datos{:, 1}(i);
+                    tiempos = [tiempos; {salidaIda, llegadaIda, llegadaVuelta}];
+                    lastTime = llegadaVuelta; % Actualizar la última hora registrada
+                    estadoViaje = 0;  % Bus vuelve al estado de recarga
+                end
+        end
+    end
+    
+    % Comprobar si el último viaje iniciado no ha sido cerrado correctamente
+    if estadoViaje == 2
+        llegadaVuelta = datos{:, 1}(end);
+        tiempos = [tiempos; {salidaIda, llegadaIda, llegadaVuelta}];
+    end
+end
+
+
+function d = geodist(lat1, lon1, lat2, lon2)
+    % Función para calcular la distancia geodésica entre dos puntos
+    R = 6371000; % Radio de la Tierra en metros
+    phi1 = deg2rad(lat1);
+    phi2 = deg2rad(lat2);
+    deltaPhi = deg2rad(lat2 - lat1);
+    deltaLambda = deg2rad(lon2 - lon1);
+    a = sin(deltaPhi/2) * sin(deltaPhi/2) + cos(phi1) * cos(phi2) * sin(deltaLambda/2) * sin(deltaLambda/2);
+    c = 2 * atan2(sqrt(a), sqrt(1-a));
+    d = R * c;
+end
+
+
+
+
 
 
 
@@ -507,6 +574,8 @@ end
 
 
 %%
+
+
 
 
 
