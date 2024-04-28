@@ -192,18 +192,26 @@ end
 
 
 %%
-function grafica=DistanciavsEnergia()
-    datosp60=ImportarDatos.P60();
-    distancia=Calculos.CalcularDistancia(datosp60);
-    % Crear un nuevo gráfico o utilizar uno existente
-    if nargin < 4 || isempty(grafica)
-        grafica = figure;
-    else
-        figure(grafica);
+function DistanciavsEnergia(datosp60,fechaInicio, fechaFin, conductor, bus)
+    figure;
+
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
     end
-    plot(distancia,datosp60.nivelRestanteEnergia);
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    datosFiltrados = datosp60(datosp60.fechaHoraLecturaDato >= fechaInicio & datosp60.fechaHoraLecturaDato <= fechaFin, :);
     
+    %distancia=Calculos.CalcularDistancia(datosFiltrados);
+    datosFiltrados.kilometrosOdometro=datosFiltrados.kilometrosOdometro-datosFiltrados.kilometrosOdometro(1);
+    plot(datosFiltrados.kilometrosOdometro,datosFiltrados.nivelRestanteEnergia);
+    %plot(distancia,datosFiltrados.nivelRestanteEnergia);
+    title(['Conductor ', num2str(conductor),bus]); % Asegúrate de concatenar correctamente
+    xlabel('Distancia');
+    ylabel('Porcentaje de energía');
 end
+
 
 %%
 function grafica=TiempovsEnergia()
