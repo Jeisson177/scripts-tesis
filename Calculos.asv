@@ -443,15 +443,17 @@ function aceleracion = calcularAceleracionFiltrada(datos, umbral)
 end
 
 function tiempos = Ruta(datos, puntoInicioFinal, puntoRegreso, distanciaUmbral)
-    % Esta función devuelve un array con los tiempos de salida y llegada de cada viaje.
-    % Maneja casos donde el inicio y el final de la ruta son el mismo punto.
+    % Esta función devuelve un array con los tiempos de salida, llegada al punto de regreso,
+    % y regreso al punto de inicio para cada viaje.
     
     % Convertir las fechas en 'datos' a datetimes sin zona horaria para la comparación
-    datos{:, 'FechaHora'} = datetime(datos{:, 'FechaHora'}, 'TimeZone', '');
+    datos{:, 1} = datetime(datos{:, 1}, 'TimeZone', '');
     
     % Inicializar variables
-    estadoViaje = 0;  % Estado del viaje: 0 = en patio, 1 = hacia regreso, 2 = regreso a inicio
+    estadoViaje = 0;  % Estado del viaje: 0 = en recarga, 1 = hacia regreso, 2 = regreso a inicio
     tiempos = [];     % Inicializar una matriz para guardar los tiempos de cada viaje
+    tiempoRecarga = minutes(1); % Tiempo mínimo de recarga antes de iniciar nueva ruta
+    lastTime = datetime('0000-01-01', 'TimeZone', ''); % Inicializar la última hora registrada para comparaciones
     
     % Recorrer todos los datos
     for i = 1:height(datos)
@@ -461,33 +463,33 @@ function tiempos = Ruta(datos, puntoInicioFinal, puntoRegreso, distanciaUmbral)
         
         % Control de estados según la ubicación del bus
         switch estadoViaje
-            case 0  % Bus en el patio
-                if distInicioFinal < distanciaUmbral
-                    salidaIda = datos.FechaHora(i);
+            case 0  % Bus en recarga
+                if distInicioFinal < distanciaUmbral && (isempty(tiempos) || (datos{:, 1}(i) - lastTime > tiempoRecarga))
+                    salidaIda = datos{:, 1}(i);
                     estadoViaje = 1;  % Cambiar al estado de viaje hacia el regreso
                 end
                 
             case 1  % Bus hacia punto de regreso
                 if distRegreso < distanciaUmbral
-                    llegadaIda = datos.FechaHora(i);
-                    tiempos = [tiempos; {salidaIda, llegadaIda}];
+                    llegadaIda = datos{:, 1}(i);
+                    salidaVuelta = llegadaIda;
                     estadoViaje = 2;  % Cambiar al estado de regreso al inicio
-                    salidaVuelta = datos.FechaHora(i);
                 end
                 
             case 2  % Bus regresando al inicio
                 if distInicioFinal < distanciaUmbral
-                    llegadaVuelta = datos.FechaHora(i);
-                    tiempos = [tiempos; {salidaVuelta, llegadaVuelta}];
-                    estadoViaje = 0;  % Bus vuelve al patio y el ciclo puede repetirse
+                    llegadaVuelta = datos{:, 1}(i);
+                    tiempos = [tiempos; {salidaIda, llegadaIda, llegadaVuelta}];
+                    lastTime = llegadaVuelta; % Actualizar la última hora registrada
+                    estadoViaje = 0;  % Bus vuelve al estado de recarga
                 end
         end
     end
     
     % Comprobar si el último viaje iniciado no ha sido cerrado correctamente
     if estadoViaje == 2
-        llegadaVuelta = datos.FechaHora(end);
-        tiempos = [tiempos; {salidaVuelta, llegadaVuelta}];
+        llegadaVuelta = datos{:, 1}(end);
+        tiempos = [tiempos; {salidaIda, llegadaIda, llegadaVuelta}];
     end
 end
 

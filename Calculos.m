@@ -452,7 +452,7 @@ function tiempos = Ruta(datos, puntoInicioFinal, puntoRegreso, distanciaUmbral)
     % Inicializar variables
     estadoViaje = 0;  % Estado del viaje: 0 = en recarga, 1 = hacia regreso, 2 = regreso a inicio
     tiempos = [];     % Inicializar una matriz para guardar los tiempos de cada viaje
-    tiempoRecarga = minutes(5); % Tiempo mínimo de recarga antes de iniciar nueva ruta
+    tiempoRecarga = minutes(1); % Tiempo mínimo de recarga antes de iniciar nueva ruta
     lastTime = datetime('0000-01-01', 'TimeZone', ''); % Inicializar la última hora registrada para comparaciones
     
     % Recorrer todos los datos
