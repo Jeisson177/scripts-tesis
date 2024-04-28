@@ -203,10 +203,10 @@ function DistanciavsEnergia(datosp60,fechaInicio, fechaFin, conductor, bus)
     end
     datosFiltrados = datosp60(datosp60.fechaHoraLecturaDato >= fechaInicio & datosp60.fechaHoraLecturaDato <= fechaFin, :);
     
-    %distancia=Calculos.CalcularDistancia(datosFiltrados);
-    datosFiltrados.kilometrosOdometro=datosFiltrados.kilometrosOdometro-datosFiltrados.kilometrosOdometro(1);
-    plot(datosFiltrados.kilometrosOdometro,datosFiltrados.nivelRestanteEnergia);
-    %plot(distancia,datosFiltrados.nivelRestanteEnergia);
+    distancia=Calculos.CalcularDistancia(datosFiltrados);
+    %datosFiltrados.kilometrosOdometro=datosFiltrados.kilometrosOdometro-datosFiltrados.kilometrosOdometro(1);
+    %plot(datosFiltrados.kilometrosOdometro,datosFiltrados.nivelRestanteEnergia);
+    plot(distancia,datosFiltrados.nivelRestanteEnergia);
     title(['Conductor ', num2str(conductor),bus]); % Asegúrate de concatenar correctamente
     xlabel('Distancia');
     ylabel('Porcentaje de energía');
