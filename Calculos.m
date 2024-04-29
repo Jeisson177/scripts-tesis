@@ -598,8 +598,75 @@ function d = geodist(lat1, lon1, lat2, lon2)
 end
 
 
+function tiemposRutas = calcularTiemposRutas(datosBuses)
+    % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados.
 
+   Ida4020 = [4.593216, -74.178910];
+Vuelta4020 = [4.6096941, -74.0738544];
 
+Ida4104 = [4.587917000000000, -74.149976900000000];
+Vuelta4104 = [4.562243400000000, -74.083503800000000];
+
+    % Inicializar estructura para almacenar los tiempos de ruta
+    tiemposRutas = struct();
+
+    % Fechas disponibles en los datos
+    fechas = fieldnames(datosBuses);
+    
+    % Iterar sobre cada fecha
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Comprobar si los datos del bus 4104 están disponibles para esa fecha
+        if isfield(datosBuses.(fecha), 'bus_4104')
+            datos4104 = datosBuses.(fecha).bus_4104;
+            tiemposRutas.(fecha).bus4104 = Calculos.Ruta(datos4104, Ida4104, Vuelta4104, 20);
+        end
+        
+        % Comprobar si los datos del bus 4020 están disponibles para esa fecha
+        if isfield(datosBuses.(fecha), 'bus_4020')
+            datos4020 = datosBuses.(fecha).bus_4020;
+            tiemposRutas.(fecha).bus4020 = Calculos.Ruta(datos4020, Ida4020, Vuelta4020, 20);
+        end
+    end
+
+    return;
+end
+
+function busesOrganizados = reorganizarDatosPorBus(tiemposRutas)
+    % Esta función reorganiza los tiempos de ruta para acceder primero por bus y luego por fecha.
+
+    % Inicializar estructura para los datos organizados por bus
+    % Inicialización segura con un campo dummy que será eliminado después
+    busesOrganizados = struct('dummyField', []);
+
+    % Extraer las fechas disponibles de la estructura de entrada
+    fechas = fieldnames(tiemposRutas);
+
+    % Preparar subestructuras para cada bus
+    busesOrganizados.bus4104 = struct();
+    busesOrganizados.bus4020 = struct();
+
+    % Iterar sobre cada fecha para reorganizar los datos
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Extraer los datos de cada bus para esta fecha, si están disponibles
+        if isfield(tiemposRutas.(fecha), 'bus4104')
+            busesOrganizados.bus4104.(fecha) = tiemposRutas.(fecha).bus4104;
+        end
+        if isfield(tiemposRutas.(fecha), 'bus4020')
+            busesOrganizados.bus4020.(fecha) = tiemposRutas.(fecha).bus4020;
+        end
+    end
+
+    % Eliminar el campo dummy si se había agregado
+    if isfield(busesOrganizados, 'dummyField')
+        busesOrganizados = rmfield(busesOrganizados, 'dummyField');
+    end
+
+    return ;
+end
 
 
 
@@ -608,6 +675,8 @@ end
 
     end
 end
+
+%%
 function dir=direccion(latitud,longitud)
     vecAB = [latitud(2:end) - latitud(1:end-1); longitud(2:end) - longitud(1:end-1)];
     vecBC = [latitud(3:end) - latitud(2:end-1); longitud(3:end) - longitud(2:end-1)];

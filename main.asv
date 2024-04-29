@@ -9,15 +9,25 @@ Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 
-% Horarios hora pico y hora valle
+%% Importar todos los datos tomados por el movil
 
-%%
-%Datos del telefono
-datosSensor = ImportarDatos.Sensor("semana 1\martes\4104\");% Importar los datos del telefono
+datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
+
+%% Calculo de todos los tiempos para cada ruta
+
+tiemposRutas = Calculos.calcularTiemposRutas(datosBuses);
+saasdas = Calculos.reorganizarDatosPorBus(tiemposRutas);
+%% Importar datos para un día en especifico
+datosSensor = ImportarDatos.Sensor("Datos\2024-04-16\4104\");% Importar los datos del telefono
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);%Importar coordenadas y stampas de tiempo del telefono
+
 %%
 
-tiemposViaje = Calculos.Ruta(datosCordenadasSensor, puntoIda, puntoVuelta, 20);
+tiemposViaje = Calculos.Ruta(datosCordenadasSensor, Ida4104, Vuelta4104, 20);
+
+%% Prueba para probar la generacion
+
+generarDatos('2024-04-16 3:31:23.434', '2024-04-16 4:34:00.434', '4104')
 
 %%
 %Tramas de p20 recolectadas del bus
@@ -237,5 +247,33 @@ function radio = determinar_curvatura_3puntos(p1, p2, p3)
         %radio = -1;
     %end
 end
+
+
+%%
+
+function generarDatos(fechaInicio, fechaFinal, IDbus)
+    % Esta función organiza y visualiza datos de acuerdo con las especificaciones dadas.
+    
+    fechaArchivo = datestr(datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS'), 'yyyy-mm-dd');
+
+    % Rutas para datos del teléfono y P20
+    rutaSensor = fullfile('Datos', fechaArchivo, IDbus);
+    rutaP20 = fullfile('Datos', fechaArchivo, IDbus, 'log');
+
+    % Importar datos del sensor y del P20
+    datosSensor = ImportarDatos.Sensor(rutaSensor);
+    datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
+    datosP20 = ImportarDatos.P20(rutaP20);
+    datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
+
+    % Visualizaciones y análisis
+    Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b-');
+    Map.Velocidad(datosCordenadasSensor, fechaInicio, fechaFinal);
+    Graficas.velocidadTiempoCorregida(datosCordenadasSensor, fechaInicio, fechaFinal);
+    Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar');
+    Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
+    Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, fechaInicio, fechaFinal);
+end
+
 
 

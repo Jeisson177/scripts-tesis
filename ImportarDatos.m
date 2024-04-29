@@ -346,6 +346,61 @@ end
 
 
 
+function folders = getFolderList(baseFolder)
+    % Esta función devuelve una lista de carpetas dentro de la carpeta especificada.
+    if ~exist(baseFolder, 'dir')
+        error('La ruta especificada no existe.');
+    end
+    items = dir(baseFolder);
+    isFolder = [items.isdir];
+    folderNames = {items(isFolder).name};
+    folders = folderNames(~ismember(folderNames, {'.', '..'}));
+end
+
+
+function busesDatos = importarTodosLosDatos(basePath)
+    % Esta función importa todos los datos de sensores para cada bus en cada fecha disponible bajo la carpeta base.
+    % basePath es la ruta a la carpeta 'Datos'.
+    
+    % Obtener la lista de carpetas de fechas
+    fechas = ImportarDatos.getFolderList(basePath);
+    
+    % Inicializar un contenedor para los datos de todos los buses
+    busesDatos = struct();
+    
+    % Iterar sobre cada fecha
+    for i = 1:length(fechas)
+        fechaPath = fullfile(basePath, fechas{i});
+        
+        % Normalizar nombre de campo para fecha (añadir 'f_' y reemplazar guiones con guiones bajos)
+        fechaFieldName = ['f_' strrep(fechas{i}, '-', '_')];
+        
+        % Obtener la lista de buses en esta fecha
+        buses = ImportarDatos.getFolderList(fechaPath);
+        
+        % Iterar sobre cada bus
+        for j = 1:length(buses)
+            busPath = fullfile(fechaPath, buses{j});
+            busFieldName = ['bus_' buses{j}];  % Añadir 'bus_' para hacer el nombre válido
+            
+            % Importar los datos del sensor
+            datosSensor = ImportarDatos.Sensor(busPath);
+            datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
+            
+            % Guardar los datos en una estructura organizada por fecha y bus
+            if ~isfield(busesDatos, fechaFieldName)
+                busesDatos.(fechaFieldName) = struct();
+            end
+            if ~isfield(busesDatos.(fechaFieldName), busFieldName)
+                busesDatos.(fechaFieldName).(busFieldName) = struct();
+            end
+            busesDatos.(fechaFieldName).(busFieldName) = datosCordenadasSensor;
+        end
+    end
+end
+
+
+
 
 
     end

@@ -48,6 +48,7 @@ classdef Map
     title('Ruta entre las fechas especificadas');
     geolimits('auto'); % Ajustar los límites para mostrar toda la ruta
     hold on
+
 end
 %%
 %Creo que agrega donde se ubican en el mapa las posiciones 
