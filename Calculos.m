@@ -354,6 +354,7 @@ end
     end
             end
         end
+        
          function datos=riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin)
             if ischar(fechaInicio) || isstring(fechaInicio)
         fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
@@ -395,54 +396,86 @@ end
 
         end
 
-        function percentiles = calcularPercentilesConsumo()
+          function percentiles = calcularPercentilesConsumo()
     % Rutas a los archivos de datos para cada día de la semana
     rutas = {
-        'CarpetaCelulares\semana 1\lunes\hombre\4020\LOG',
-        'CarpetaCelulares\semana 1\martes\hombre\4020\LOG',
-        'CarpetaCelulares\semana 1\miercoles\Hombre\LOG',
-        'CarpetaCelulares\semana 1\jueves\hombre\4020\LOG',
-        'CarpetaCelulares\semana 1\viernes\hombre\4020\LOG'
+        'CarpetaCelulares\semana 1\lunes\4020\LOG',
+        'CarpetaCelulares\semana 1\martes\4020\LOG',
+        'CarpetaCelulares\semana 1\miercoles\4020\LOG',
+        'CarpetaCelulares\semana 1\jueves\4020\LOG',
+        'CarpetaCelulares\semana 1\viernes\4020\LOG'
     };
+    telefonos={
+        'CarpetaCelulares\semana 1\lunes\4020',
+        'CarpetaCelulares\semana 1\martes\4020',
+        'CarpetaCelulares\semana 1\miercoles\4020',
+        'CarpetaCelulares\semana 1\jueves\4020',
+        'CarpetaCelulares\semana 1\viernes\4020'
+    };
+    %se deben filtrar los datos por inicio final
+    %osea ida y vuelta
+%luego para todos los de ida en un arreglo se les saca el percentil y para
+%los de vuelta tambien
+Ida4020 = [4.593216, -74.178910];
+Vuelta4020 = [4.6096941, -74.0738544];
+
+for i=1: 5%siempre son 5 dias
+    datos = ImportarDatos.Sensor(telefonos{i});
+    datos=ImportarDatos.SensorCordenadas(datos);
+    tiempos{i}=Calculos.Ruta(datos,Ida4020,Vuelta4020,20);%se guardan tiempos por dias
     
-  %toca cambiar para que sea distancia 
-    franjas_horarias = {
-        [3, 0, 4, 29],   % De 3:00 am a 4:29 am
-        [4, 30, 5, 9],    % De 4:30 am a 5:09 am
-        [5,9,6,9],
-        [6,30,8,9],
-        [8,9,9,7],
-        [9,7,10,36],
-        [11,12,12,38],
-        [12,38,13,32],
-        [13,32,14,55],
-        [15,2,16,2],
-        [16,2,17,50],
-        [17,50,19,16]
-    };
+end
+for i=1:5
+    datos = ImportarDatos.P60(rutas{i});
+    for j=1:length(tiempos{i})
+        t=tiempos{i};
+        conductor{j,i}=datos(datos.time>=t{j,1} & datos.time<=t{j,2});
+    end
+end
+%hasta este punto ya tengo los conductores 
+%segmentos de distancias solo ida
+
+ 
+    distancias = [7.35, 14.55, 21.5];
 
     % Inicializa el vector de percentiles
-    percentiles = zeros(length(rutas), length(franjas_horarias));
-
-    % Itera sobre los archivos de datos para cada día de la semana
-    for i = 1:length(rutas)
-        % Importa los datos del archivo
-        datos = ImportarDatos.P60(rutas{i});
-
-        % Extrae la hora y el minuto de la columna fechaHoraLecturaDato
-        hora = hour(datos.fechaHoraLecturaDato);
-        minuto = minute(datos.fechaHoraLecturaDato);
-
-        % Itera sobre las franjas horarias
-        for j = 1:length(franjas_horarias)
-            % Filtra los datos para la franja horaria actual
-            franja_actual = datos((hora == franjas_horarias{j}(1) & minuto >= franjas_horarias{j}(2)) |...
-                                  (hora == franjas_horarias{j}(3) & minuto <= franjas_horarias{j}(4)), :);
-
-            % Calcula el percentil 75 para la columna 'consumo'
-            percentiles(i, j) = prctile(franja_actual.nivelRestanteEnergia, 75);
+   numper=1;
+    
+    for i=1:5 %dias de la semana
+        for j=1:length(tiempos{i})
+            distanciaR=Calculos.CalcularDistancia(conductor{j,i});%devuelve un arreglo de distancia incrementando
+            valoresP{i,j}(:,1)=distanciaR;
+            valoresP{i,j}(:,2)=conductor{j,i}.nivelRestanteEnergia-conductor{j,i}.nivelRestanteEnergia(1);
+            
+            indices_intervalo = find(valoresP{i,j}(:,1) >= 0 & valoresP{i,j}(:,1) <= distancias(1));
+            % Extraer los datos correspondientes a los intervalos de distancia
+            datos_intervalo = valoresP{i,j}(indices_intervalo, :);
+            percentild1(numper)=sum(datos_intervalo(:,2));%suma de los datos de consumo por primera distancia
+            
+            
+            
+            indices_intervalo = find(valoresP{i,j}(:,1) >= distancias(1) & valoresP{i,j}(:,1) <= distancias(2));
+            % Extraer los datos correspondientes a los intervalos de distancia
+            datos_intervalo = valoresP{i,j}(indices_intervalo, :);
+            percentild2(numper)=sum(datos_intervalo(:,2));%suma de los datos de consumo por primera distancia
+            
+            indices_intervalo = find(valoresP{i,j}(:,1) >= distancias(2) & valoresP{i,j}(:,1) <= distancias(3));
+            % Extraer los datos correspondientes a los intervalos de distancia
+            datos_intervalo = valoresP{i,j}(indices_intervalo, :);
+            percentild3(numper)=sum(datos_intervalo(:,2));%suma de los datos de consumo por primera distancia
+            
+            numper=numper+1;
+            
         end
+        
     end
+  %ya tengo en un arreglo los valores para hacer el percentil
+  
+ 
+  
+    %percentiles(i, j) = prctile(franja_actual.nivelRestanteEnergia, 75);
+    percentiles=0;
+    
 end
 
 
