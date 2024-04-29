@@ -531,6 +531,43 @@ function DistanciavsVelocidad3(datos, datosCordenadasP20, fechaInicio, fechaFin,
 end
 
 
+%%
+
+function visualizarPercentilesVelocidad(datosVelocidad, percentiles)
+
+    if nargin < 2 || isempty(percentiles)
+        percentiles = [25, 50, 75];  
+    end
+    
+    % Calcular los percentiles solicitados
+    valoresPercentiles = prctile(datosVelocidad, percentiles, 1);  % Calcula los percentiles a lo largo de cada columna
+    
+    % Crear la figura para visualizar
+    figure;
+    hold on;
+    
+    % Generar colores diferentes para cada percentil
+    colores = lines(numel(percentiles));  % Obtener colores distintos para cada línea
+    
+    % Trazar cada percentil
+    for i = 1:numel(percentiles)
+        plot(valoresPercentiles(i, :), 'LineWidth', 2, 'Color', colores(i, :));
+    end
+    
+    % Añadir detalles al gráfico
+    legend(arrayfun(@(p) sprintf('Percentil %d', p), percentiles, 'UniformOutput', false), ...
+           'Location', 'best');
+    title('Percentiles de Velocidad para Diferentes Conductores/Sesiones');
+    xlabel('Índice de Sesión/Conductor');
+    ylabel('Velocidad (m/s)');
+    grid on;
+    
+    % Mantener el gráfico visible
+    hold off;
+end
+
+
+
     end
 end
 
