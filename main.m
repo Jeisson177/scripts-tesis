@@ -2,23 +2,22 @@
 Ruta4104 = [3.30, 5.96, 9.84, 14.55, 17.19, 18.52, 19.21, 20.44];
 Ruta4020 = [3.40, 5.26, 8.42, 12.03, 17.39, 19.87, 23.80, 29.78, 35.07, 36.21, 38.22, 40.03];
 
+Ida4020 = [4.593216, -74.178910];
+Vuelta4020 = [4.6096941, -74.0738544];
 
-% Coordenadas del punto de inicio
-puntoIda = [4.593216, -74.178910];  % Latitud y longitud del inicio
-
-% Coordenadas del punto de final
-puntoVuelta = [4.6096941, -74.0738544];  % Latitud y longitud del final
+Ida4104 = [4.587917000000000, -74.149976900000000];
+Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 
 % Horarios hora pico y hora valle
 
 %%
 %Datos del telefono
-datosSensor = ImportarDatos.Sensor("semana 1\lunes\4104\");% Importar los datos del telefono
+datosSensor = ImportarDatos.Sensor("semana 1\martes\4104\");% Importar los datos del telefono
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);%Importar coordenadas y stampas de tiempo del telefono
 %%
 
-tiemposViaje = Calculos.Ruta(datosCordenadasSensor, puntoIda, puntoVuelta, 20);
+tiemposViaje = Calculos.Ruta(datosCordenadasSensor, Ida4104, Vuelta4104, 20);
 
 %%
 %Tramas de p20 recolectadas del bus
@@ -31,9 +30,11 @@ datosEventos = ImportarDatos.Evento19();
 
 
 %% Graficar ruta
-HoraInicio = '2024-04-15 2:48:00.434';
-HoraFinal  = '2024-04-15 4:59:00.434';
-mapa = Map.Ruta(datosCordenadasSensor, HoraInicio, HoraFinal, 'b-'); % Azul para la ida
+HoraInicio = '2024-04-16 3:31:23.434';
+HoraFinal  = '2024-04-16 4:34:00.434';
+
+mis = Map.Ruta(datosCordenadasSensor, HoraInicio, HoraFinal, 'b-')
+mis = Map.Ruta(datosCordenadasSensor, HoraFinal, '2024-04-16 6:20:45.434','r-', mis)
 
 
 %%
