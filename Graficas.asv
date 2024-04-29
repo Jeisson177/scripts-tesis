@@ -390,40 +390,23 @@ function grafica = graficarVelocidadSts(datos, fechaInicio, fechaFin, grafica)
     hold on;
 end
 %%
-function grafica = OcupacionVsTiempo(datos, fechaInicio, fechaFin, grafica)
-    % Convertir fechas de inicio y fin a datetime si son strings
-    if ischar(fechaInicio) || isstring(fechaInicio)
-        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-    end
-    if ischar(fechaFin) || isstring(fechaFin)
-        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-    end
-
-    % Filtrar los datos por el rango de fechas
-    indices = datos.fechaHoraLecturaDato >= fechaInicio & datos.fechaHoraLecturaDato <= fechaFin;
-    datosFiltrados = datos(indices, :);
-
-    % Crear un nuevo gráfico o utilizar uno existente
+function grafica=OcupacionVsTiempo()
+    EV1=ImportarDatos.Evento1();
     if nargin < 4 || isempty(grafica)
         grafica = figure;
     else
-        figure(grafica); % Hace que 'grafica' sea la figura actual sin crear una nueva
+        figure(grafica);
     end
-
-    % Trazar estimación de ocupación en función del tiempo
-    plot(datosFiltrados.fechaHoraLecturaDato, datosFiltrados.estimacionOcupacionAbordo, 'LineWidth', 2);
-    title('Ocupación en Función del Tiempo');
+    
+    plot(EV1.fechaHoraLecturaDato,EV1.estimacionOcupacionAbordo);
+    
+    title('Ocupacion en Función del Tiempo');
     xlabel('Tiempo');
-    ylabel('Personas');
-    grid on;
-    hold on;
+    ylabel('Personas'); 
 
-    % Devolver el handle de la figura si es necesario
-    if nargout > 0
-        grafica = gcf;
-    end
+    hold on
+    plot(EV1.fechaHoraLecturaDato,EV1.peso);
 end
-
 
 %%
 

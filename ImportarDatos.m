@@ -154,7 +154,7 @@ end
                 carpeta = '4001_15_02'; % Carpeta predeterminada
             end
 
-            nombre_archivo = 'EV2.csv'; % Nombre del archivo a leer
+            nombre_archivo = 'EV1.csv'; % Nombre del archivo a leer
             ruta_archivo = fullfile(carpeta, nombre_archivo);
 
             % Opciones para la importación de datos

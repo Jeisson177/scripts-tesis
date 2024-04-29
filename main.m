@@ -69,50 +69,6 @@ else
 end
 
 
-%% Todas la graficas en un día 
-Dia = 'lunes';
-Semana = '1';
-IDbus = '4020';
-
-HoraInicio = '2024-04-15 1:00:00.434';
-HoraFinal  = '2024-04-15 23:59:00.434';
-
-fechaArchivoP20 = '15-04-2024';
-
-
-% Datos del telefono
-rutaSensor = fullfile(['semana ' Semana], Dia, IDbus);
-datosSensor = ImportarDatos.Sensor(rutaSensor); % Importar los datos del telefono
-datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor); % Importar coordenadas y timestamps del telefono
-
-% Tramas de P20 recolectadas del bus
-rutaP20 = fullfile( ['semana ' Semana], Dia, IDbus, [IDbus '-' fechaArchivoP20]); % Construir la ruta completa del archivo P20
-datosP20 = ImportarDatos.P20(rutaP20);
-datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
-
-% Mapa de ruta
-Map.Ruta(datosCordenadasSensor, HoraInicio, HoraFinal)
-
-% Mapa velocidad
-Map.Velocidad(datosCordenadasSensor, HoraInicio, HoraFinal)
-
-% Grafica de velocidad
-Graficas.velocidadTiempoCorregida(datosCordenadasSensor, HoraInicio, HoraFinal)
-
-% Grafica de aceleracion
-Graficas.aceleracionTiempo(datosCordenadasSensor, HoraInicio, HoraFinal, 'filtrar')
-
-% Analisis de aceleraciones
-Graficas.analizarAceleraciones(datosCordenadasSensor, HoraInicio, HoraFinal)
-
-% Velocidad vs distancia
-Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, HoraInicio, HoraFinal);
-
-% Grafica Distancia vs energia
-
-
-
-
 %% Mapa de calor velocidad
 myMapaV = Map.Velocidad(datosCordenadasSensor, HoraInicio, HoraFinal);
 
@@ -260,13 +216,18 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
 
     % Rutas para datos del teléfono y P20
     rutaSensor = fullfile('Datos', fechaArchivo, IDbus);
-    rutaP20 = fullfile('Datos', fechaArchivo, IDbus, 'log');
+    rutalogs = fullfile('Datos', fechaArchivo, IDbus, 'log');
 
     % Importar datos del sensor y del P20
     datosSensor = ImportarDatos.Sensor(rutaSensor);
     datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
-    datosP20 = ImportarDatos.P20(rutaP20);
+
+    datosP20 = ImportarDatos.P20(rutalogs);
     datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
+
+    datosP60 = ImportarDatos.P60(rutalogs);
+
+    evento1 = ImportarDatos.Evento1(rutalogs);
 
     % Visualizaciones y análisis
     Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b-');
@@ -275,6 +236,10 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
     Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar');
     Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
     Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, fechaInicio, fechaFinal);
+    Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
+    %Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
+    Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+    Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
 end
 
 
