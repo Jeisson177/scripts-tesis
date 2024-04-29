@@ -328,7 +328,7 @@ end
 end
 %%
         
-        function curvatura = calcularCurvatura(datos)
+         function curvatura = calcularCurvatura(datos)
             % Asegurarse de que los datos son una tabla
             if ~istable(datos)
                 error('La entrada debe ser una tabla.');
@@ -349,12 +349,103 @@ end
     
     curvatura(i) = determinarCurvatura3Puntos(p1, p2, p3);
 
-    if (curvatura(i) > 100)
+    if (curvatura(i) > 40)
         curvatura(i) = -1;  % Ajustar el valor de la curvatura si es necesario
     end
             end
         end
-     
+         function datos=riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin)
+            if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+            datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
+    
+            radio=Calculos.calcularCurvatura(datosCordenadasSensor);
+            velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            curva=0;
+            Ncurva=1;
+            j=1;
+            % Calcula numero curvatura
+for i = 1:length(radio)
+    if (radio(i) ~= -1 && curva==0)%empieza curva
+        marcador(Ncurva,1)=datosCordenadasSensor.lat(i);
+        marcador(Ncurva,2)=datosCordenadasSensor.lon(i);
+        curva = 1;
+    elseif(radio(i) == -1 && curva==1)%termina curva
+        marcador2(Ncurva,1)=datosCordenadasSensor.lat(i);
+        marcador2(Ncurva,2)=datosCordenadasSensor.lon(i);
+        Ncurva = Ncurva + 1;
+        j=1;
+        curva = 0;
+    elseif (curva==1 && radio(i) ~= -1)%la curva no ha terminado
+        datos{Ncurva}(j,1)=velocidad(i);
+        datos{Ncurva}(j,2)=radio(i);
+        datos{Ncurva}(j,3)=velocidad(i)/radio(i);
+        j=j+1;
+    end 
+end
+  %mapita=Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFin); 
+  %hold on
+  %geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
+   %   geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
+
+
+        end
+
+        function percentiles = calcularPercentilesConsumo()
+    % Rutas a los archivos de datos para cada día de la semana
+    rutas = {
+        'CarpetaCelulares\semana 1\lunes\hombre\4020\LOG',
+        'CarpetaCelulares\semana 1\martes\hombre\4020\LOG',
+        'CarpetaCelulares\semana 1\miercoles\Hombre\LOG',
+        'CarpetaCelulares\semana 1\jueves\hombre\4020\LOG',
+        'CarpetaCelulares\semana 1\viernes\hombre\4020\LOG'
+    };
+    
+  %toca cambiar para que sea distancia 
+    franjas_horarias = {
+        [3, 0, 4, 29],   % De 3:00 am a 4:29 am
+        [4, 30, 5, 9],    % De 4:30 am a 5:09 am
+        [5,9,6,9],
+        [6,30,8,9],
+        [8,9,9,7],
+        [9,7,10,36],
+        [11,12,12,38],
+        [12,38,13,32],
+        [13,32,14,55],
+        [15,2,16,2],
+        [16,2,17,50],
+        [17,50,19,16]
+    };
+
+    % Inicializa el vector de percentiles
+    percentiles = zeros(length(rutas), length(franjas_horarias));
+
+    % Itera sobre los archivos de datos para cada día de la semana
+    for i = 1:length(rutas)
+        % Importa los datos del archivo
+        datos = ImportarDatos.P60(rutas{i});
+
+        % Extrae la hora y el minuto de la columna fechaHoraLecturaDato
+        hora = hour(datos.fechaHoraLecturaDato);
+        minuto = minute(datos.fechaHoraLecturaDato);
+
+        % Itera sobre las franjas horarias
+        for j = 1:length(franjas_horarias)
+            % Filtra los datos para la franja horaria actual
+            franja_actual = datos((hora == franjas_horarias{j}(1) & minuto >= franjas_horarias{j}(2)) |...
+                                  (hora == franjas_horarias{j}(3) & minuto <= franjas_horarias{j}(4)), :);
+
+            % Calcula el percentil 75 para la columna 'consumo'
+            percentiles(i, j) = prctile(franja_actual.nivelRestanteEnergia, 75);
+        end
+    end
+end
+
+
         function distancia=CalcularDistancia(datos)
             distancia = zeros(size(datos,1),1);
             distancia(1)=0;
