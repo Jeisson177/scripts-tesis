@@ -228,13 +228,13 @@ for n = 1:length(datos)
     % Verificamos si hay datos en la matriz actual
     if ~isempty(datos{n})
         % Extraemos el máximo de la columna 3
-        max_c(end+1) = max(datos{n}(:,3));
+        [max_c(end+1,1), indice_max] = max(datos{n}(:,3));
         % Obtenemos el índice de la fila donde se encuentra el máximo
-        indice_max = find(datos{n}(:,3) == max_c(end));
+%         indice_max = find(datos{n}(:,3) == max_c(end));
         % Guardamos los valores correspondientes de las columnas 1 y 2
-        valores_a(end+1) = datos{n}(indice_max, 1);
-        valores_b(end+1) = datos{n}(indice_max, 2);
-        Ncurvas(end+1)=cantd;
+        valores_a(end+1,1) = datos{n}(indice_max, 1);
+        valores_b(end+1,1) = datos{n}(indice_max, 2);
+        Ncurvas(end+1,1)=cantd;
         cantd=cantd+1;
     end
 end
@@ -244,21 +244,23 @@ end
 figure;
 
 subplot(3,1,1);
-plot( Ncurvas(end -1), max_c);
-xlabel('Numero de cruva');
-ylabel('Maximo indice de riesgo de volcamiento en vurva');
+plot(Ncurvas, max_c);
+xlabel('Número de curva');
+ylabel('Indice de riesgo');
 
 subplot(3,1,2);
-plot(Ncurvas(end -1), valores_a);
-xlabel('Numero de cruva');
+plot(Ncurvas, valores_a);
+xlabel('Número de curva');
 ylabel('Velocidad');
 
 subplot(3,1,3);
-plot(Ncurvas(end -1), valores_b);
-xlabel('Numero de cruva');
+plot(Ncurvas, valores_b);
+xlabel('Número de curva');
 ylabel('Radio curva');
+
     
 end
+
 
 
 %%
