@@ -355,7 +355,7 @@ end
             end
         end
         
-         function datos=riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin)
+         function datosn=riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin)
             if ischar(fechaInicio) || isstring(fechaInicio)
         fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
     end
@@ -365,23 +365,27 @@ end
             datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
     
             radio=Calculos.calcularCurvatura(datosCordenadasSensor);
-            velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            %velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            velocidad=Calculos.corregirVelocidadPendiente(datosCordenadasSensor,3);
             curva=0;
             Ncurva=1;
             j=1;
             % Calcula numero curvatura
 for i = 1:length(radio)
-    if (radio(i) ~= -1 && curva==0)%empieza curva
+    
+    
+    
+    if (radio(i) >0.1 && radio(i+1)>0.1 && radio(i+2)>0.1 && curva==0 && velocidad(i) >2.2)%empieza curva
         marcador(Ncurva,1)=datosCordenadasSensor.lat(i);
         marcador(Ncurva,2)=datosCordenadasSensor.lon(i);
         curva = 1;
-    elseif(radio(i) == -1 && curva==1)%termina curva
+    elseif(radio(i) < 0.1 && curva==1)%termina curva
         marcador2(Ncurva,1)=datosCordenadasSensor.lat(i);
         marcador2(Ncurva,2)=datosCordenadasSensor.lon(i);
         Ncurva = Ncurva + 1;
         j=1;
         curva = 0;
-    elseif (curva==1 && radio(i) ~= -1)%la curva no ha terminado
+    elseif (curva==1 && radio(i) > 0.1)%la curva no ha terminado
         datos{Ncurva}(j,1)=velocidad(i);
         datos{Ncurva}(j,2)=radio(i);
         datos{Ncurva}(j,3)=velocidad(i)/radio(i);
@@ -391,10 +395,24 @@ end
   %mapita=Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFin); 
   %hold on
   %geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
-   %   geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
+  %geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
+tam=size(datos);%cantidad de curvas
+cantidadN=1;
 
+for i=1:tam(2)
+    tamaC=size(datos{1,i});%cantidad de puntos por curva, se dice que debe haber almenos 3 puntos por cuva
+    
+    if tamaC(1)>3
+        datosn{cantidadN}=datos{1,i};
+        cantidadN=cantidadN+1;
+    end
+    
+end
 
         end
+
+
+         
 
           function percentiles = calcularPercentilesConsumo()
     % Rutas a los archivos de datos para cada día de la semana
