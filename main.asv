@@ -242,6 +242,7 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
     Map.Velocidad(datosCordenadasP20, fechaInicio, fechaFinal);
     % Mapa velocidad trama sts
 
+
     % grafica Velocidad celular sin correccion y con correccion
     Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal);
     Graficas.velocidadTiempoCorregida(datosCordenadasSensor, fechaInicio, fechaFinal);
@@ -250,26 +251,39 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
     Graficas.velocidadTiempo(datosCordenadasP20, fechaInicio, fechaFinal);
 
     % Grafico sts velocidad trama
-
+    Graficas.graficarVelocidadSts(datosCordenadasSensor, fechaInicio, fechaFinal);
 
     %Grafica aceleracion celular
     graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal');
     Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', graficaAce);
 
-
-    Graficas.aceleracionTiempo(datosCordenadasP20, fechaInicio)
+    % Grafica aceleracion sts cordenadas
+    Graficas.aceleracionTiempo(datosCordenadasP20, fechaInicio, fechaFinal, 'normal');
 
     % Grafica aceleracion trama
+    
+    % Mapa giros
+    Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFinal)
 
+    % Mapa inicio de curva
     
 
-    Graficas.velocidadTiempoCorregida(datosCordenadasSensor, fechaInicio, fechaFinal);
-    Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar');
+    % Grafica giros
+    Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
+
+    % Grafica de distancia vs velocidad
+    Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosCordenadasP20, fechaInicio, fechaFinal);
+
+    % Grafica de aceleraciones histograma
     Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
-    Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, fechaInicio, fechaFinal);
+    
+    %Grafica de distancia vs energia
     Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
-    %Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
+    
+    % Grafica tiempo vs energia
     Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+
+    % Graficas ocupacion vs tiempo
     Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
 end
 
