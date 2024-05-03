@@ -230,8 +230,39 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
     evento1 = ImportarDatos.Evento1(rutalogs);
 
     % Visualizaciones y análisis
-    Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b-');
+
+    % ruta celular
+    MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b--');
+    % ruta sts
+    Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', MapaRuta);
+
+    % Mapa velocidad celular
     Map.Velocidad(datosCordenadasSensor, fechaInicio, fechaFinal);
+    % Mapa velocidad pocision sts
+    Map.Velocidad(datosCordenadasP20, fechaInicio, fechaFinal);
+    % Mapa velocidad trama sts
+
+    % grafica Velocidad celular sin correccion y con correccion
+    Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal);
+    Graficas.velocidadTiempoCorregida(datosCordenadasSensor, fechaInicio, fechaFinal);
+
+    % Grafica sts velocidad
+    Graficas.velocidadTiempo(datosCordenadasP20, fechaInicio, fechaFinal);
+
+    % Grafico sts velocidad trama
+
+
+    %Grafica aceleracion celular
+    graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal');
+    Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', graficaAce);
+
+    % Grafica aceleracion sts cordenadas
+    Graficas.aceleracionTiempo(datosCordenadasP20, fechaInicio, fechaFinal, 'normal');
+
+    % Grafica aceleracion trama
+    
+    
+
     Graficas.velocidadTiempoCorregida(datosCordenadasSensor, fechaInicio, fechaFinal);
     Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar');
     Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);

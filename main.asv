@@ -69,50 +69,6 @@ else
 end
 
 
-%% Todas la graficas en un día 
-Dia = 'lunes';
-Semana = '1';
-IDbus = '4020';
-
-HoraInicio = '2024-04-15 1:00:00.434';
-HoraFinal  = '2024-04-15 23:59:00.434';
-
-fechaArchivoP20 = '15-04-2024';
-
-
-% Datos del telefono
-rutaSensor = fullfile(['semana ' Semana], Dia, IDbus);
-datosSensor = ImportarDatos.Sensor(rutaSensor); % Importar los datos del telefono
-datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor); % Importar coordenadas y timestamps del telefono
-
-% Tramas de P20 recolectadas del bus
-rutaP20 = fullfile( ['semana ' Semana], Dia, IDbus, [IDbus '-' fechaArchivoP20]); % Construir la ruta completa del archivo P20
-datosP20 = ImportarDatos.P20(rutaP20);
-datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
-
-% Mapa de ruta
-Map.Ruta(datosCordenadasSensor, HoraInicio, HoraFinal)
-
-% Mapa velocidad
-Map.Velocidad(datosCordenadasSensor, HoraInicio, HoraFinal)
-
-% Grafica de velocidad
-Graficas.velocidadTiempoCorregida(datosCordenadasSensor, HoraInicio, HoraFinal)
-
-% Grafica de aceleracion
-Graficas.aceleracionTiempo(datosCordenadasSensor, HoraInicio, HoraFinal, 'filtrar')
-
-% Analisis de aceleraciones
-Graficas.analizarAceleraciones(datosCordenadasSensor, HoraInicio, HoraFinal)
-
-% Velocidad vs distancia
-Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, HoraInicio, HoraFinal);
-
-% Grafica Distancia vs energia
-
-
-
-
 %% Mapa de calor velocidad
 myMapaV = Map.Velocidad(datosCordenadasSensor, HoraInicio, HoraFinal);
 
@@ -274,8 +230,39 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
     evento1 = ImportarDatos.Evento1(rutalogs);
 
     % Visualizaciones y análisis
-    Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b-');
+
+    % ruta celular
+    MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b--');
+    % ruta sts
+    Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', MapaRuta);
+
+    % Mapa velocidad celular
     Map.Velocidad(datosCordenadasSensor, fechaInicio, fechaFinal);
+    % Mapa velocidad pocision sts
+    Map.Velocidad(datosCordenadasP20, fechaInicio, fechaFinal);
+    % Mapa velocidad trama sts
+
+    % grafica Velocidad celular sin correccion y con correccion
+    Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal);
+    Graficas.velocidadTiempoCorregida(datosCordenadasSensor, fechaInicio, fechaFinal);
+
+    % Grafica sts velocidad
+    Graficas.velocidadTiempo(datosCordenadasP20, fechaInicio, fechaFinal);
+
+    % Grafico sts velocidad trama
+
+
+    %Grafica aceleracion celular
+    graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal');
+    Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', graficaAce);
+
+
+    Graficas.aceleracionTiempo(datosCordenadasP20, fechaInicio)
+
+    % Grafica aceleracion trama
+
+    
+
     Graficas.velocidadTiempoCorregida(datosCordenadasSensor, fechaInicio, fechaFinal);
     Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar');
     Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
@@ -283,7 +270,7 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
     Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
     %Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
     Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
-    Graficas.OcupacionVsTiempo()
+    Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
 end
 
 

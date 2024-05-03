@@ -97,7 +97,7 @@ function grafica = aceleracionTiempo(datos, fechaInicio, fechaFin,metodoAcelerac
 
         % Elegir la función de cálculo de aceleración basada en el parámetro 'metodoAceleracion'
     switch metodoAceleracion
-        case 'metodo1'
+        case 'normal'
             aceleracion = Calculos.calcularAceleracion(velocidad, datosFiltrados);
         case 'metodo2'
             aceleracion = Calculos.calcularAceleracion2(velocidad, datosFiltrados);
