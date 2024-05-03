@@ -76,9 +76,9 @@ generarDatos('2024-04-16 3:31:23.434', '2024-04-16 4:34:00.434', '4104', 'Ida')
 
 %%
 %Tramas de p20 recolectadas del bus
-datosP20 = ImportarDatos.P20("Datos\2024-04-15\4020");
-datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
+datosP20 = ImportarDatos.P60("Datos\2024-04-15\4020\log");
 
+%%
 % Trama de los eventos del bus
 datosEventos = ImportarDatos.Evento19();
 [tabla1, tabla2, tabla3, tabla4] = ImportarDatos.Evento19Coordenadas(datosEventos);
@@ -286,7 +286,7 @@ evento1 = ImportarDatos.Evento1(rutalogs);
 
 General = sprintf(' - Fecha: %s, Bus ID: %s, Hora: %s-%s', fechaArchivo, IDbus, horaInicio, horaFinal);
 
-
+Graficas.graficarConsumoBateria(datosP60, fechaInicio, fechaFinal, 'Consumo', 'b-', 'Bus');
 
 % Preparar el título con la palabra 'velocidad', la fecha, el ID del bus y las horas de inicio y final
 tituloGrafica = [Etiqueta sprintf(' Ruta -celular y sts ') General];

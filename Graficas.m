@@ -449,6 +449,101 @@ function grafica = graficarAceleracionSts(datos, fechaInicio, fechaFin, titulo, 
 end
 
 
+%%
+
+function grafica = graficarConsumoBateria(datos, fechaInicio, fechaFin, titulo, colorYlinea, leyenda, grafica)
+    % Tamaño de la batería en kWh
+    capacidadBateria = 280;  % kWh
+
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+
+    % Filtrar los datos por el rango de fechas
+    datosFiltrados = datos(datos{:, 'fechaHoraLecturaDato'} >= fechaInicio & datos{:, 'fechaHoraLecturaDato'} <= fechaFin, :);
+
+    % Calcular el consumo de la batería en kWh
+    porcentajeBateria = Calculos.interpolarPorcentajeBateria2(datosFiltrados);
+    consumoBateria = porcentajeBateria / 100 * capacidadBateria;
+
+    % Crear un nuevo gráfico o utilizar uno existente
+    if nargin < 7 || isempty(grafica)
+        grafica = figure;
+        set(grafica, 'UserData', struct('Leyendas', [])); % Inicializar UserData para leyendas
+    else
+        figure(grafica); % Hacer que 'grafica' sea la figura actual sin crear una nueva
+    end
+
+    % Trazar el consumo en función del tiempo
+    plot(datosFiltrados{:, 'fechaHoraLecturaDato'}, consumoBateria, colorYlinea, 'LineWidth', 2);
+
+    title(titulo);
+    xlabel('Tiempo');
+    ylabel('Consumo de Batería (kWh)');
+    grid on;
+
+    % Actualizar y configurar la leyenda
+    currentLegends = get(grafica, 'UserData').Leyendas;
+    if nargin >= 6 && ~isempty(leyenda)
+        newLegends = [currentLegends, {leyenda}];
+        legend(newLegends, 'Location', 'best');
+        set(grafica, 'UserData', struct('Leyendas', newLegends));
+    end
+
+    hold on; % Mantener el gráfico para más trazados
+end
+
+
+%%
+
+function ConsumoVsDistancia(datosBateria, datosDistancia, tamanoBateria, fechaInicio, fechaFin, titulo)
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+    end
+    
+    % Filtrar los datos por el rango de fechas
+    datosBateriaFiltrados = datosBateria(datosBateria{:, 'fechaHoraLecturaDato'} >= fechaInicio & datosBateria{:, 'fechaHoraLecturaDato'} <= fechaFin, :);
+    datosDistanciaFiltrados = datosDistancia(datosDistancia{:, 'fechaHoraLecturaDato'} >= fechaInicio & datosDistancia{:, 'fechaHoraLecturaDato'} <= fechaFin, :);
+    
+    % Asumiendo que los datos están ordenados cronológicamente y que las fechas coinciden en ambos conjuntos de datos
+    energiaConsumida = zeros(height(datosBateriaFiltrados), 1);
+    distanciaRecorrida = zeros(height(datosBateriaFiltrados), 1);
+
+    for i = 1:height(datosBateriaFiltrados)-1
+        % Calcula el cambio en el porcentaje de batería entre mediciones consecutivas
+        deltaPorcentaje = datosBateriaFiltrados{i, 'porcentajeBateria'} - datosBateriaFiltrados{i+1, 'porcentajeBateria'};
+        energiaConsumida(i) = (deltaPorcentaje / 100) * tamanoBateria;  % en kWh
+
+        % Calcula la distancia recorrida entre las mismas mediciones
+        distanciaRecorrida(i) = datosDistanciaFiltrados{i+1, 'distanciaAcumulada'} - datosDistanciaFiltrados{i, 'distanciaAcumulada'};  % en km
+    end
+
+    % Filtrar ceros que pueden aparecer por falta de movimiento o datos inconsistentes
+    validIndices = distanciaRecorrida > 0;
+    energiaConsumida = energiaConsumida(validIndices);
+    distanciaRecorrida = distanciaRecorrida(validIndices);
+
+    % Calcular el consumo de energía por km
+    consumoPorKm = energiaConsumida ./ distanciaRecorrida;  % kWh por km
+
+    % Crear la figura para graficar
+    figure;
+    plot(distanciaRecorrida, consumoPorKm, '-o');
+    title(titulo);
+    xlabel('Distancia (km)');
+    ylabel('Consumo de energía (kWh/km)');
+    grid on;
+end
+
+
         %%
         function grafica = OcupacionVsTiempo(datos, fechaInicio, fechaFin, grafica)
             % Convertir fechas de inicio y fin a datetime si son strings

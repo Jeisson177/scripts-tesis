@@ -354,6 +354,51 @@ classdef Calculos
                 end
             end
         end
+
+        %%
+
+        function porcentajesInterpolados = interpolarPorcentajeBateria(datosBateriaFiltrados, numPuntosInterpolacion)
+    % Extraer los tiempos y porcentajes de batería de los datos filtrados
+    tiempos = datosBateriaFiltrados{:, 'fechaHoraLecturaDato'};
+    porcentajes = datosBateriaFiltrados{:, 'nivelRestanteEnergia'};
+    
+    % Convertir tiempos a valores numéricos para interpolación
+    tiemposNumericos = datenum(tiempos);
+    
+    % Crear vector de tiempos para la interpolación
+    tiemposInterp = linspace(min(tiemposNumericos), max(tiemposNumericos), numPuntosInterpolacion);
+    
+    % Realizar la interpolación lineal
+    porcentajesInterpolados = interp1(tiemposNumericos, porcentajes, tiemposInterp, 'linear');
+        end
+
+        %%
+
+       function porcentajeInterpolado = interpolarPorcentajeBateria2(datosFiltrados)
+    % Obtener el vector de porcentajes de batería
+    porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
+
+    % Inicializar el vector de porcentaje interpolado
+    porcentajeInterpolado = porcentajes;
+
+    % Encontrar los índices donde cambia el porcentaje de batería
+    cambios = find(diff(porcentajes) ~= 0);
+
+    % Iterar sobre los cambios y realizar la interpolación lineal entre ellos
+    for i = 1:length(cambios)
+        inicio = cambios(i);
+        if i < length(cambios)
+            fin = cambios(i+1);
+        else
+            fin = length(porcentajes);
+        end
+        % Interpolar entre los valores de porcentaje de batería en los índices inicio y fin
+        porcentajeInterpolado(inicio+1:fin) = linspace(porcentajes(inicio), porcentajes(fin), fin - inicio);
+    end
+end
+
+
+
         %%
         function datosn=riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin)
             if ischar(fechaInicio) || isstring(fechaInicio)
