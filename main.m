@@ -21,6 +21,47 @@ tiemposRutas = Calculos.calcularTiemposRutas(datosBuses);
 
 tiemposRutasShufle = Calculos.reorganizarDatosPorBus(tiemposRutas);
 
+%% Recorrer todo
+
+fechas = fieldnames(tiemposRutas);  % Obtiene todos los campos de fecha
+
+% Iterar sobre cada fecha
+for i = 1:length(fechas)
+    fecha = fechas{i};  % fecha actual en el ciclo
+    buses = fieldnames(tiemposRutas.(fecha));  % Obtiene todos los buses para la fecha actual
+    
+    % Iterar sobre cada bus para la fecha actual
+    for j = 1:length(buses)
+        bus = buses{j};  % bus actual en el ciclo
+        busNumber = strrep(bus, 'bus', '');  % Eliminar el prefijo 'bus'
+        rutas = tiemposRutas.(fecha).(bus);  % Matriz de celdas con rutas para el bus actual
+        
+        % Comprobar que la variable contiene una matriz de celdas
+        if iscell(rutas)
+            % Iterar sobre cada fila de la matriz de celdas (cada ruta)
+            for k = 1:size(rutas, 1)
+                inicio = rutas{k, 1};  % Hora de inicio
+                retorno = rutas{k, 2}; % Hora de llegada al punto de retorno
+                fin = rutas{k, 3};     % Hora de llegada al punto de inicio
+
+                % Ejecutar para Ida usando la hora de inicio
+                generarDatos(inicio, retorno, busNumber, 'Ida');
+
+                % Ejecutar para Vuelta usando la hora de retorno como inicio
+                generarDatos(retorno, fin, busNumber, 'Vuelta');
+                
+                disp(['Ruta ', num2str(k), ' del bus ', busNumber, ' en la fecha ', fecha, ' procesada.']);
+            end
+        else
+            disp(['El bus ', bus, ' en la fecha ', fecha, ' no contiene una matriz de celdas con datos.']);
+        end
+    end
+end
+
+
+
+
+
 %% Importar datos para un día en especifico
 datosSensor = ImportarDatos.Sensor("Datos\2024-04-16\4104\");% Importar los datos del telefono
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);%Importar coordenadas y stampas de tiempo del telefono
@@ -35,7 +76,7 @@ generarDatos('2024-04-16 3:31:23.434', '2024-04-16 4:34:00.434', '4104', 'Ida')
 
 %%
 %Tramas de p20 recolectadas del bus
-datosP20 = ImportarDatos.P20("4104-19-04-2024");
+datosP20 = ImportarDatos.P20("Datos\2024-04-15\4020");
 datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
 % Trama de los eventos del bus
