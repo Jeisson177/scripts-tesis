@@ -425,17 +425,22 @@ end
                 else
                     d2=Calculos.geodist(datosCordenadasSensor.lat(i+2),datosCordenadasSensor.lon(i+2),datosCordenadasSensor.lat(i+3),datosCordenadasSensor.lon(i+3));
                     d3=Calculos.geodist(datosCordenadasSensor.lat(i+3),datosCordenadasSensor.lon(i+3),datosCordenadasSensor.lat(i+4),datosCordenadasSensor.lon(i+4));
+                    r1=radio(i);
+                    r2=radio(i+1);
+                    r3=radio(i+2);
                 end
-                if (radio(i) >0.1 && radio(i+1)>0.1 && curva==0 && velocidad(i) >1.5 && distancia2puntos>2.5 && d2>2.5 && d3>2.5)%empieza curva
+                
+                
+                if (r1 >0.1 && r2 >0.1 && curva==0 && velocidad(i) >1.5 && distancia2puntos>2.5 && d2>2.5 && d3>2.5)%empieza curva
                     marcador(Ncurva,1)=datosCordenadasSensor.lat(i);
                     marcador(Ncurva,2)=datosCordenadasSensor.lon(i);
                     curva = 1;
-                elseif (curva==1 && (radio(i) > 0.1 || radio(i+1) > 0.1 || radio(i+2) > 0.1))%la curva no ha terminado
+                elseif (curva==1 && (r1 > 0.1 || r2 > 0.1 || r3 > 0.1))%la curva no ha terminado
                     datos{Ncurva}(j,1)=velocidad(i);
                     datos{Ncurva}(j,2)=radio(i);
                     datos{Ncurva}(j,3)=velocidad(i)/radio(i);
                     j=j+1;
-                elseif(radio(i) < 0.1 && curva==1)%termina curva
+                elseif(r1 < 0.1 && curva==1)%termina curva
                     marcador2(Ncurva,1)=datosCordenadasSensor.lat(i);
                     marcador2(Ncurva,2)=datosCordenadasSensor.lon(i);
                     Ncurva = Ncurva + 1;
@@ -443,10 +448,10 @@ end
                     curva = 0;
                 end
             end
-            %mapita=Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFin);
-            %hold on
-            %geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
-            %geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
+            mapita=Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFin,'titulo');
+            hold on
+            geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
+            geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
             tam=size(datos);%cantidad de curvas
             cantidadN=1;
             
@@ -567,15 +572,7 @@ end
                 end
             end
         end
-        %%
-        function velocidadm=maximaVelocidadCurva()
-            distancia=Calculos.calcularCurvatura(datosCordenadasSensor);
-            velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
-            datossss=[distancia,velocidad(2:end)];
-            datoF=datossss(datossss(:,1)<50,:);
-            datoF=datoF(datoF(:,1)>0,:);
-            velocidadm=max(datoF(:, 2));
-        end
+       
         
         
         
