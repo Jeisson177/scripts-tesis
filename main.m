@@ -214,6 +214,9 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
     
     fechaArchivo = datestr(datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS'), 'yyyy-mm-dd');
 
+    
+
+
     % Rutas para datos del teléfono y P20
     rutaSensor = fullfile('Datos', fechaArchivo, IDbus);
     rutalogs = fullfile('Datos', fechaArchivo, IDbus, 'log');
@@ -231,16 +234,29 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
 
     % Visualizaciones y análisis
 
-    % ruta celular
-    MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b--');
+
+    % Preparar el título con la palabra 'velocidad', la fecha y el ID del bus
+    tituloGrafica = sprintf('Ruta celular, ruta sts - Fecha: %s, Bus ID: %s', fechaArchivo, IDbus);
+
+     % ruta celular
+    MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b--', tituloGrafica, 'Celular');
+    
+    % Asegúrate de establecer la leyenda después de la primera ruta
+    legend('Celular', 'Location', 'best'); % Establece o actualiza la leyenda con el primer ítem
+    hold on; % Asegura que el próximo plot se haga en la misma figura
+
     % ruta sts
-    Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', MapaRuta);
+    Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', tituloGrafica, 'STS', MapaRuta);
+    
+    % Actualiza la leyenda con todos los ítems
+    legend({'Celular', 'STS'}, 'Location', 'best'); 
 
     % Mapa velocidad celular
     Map.Velocidad(datosCordenadasSensor, fechaInicio, fechaFinal);
     % Mapa velocidad pocision sts
     Map.Velocidad(datosCordenadasP20, fechaInicio, fechaFinal);
     % Mapa velocidad trama sts
+
 
     % grafica Velocidad celular sin correccion y con correccion
     Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal);
@@ -250,7 +266,7 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
     Graficas.velocidadTiempo(datosCordenadasP20, fechaInicio, fechaFinal);
 
     % Grafico sts velocidad trama
-
+    Graficas.graficarVelocidadSts(datosP20, fechaInicio, fechaFinal);
 
     %Grafica aceleracion celular
     graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal');
@@ -261,15 +277,28 @@ function generarDatos(fechaInicio, fechaFinal, IDbus)
 
     % Grafica aceleracion trama
     
+    % Mapa giros
+    Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFinal)
+
+    % Mapa inicio de curva
     
 
-    Graficas.velocidadTiempoCorregida(datosCordenadasSensor, fechaInicio, fechaFinal);
-    Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar');
+    % Grafica giros
+    Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
+
+    % Grafica de distancia vs velocidad
+    Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosCordenadasP20, fechaInicio, fechaFinal);
+
+    % Grafica de aceleraciones histograma
     Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
-    Graficas.DistanciavsVelocidad2(datosCordenadasSensor, datosCordenadasP20, fechaInicio, fechaFinal);
+    
+    %Grafica de distancia vs energia
     Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
-    %Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
+    
+    % Grafica tiempo vs energia
     Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+
+    % Graficas ocupacion vs tiempo
     Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
 end
 
