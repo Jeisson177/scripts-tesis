@@ -606,7 +606,7 @@ end
         
         %%
         
-        function DistanciavsVelocidad2(datos, P20, fechaInicio, fechaFin)
+        function DistanciavsVelocidad2(datos, datosCordenadasP20, fechaInicio, fechaFin)
     % Convertir fechas de inicio y fin a datetime si son strings
     if ischar(fechaInicio) || isstring(fechaInicio)
         fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -631,15 +631,14 @@ end
     ylabel('Velocidad (km/h)');
     grid on;
     
-    %distancia = Calculos.CalcularDistancia(datosCordenadasP20Filtrados);
-            %velocidad = Calculos.calcularVelocidadKH(datosCordenadasP20Filtrados);
-            
-            subplot(2, 1, 2);
-            plot(datosCordenadasP20Filtrados.kilometrosOdometro , datosCordenadasP20Filtrados.velocidadVehiculo);
-            title('Velocidad vs distancia (P20)');
-            xlabel('Distancia (km)');
-            ylabel('Velocidad (km/h)');
-            grid on;
+    % Segundo subplot para los datos del P20
+    distancia = Calculos.CalcularDistancia(datosCordenadasP20Filtrados);
+    velocidad = Calculos.calcularVelocidadKH(datosCordenadasP20Filtrados);
+    subplot(2, 1, 2);
+    plot(distancia(1:end-1), velocidad);
+    title('Velocidad vs distancia (P20)');
+    xlabel('Distancia (km)');
+    ylabel('Velocidad (km/h)');
     grid on;
 end
 

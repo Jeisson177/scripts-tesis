@@ -274,7 +274,7 @@ datosSensor = ImportarDatos.Sensor(rutaSensor);
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
 datosP20 = ImportarDatos.P20(rutalogs);
-datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
+%datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
 datosP60 = ImportarDatos.P60(rutalogs);
 
@@ -344,10 +344,11 @@ evento1 = ImportarDatos.Evento1(rutalogs);
 
 
 % Grafica giros
-Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
+
+%Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 % Grafica de distancia vs velocidad
-%Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosCordenadasP20, fechaInicio, fechaFinal);
+Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal);
 
 %Grafica de distancia vs energia
 %Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');

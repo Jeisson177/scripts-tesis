@@ -274,7 +274,7 @@ datosSensor = ImportarDatos.Sensor(rutaSensor);
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
 datosP20 = ImportarDatos.P20(rutalogs);
-datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
+%datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
 
 datosP60 = ImportarDatos.P60(rutalogs);
 
@@ -296,70 +296,71 @@ evento1 = ImportarDatos.Evento1(rutalogs);
 %Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', tituloGrafica, 'STS', MapaRuta);
 
 
-tituloGrafica = [Etiqueta sprintf('Mapa de calor velocidades celular ') General];
+%tituloGrafica = [Etiqueta sprintf('Mapa de calor velocidades celular ') General];
 % Mapa velocidad celular
-Map.Velocidad(datosCordenadasSensor, fechaInicio, fechaFinal, tituloGrafica, 'Celular');
+%Map.Velocidad(datosCordenadasSensor, fechaInicio, fechaFinal, tituloGrafica, 'Celular');
 % Mapa velocidad pocision sts
-tituloGrafica = [Etiqueta sprintf(' Velocidad P20 coordenadas ') General];
-Map.Velocidad(datosCordenadasP20, fechaInicio, fechaFinal, tituloGrafica, 'sts');
+%tituloGrafica = [Etiqueta sprintf(' Velocidad P20 coordenadas ') General];
+%Map.Velocidad(datosCordenadasP20, fechaInicio, fechaFinal, tituloGrafica, 'sts');
 
 
-tituloGrafica = [Etiqueta sprintf(' Velocidad P20 Tramar ') General];
+%tituloGrafica = [Etiqueta sprintf(' Velocidad P20 Tramar ') General];
 % Mapa velocidad trama sts
-Map.VelocidadSTS(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'STS')
+%Map.VelocidadSTS(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'STS')
 
 % Mapa direccion
-Map.Direccion(datosCordenadasSensor, fechaInicio, fechaFinal);
+%Map.Direccion(datosCordenadasSensor, fechaInicio, fechaFinal);
 
-tituloGrafica = [Etiqueta sprintf(' Velocidad filtrada y sin filtar ') General];
+%tituloGrafica = [Etiqueta sprintf(' Velocidad filtrada y sin filtar ') General];
 % grafica Velocidad celular sin correccion y con correccion
-graficaVelocidad = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-' , 'sin filtrar' );
-Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada', graficaVelocidad);
+%graficaVelocidad = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-' , 'sin filtrar' );
+%Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada', graficaVelocidad);
 
-tituloGrafica = [Etiqueta sprintf(' Velocidad coordenadas p20 ') General];
+%tituloGrafica = [Etiqueta sprintf(' Velocidad coordenadas p20 ') General];
 % Grafica sts velocidad
-Graficas.velocidadTiempo(datosCordenadasP20, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-', 'P20 coordenadas');
+%Graficas.velocidadTiempo(datosCordenadasP20, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-', 'P20 coordenadas');
 
-tituloGrafica = [Etiqueta sprintf(' Velocidad  P20 Trama ') General];
+%tituloGrafica = [Etiqueta sprintf(' Velocidad  P20 Trama ') General];
 % Grafico sts velocidad trama
-Graficas.graficarVelocidadSts(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'b-', 'P20');
+%Graficas.graficarVelocidadSts(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'b-', 'P20');
 
-tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
+%tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
 %Grafica aceleracion celular
-graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'sin filtrar');
-Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', graficaAce);
+%graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'sin filtrar');
+%Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', graficaAce);
 
 
-tituloGrafica = [Etiqueta sprintf(' Aceleracion STS coordenadas ') General];
+%tituloGrafica = [Etiqueta sprintf(' Aceleracion STS coordenadas ') General];
 % Grafica aceleracion sts cordenadas
-Graficas.aceleracionTiempo(datosCordenadasP20, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'STS coordenadas');
+%Graficas.aceleracionTiempo(datosCordenadasP20, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'STS coordenadas');
 
-tituloGrafica = [Etiqueta sprintf(' Aceleracion STS Trama ') General];
+%tituloGrafica = [Etiqueta sprintf(' Aceleracion STS Trama ') General];
 % Grafica aceleracion trama
-Graficas.graficarAceleracionSts(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'b-', 'STS');
+%Graficas.graficarAceleracionSts(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'b-', 'STS');
 
-tituloGrafica = [Etiqueta sprintf(' Curvatura ') General];
+%tituloGrafica = [Etiqueta sprintf(' Curvatura ') General];
 % Mapa giros
-Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFinal, tituloGrafica)
+%Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFinal, tituloGrafica)
 
 
 % Grafica giros
-Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
+
+%Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 % Grafica de distancia vs velocidad
-Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosCordenadasP20, fechaInicio, fechaFinal);
+Graficas.DistanciavsVelocidad3(datosCordenadasSensor,datosP20, fechaInicio, fechaFinal);
 
 %Grafica de distancia vs energia
-Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
+%Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
 
 % Grafica de aceleraciones histograma
-Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
+%Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 % Grafica tiempo vs energia
-Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+%Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
 
 % Graficas ocupacion vs tiempo
-Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
+%Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
 end
 
 
