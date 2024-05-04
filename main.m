@@ -66,7 +66,7 @@ end
 
 
 %% Importar datos para un día en especifico
-datosSensor = ImportarDatos.Sensor("Datos\2024-04-16\4104\");% Importar los datos del telefono
+datosSensor = ImportarDatos.Sensor("Datos\2024-04-15\4020");% Importar los datos del telefono
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);%Importar coordenadas y stampas de tiempo del telefono
 
 %%

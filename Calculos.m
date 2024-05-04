@@ -543,7 +543,7 @@ end
     
     Ccurvas = size(pCurvas{1, 1}, 1); % Número total de curvas
     datosn = cell(1, Ccurvas); % Inicializar celda para almacenar datos de cada curva
-
+   
     for Ncurva = 1:Ccurvas
         inicioCurva = pCurvas{1, 1}(Ncurva, :); % Punto de inicio de la curva
         finCurva = pCurvas{1, 2}(Ncurva, :); % Punto de final de la curva
@@ -570,10 +570,15 @@ end
         
         % Almacenar los datos de esta curva en datosn
         datosn{Ncurva} = datosCurva;
-        maximos(Ncurva,1) = max(datosCurva(:, 3));
+        
+        % Calcular el máximo de la columna 3 (relación velocidad/radio) de esta curva
+        %if ~isempty(datosCurva) % Verificar si datosCurva no está vacío
+            maximos(Ncurva,1) = max(datosCurva(:, 3));
+        %end
     end
-    datosn=maximos;
     
+    % Guardar los máximos de cada curva en una variable de salida
+    datosn = maximos;
 end
 
     
