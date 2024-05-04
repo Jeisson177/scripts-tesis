@@ -399,9 +399,10 @@ end
 %%
 
 function marcadores = Lcurvasida4020()% se asegura que todas las curvas de esta ruta correspondan
-    
-    fechaInicio='2024-04-16 3:31:23.434';
-    fechaFin='2024-04-16 4:34:00.434';
+    datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-15\4020');
+    datosCordenadasSensor=ImportarDatos.SensorCordenadas(datosCordenadasSensor);
+    fechaInicio='2024-04-15 3:31:23.434';
+    fechaFin='2024-04-15 4:34:00.434';
     
     if ischar(fechaInicio) || isstring(fechaInicio)
        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
@@ -438,34 +439,22 @@ function marcadores = Lcurvasida4020()% se asegura que todas las curvas de esta 
                     marcador(Ncurva,2)=datosCordenadasSensor.lon(i);
                     curva = 1;
                 elseif (curva==1 && (r1 > 1 || r2 > 1 || r3 > 1))%la curva no ha terminado
-                    datos{Ncurva}(j,1)=velocidad(i);
-                    datos{Ncurva}(j,2)=radio(i);
-                    datos{Ncurva}(j,3)=velocidad(i)/radio(i);
-                    j=j+1;
+                    
+                    
                 elseif(r1 < 1 && curva==1)%termina curva
                     marcador2(Ncurva,1)=datosCordenadasSensor.lat(i);
                     marcador2(Ncurva,2)=datosCordenadasSensor.lon(i);
                     Ncurva = Ncurva + 1;
-                    j=1;
+                    
                     curva = 0;
                 end
             end
             
             tam=size(datos);%cantidad de curvas
             cantidadN=1;
-            
-            for i=1:tam(2)
-                tamaC=size(datos{1,i});%cantidad de puntos por curva, se dice que debe haber almenos 3 puntos por cuva
-                
-                if tamaC(1)>3
-                    datosn{cantidadN}=datos{1,i};
-                    cantidadN=cantidadN+1;
-                end
-                
-            end
-            
-            
-            
+            marcadores{:,1}=marcador;
+            marcadores{:,2}=marcador2;
+  
 end
 
 
@@ -538,7 +527,34 @@ end
             
         end
         
+    %%
+    
+    function datosn=riesgoCurva2(datosCordenadasSensor,fechaInicio, fechaFin,pCurvas)%recibe la posicion de inicio y fin de cada curva
         
+        if ischar(fechaInicio) || isstring(fechaInicio)
+                fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+            end
+            if ischar(fechaFin) || isstring(fechaFin)
+                fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+            end
+        datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
+            
+            radio=Calculos.calcularCurvatura(datosCordenadasSensor);
+            %velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            velocidad=Calculos.corregirVelocidadPendiente(datosCordenadasSensor,3);
+            Ncurva=1;
+            fin=1;
+            for i=1:length(datosCordenadasSensor)
+                distancia2puntos=Calculos.geodist(datosCordenadasSensor.lat(i),datosCordenadasSensor.lon(i),pCurvas{1,fin}(Ncurva,1),pCurvas{1,fin}(Ncurva,2));
+                if distancia2puntos>5 &&Ncurva==1
+                    datosn{Ncurva}()
+                end
+                
+            end
+        
+    end
+    
+    %%
         function percentiles = calcularPercentilesConsumo()
             % Rutas a los archivos de datos para cada día de la semana
             rutas = {
