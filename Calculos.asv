@@ -529,53 +529,56 @@ end
         
     %%
     
-    function datosn = riesgoCurva2(datosCordenadasSensor, fechaInicio, fechaFin, pCurvas)
-    if ischar(fechaInicio) || isstring(fechaInicio)
-        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-    end
-    if ischar(fechaFin) || isstring(fechaFin)
-        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-    end
-    datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
-            
-    radio = Calculos.calcularCurvatura(datosCordenadasSensor);
-    velocidad = Calculos.corregirVelocidadPendiente(datosCordenadasSensor, 3);
-    
-    Ccurvas = size(pCurvas{1, 1}, 1); % Número total de curvas
-    datosn = cell(1, Ccurvas); % Inicializar celda para almacenar datos de cada curva
-
-    for Ncurva = 1:Ccurvas
-        inicioCurva = pCurvas{1, 1}(Ncurva, :); % Punto de inicio de la curva
-        finCurva = pCurvas{1, 2}(Ncurva, :); % Punto de final de la curva
+    function datosn=riesgoCurva2(datosCordenadasSensor,fechaInicio, fechaFin,pCurvas)%recibe la posicion de inicio y fin de cada curva
         
-        % Inicializar variables para esta curva
-        datosCurva = []; % Almacenar datos de esta curva
-        j = 1; % Índice para datos de la curva
-        
-        % Recorrer los datos de sensor para encontrar los puntos en la curva
-        for i = 1:size(datosCordenadasSensor, 1)
-            distanciaInicio = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), inicioCurva(1), inicioCurva(2));
-            distanciaFin = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), finCurva(1), finCurva(2));
-            
-            if distanciaInicio < 5 % Si estamos cerca del inicio de la curva
-                % Guardar los datos de velocidad, radio y relación velocidad/radio
-                datosCurva(j, 1) = velocidad(i);
-                datosCurva(j, 2) = radio(i);
-                datosCurva(j, 3) = velocidad(i) / radio(i);
-                j = j + 1;
-            elseif distanciaFin < 5 % Si estamos cerca del final de la curva
-                break; % Salir del bucle
+        if ischar(fechaInicio) || isstring(fechaInicio)
+                fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
             end
-        end
+            if ischar(fechaFin) || isstring(fechaFin)
+                fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+            end
+        datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
+            
+            radio=Calculos.calcularCurvatura(datosCordenadasSensor);
+            %velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            velocidad=Calculos.corregirVelocidadPendiente(datosCordenadasSensor,3);
+            Ncurva=1;
+            inicio=1;
+            fin=1;
+            j=1;
+            distancia2puntosF=10000;
+            Ccurvas=size(pCurvas{1,1});
+            T=size(datosCordenadasSensor);
+            for i=1:T(1)
+                if inicio==1
+                    distancia2puntosI=Calculos.geodist(datosCordenadasSensor.lat(i),datosCordenadasSensor.lon(i),pCurvas{1,1}(Ncurva,1),pCurvas{1,1}(Ncurva,2));
+                end
+                if fin==1
+                    distancia2puntosF=Calculos.geodist(datosCordenadasSensor.lat(i),datosCordenadasSensor.lon(i),pCurvas{1,2}(Ncurva,1),pCurvas{1,2}(Ncurva,2));                    
+                end
+                
+                if distancia2puntosI<5 && fin==1%limite de 5metros para cordenada de inicio
+                    inicio=0;%ya empezo la curva 
+                    datosn{1,Ncurva}(j,1)=velocidad(i);
+                    datosn{1,Ncurva}(j,2)=radio(i);
+                    datosn{1,Ncurva}(j,3)=velocidad(i)/radio(i);
+                    j=j+1; 
+                
+                end
+                if distancia2puntosF<5
+                    Ncurva=Ncurva+1;
+                    j=1;
+                    fin=0;
+                    inicio=1;
+                    distancia2puntosF=1000;
+                    distancia2puntosI=1000;
+                end
+                if Ncurva>=Ccurvas(1)
+                    break;%si ya se acabaron las vurvas no es necesario seguir contando
+                end
+            end
         
-        % Almacenar los datos de esta curva en datosn
-        datosn{Ncurva} = datosCurva;
-        maximos(Ncurva,1) = max(datosCurva(:, 3));
     end
-    datosn=maximos;
-    
-end
-
     
     %%
         function percentiles = calcularPercentilesConsumo()

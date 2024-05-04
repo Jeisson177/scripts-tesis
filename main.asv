@@ -10,7 +10,7 @@ Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %% importar solo un dato
 Sensor=ImportarDatos.Sensor('Datos\2024-04-15\4020');
-datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
+datosCordenadasSensor=ImportarDatos.
 
 %% Importar todos los datos tomados por el movil
 
