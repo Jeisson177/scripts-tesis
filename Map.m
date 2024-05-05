@@ -229,7 +229,7 @@ end
             datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
             
             % Calcular la curvatura
-            curvatura = Calculos.calcularCurvatura(datosFiltrados);
+            curvatura = Calculos.calcularCurvatura(datosFiltrados,35);
             
             % Preparar el mapa
             if nargin < 5 || isempty(mapa)
