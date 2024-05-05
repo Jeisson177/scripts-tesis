@@ -209,7 +209,7 @@ Graficas.Evento1(datosEventosCord, '2024-02-14 00:30:00.434', '2024-02-15 23:35:
 Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434', mymap)
 
 %% 
-fechas = fieldnames(tiemposRutas);  % Obtiene todos los campos de fecha
+%fechas = fieldnames(tiemposRutas);  % Obtiene todos los campos de fecha
 for i=1: 1:length(fechas)
     fecha = fechas{i};  % fecha actual en el ciclo
     buses = fieldnames(tiemposRutas.(fecha));  % Obtiene todos los buses para la fecha actual
@@ -234,11 +234,11 @@ for i=1: 1:length(fechas)
                 datosSensor = ImportarDatos.Sensor(rutaSensor);
                 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
                 if bus=='bus4020'
-                    conductoresida4020{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,Cida4020);
-                    conductoresRetorno4020{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,Cretorno4020);
+                    conductoresida{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,Cida4020);
+                    conductoresRetorno{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,Cretorno4020);
                 elseif bus=='bus4104'
-                    conductoresida4104{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,Cida4104);
-                    conductoresRetorno4104{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,Cretorno4104);
+                    conductoresida{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,Cida4104);
+                    conductoresRetorno{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,hora,Cretorno4104);
                
                 end
                 

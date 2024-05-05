@@ -460,12 +460,12 @@ function marcadores = LcurvasVuelta4020()% se asegura que todas las curvas de es
     fechaInicio='15-Apr-2024 04:49:24';
     fechaFin='15-Apr-2024 06:00:46';
     
-    if ischar(fechaInicio) || isstring(fechaInicio)
-       fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-    end
-    if ischar(fechaFin) || isstring(fechaFin)
-       fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-    end
+%     if ischar(fechaInicio) || isstring(fechaInicio)
+%        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+%     end
+%     if ischar(fechaFin) || isstring(fechaFin)
+%        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+%     end
     datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
             
             radio=Calculos.calcularCurvatura(datosCordenadasSensor,68);
@@ -737,7 +737,9 @@ end
         
         % Calcular el máximo de la columna 3 (relación velocidad/radio) de esta curva
         %if ~isempty(datosCurva) % Verificar si datosCurva no está vacío
-            maximos(Ncurva,1) = max(datosCurva(:, 3));
+        try    
+        maximos(Ncurva,1) = max(datosCurva(:, 3));
+        end
         %end
     end
     
