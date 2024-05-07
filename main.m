@@ -21,9 +21,10 @@ Sensor=ImportarDatos.Sensor('Datos\2024-04-15\4020');
 datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
 tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4020,Vuelta4020,20);
 T=size(tiempoR);
-Ccurvas=Calculos.Lcurvasida4020();
+%Ccurvas=Calculos.Lcurvasida4020();
+%Ccurvas=Calculos.LcurvasVuelta4020();
 for i=1:T(1)
-array(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,1},tiempoR{i,2},Ccurvas);
+array(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
 end
 % for i=1:T(1)
 %     m{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,1},tiempoR{i,2},'r','ida','ida');
