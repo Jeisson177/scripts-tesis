@@ -31,6 +31,12 @@ tiemposRutas = Calculos.calcularTiemposRutas(datosBuses);
 %% Reorganiza los tiempos
 
 tiemposRutasShufle = Calculos.reorganizarDatosPorBus(tiemposRutas);
+%% poner las curvas de ida y venida para semana 1 para ambos buses
+Cida4020=Calculos.Lcurvasida4020();
+Cretorno4020=Calculos.LcurvasVuelta4020();
+Cida4104=Calculos.Lcurvasida4104();
+Cretorno4104=Calculos.LcurvasVuelta4104();
+
 
 %% Recorrer todo
 
@@ -56,10 +62,10 @@ for i = 1:length(fechas)
                 fin = rutas{k, 3};     % Hora de llegada al punto de inicio
 
                 % Ejecutar para Ida usando la hora de inicio
-                generarDatos(inicio, retorno, busNumber, 'Ida');
-
+                %generarDatos(inicio, retorno, busNumber, 'Ida');
                 % Ejecutar para Vuelta usando la hora de retorno como inicio
-                generarDatos(retorno, fin, busNumber, 'Vuelta');
+               
+                %generarDatos(retorno, fin, busNumber, 'Vuelta');
                 
                 disp(['Ruta ', num2str(k), ' del bus ', busNumber, ' en la fecha ', fecha, ' procesada.']);
             end
@@ -210,9 +216,50 @@ Graficas.Evento1(datosEventosCord, '2024-02-14 00:30:00.434', '2024-02-15 23:35:
 
 Map.FiltrarYAgregarMarcadores(datosEventosCord, '2024-02-14 07:30:00.434', '2024-02-14 07:59:00.434', mymap)
 
+%% 
+fechas = fieldnames(tiemposRutas);  % Obtiene todos los campos de fecha
+for i=1: 1:length(fechas)
+    fecha = fechas{i};  % fecha actual en el ciclo
+    buses = fieldnames(tiemposRutas.(fecha));  % Obtiene todos los buses para la fecha actual
+   for j= length(buses)
+        bus = buses{j};  % bus actual en el ciclo
+        busNumber = strrep(bus, 'bus', '');  % Eliminar el prefijo 'bus'
+        rutas = tiemposRutas.(fecha).(bus);  % Matriz de celdas con rutas para el bus actual
+        if iscell(rutas)
+            % Iterar sobre cada fila de la matriz de celdas (cada ruta)
+            for k = 1:size(rutas, 1)
+                inicio = rutas{k, 1};  % Hora de inicio
+                retorno = rutas{k, 2}; % Hora de llegada al punto de retorno
+                fin = rutas{k, 3};     % Hora de llegada al punto de inicio
+                fechaArchivo = datestr(inicio, 'yyyy-mm-dd');
+                horaInicio = datestr(inicio, 'HH:MM:SS');
+                horaR = datestr(retorno, 'HH:MM:SS');
+                horaF = datestr(fin, 'HH:MM:SS');
+
+                % Rutas para datos del teléfono y P20
+                rutaSensor = fullfile('Datos', fechaArchivo, busNumber);
+                disp(['Ruta ', num2str(k), ' del bus ', busNumber, ' en la fecha ', fecha, ' procesada.']);
+                datosSensor = ImportarDatos.Sensor(rutaSensor);
+                datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
+                if bus=='bus4020'
+                    conductoresida4020{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,Cida4020);
+                    conductoresRetorno4020{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,Cretorno4020);
+                elseif bus=='bus4104'
+                    conductoresida4104{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,Cida4104);
+                    conductoresRetorno4104{i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,Cretorno4104);
+               
+                end
+                
+%                 
+%                 conductoresRetorno{}
+            end
+        else
+            disp(['El bus ', bus, ' en la fecha ', fecha, ' no contiene una matriz de celdas con datos.']);
+        end
+   end
+end
+
 %%
-
-
 %aceleracion= Calculos.calcularAceleracion(datosCordenadasSensor);
 
 function d = gps_distance(lat1,lon1,lat2,lon2)
