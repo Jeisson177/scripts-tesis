@@ -753,7 +753,7 @@ end
     end
     datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
             
-    radio = Calculos.calcularCurvatura(datosCordenadasSensor,150);
+    radio = Calculos.calcularCurvatura(datosCordenadasSensor,300);
     velocidad = Calculos.corregirVelocidadPendiente(datosCordenadasSensor, 3);
     
     Ccurvas = size(pCurvas{1, 1}, 1); % Número total de curvas
@@ -788,9 +788,11 @@ end
         
         % Calcular el máximo de la columna 3 (relación velocidad/radio) de esta curva
         %if ~isempty(datosCurva) % Verificar si datosCurva no está vacío
-        %try    
+        try    
         maximos(Ncurva,1) = max(datosCurva(:, 3));
-        %end
+        catch
+           maximos(Ncurva,1)=0; 
+        end
         %end
     end
     
