@@ -702,7 +702,7 @@ end
     end
     datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
             
-    radio = Calculos.calcularCurvatura(datosCordenadasSensor,60);
+    radio = Calculos.calcularCurvatura(datosCordenadasSensor,150);
     velocidad = Calculos.corregirVelocidadPendiente(datosCordenadasSensor, 3);
     
     Ccurvas = size(pCurvas{1, 1}, 1); % Número total de curvas
