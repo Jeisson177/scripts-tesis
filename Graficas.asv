@@ -608,7 +608,7 @@ end
         
         %%
         
-        function DistanciavsVelocidad2(datos, P20, fechaInicio, fechaFin, tituloGeneral)
+        function DistanciavsVelocidad2(datos, P20, fechaInicio, fechaFin)
     % Convertir fechas de inicio y fin a datetime si son strings
     if ischar(fechaInicio) || isstring(fechaInicio)
         fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -620,11 +620,9 @@ end
     % Filtrar los datos por el rango de fechas
     datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
     datosCordenadasP20Filtrados = P20(P20.fechaHoraLecturaDato >= fechaInicio & P20.fechaHoraLecturaDato <= fechaFin, :);
-
-    % Crear figura
-    hFig = figure;
-    set(hFig, 'Name', tituloGeneral, 'NumberTitle', 'off');  % Establecer nombre y desactivar número de título
-
+                % Calcular distancia y velocidad para datos filtrados
+    figure;
+    
     % Primer subplot para los datos del celular
     distancia = Calculos.CalcularDistancia(datosFiltrados);
     velocidad = Calculos.calcularVelocidadKH(datosFiltrados);
@@ -635,16 +633,16 @@ end
     ylabel('Velocidad (km/h)');
     grid on;
     
-    % Segundo subplot para los datos del dispositivo P20
-    subplot(2, 1, 2);
-    plot(datosCordenadasP20Filtrados.kilometrosOdometro , datosCordenadasP20Filtrados.velocidadVehiculo);
-    title('Velocidad vs distancia (P20)');
-    xlabel('Distancia (km)');
-    ylabel('Velocidad (km/h)');
+    %distancia = Calculos.CalcularDistancia(datosCordenadasP20Filtrados);
+            %velocidad = Calculos.calcularVelocidadKH(datosCordenadasP20Filtrados);
+            
+            subplot(2, 1, 2);
+            plot(datosCordenadasP20Filtrados.kilometrosOdometro , datosCordenadasP20Filtrados.velocidadVehiculo);
+            title('Velocidad vs distancia (P20)');
+            xlabel('Distancia (km)');
+            ylabel('Velocidad (km/h)');
+            grid on;
     grid on;
-
-    % Añadir título general para la figura entera
-    sgtitle(tituloGeneral);
 end
 
         

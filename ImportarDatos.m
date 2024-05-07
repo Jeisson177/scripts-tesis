@@ -103,7 +103,21 @@ classdef ImportarDatos
             % Seleccionar solo las columnas de fecha de lectura y velocidad del vehículo
             datosVelocidad = sts(:, {'fechaHoraLecturaDato', 'velocidadVehiculo'});
         end
-        
+        %%
+
+        function datosFiltrados = filtrarDatosPorFechas(datos, fechaInicio, fechaFin)
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+    end
+
+    % Filtrar los datos por el rango de fechas
+    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+end
+
         
         %%
         function resultado = P20Cordenadas(sts)

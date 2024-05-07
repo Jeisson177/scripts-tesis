@@ -28,6 +28,57 @@ classdef Calculos
             velocidad=Calculos.corregirV(velocidad,datos);
             
         end
+
+        %%
+        
+
+        function promediosVelocidad = calcularPromedioVelocidadPorSegmentos(datos, puntosSegmentos)
+    % Asegurar que la distancia inicial (0 km) esté incluida si no está ya
+    if puntosSegmentos(1) ~= 0
+        puntosSegmentos = [0 puntosSegmentos];
+    end
+
+    % Calcular la distancia y la velocidad de los datos
+    distancia = Calculos.CalcularDistancia(datos);
+    velocidad = Calculos.calcularVelocidadKH(datos);
+
+    % Extender puntosSegmentos para incluir el máximo de distancia
+    if puntosSegmentos(end) < max(distancia)
+        puntosSegmentos = [puntosSegmentos, max(distancia)];
+    end
+
+    % Inicializar el vector de promedios de velocidad y las listas de velocidad por segmento
+    numSegmentos = length(puntosSegmentos) - 1;
+    promediosVelocidad = zeros(numSegmentos, 1);
+    velocidadesPorSegmento = cell(numSegmentos, 1);
+
+    % Asignar cada velocidad a su respectivo segmento
+    for i = 1:length(distancia)
+        % Asegurarse de que i no exceda la longitud de la matriz de velocidad
+        if i > length(velocidad)
+            continue;
+        end
+        
+        for j = 1:numSegmentos
+            if distancia(i) >= puntosSegmentos(j) && distancia(i) < puntosSegmentos(j+1)
+                velocidadesPorSegmento{j} = [velocidadesPorSegmento{j}, velocidad(i)];
+                break;
+            end
+        end
+    end
+
+    % Calcular el promedio de velocidad para cada segmento
+    for k = 1:numSegmentos
+        if ~isempty(velocidadesPorSegmento{k})
+            promediosVelocidad(k) = mean(velocidadesPorSegmento{k}, 'omitnan');
+        else
+            promediosVelocidad(k) = NaN;
+        end
+    end
+end
+
+
+
         
         %%
         function velocidad = calcularVelocidadMS(datos)
