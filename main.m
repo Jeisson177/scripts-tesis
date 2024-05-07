@@ -1,6 +1,14 @@
 %% Segmentación de las rutas
-Ruta4104 = [3.30, 5.96, 9.84, 14.55, 17.19, 18.52, 19.21, 20.44];
-Ruta4020 = [3.40, 5.26, 8.42, 12.03, 17.39, 19.87, 23.80, 29.78, 35.07, 36.21, 38.22, 40.03];
+Ruta4104Ida = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
+Ruta4104Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
+
+
+Ruta4020Ida = [2.3, 8.1, 11.9, 12.9, 14.8, 19.25];
+Ruta4020Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
+
+
+
+Sexo4104 = ['H', 'H', 'M', 'M', 'M', 'M'];
 
 Ida4020 = [4.593216, -74.178910];
 Vuelta4020 = [4.6096941, -74.0738544];
@@ -340,7 +348,7 @@ evento1 = ImportarDatos.Evento1(rutalogs);
 
 % Visualizaciones y análisis
 
-%General = sprintf(' - Fecha: %s, Bus ID: %s, Hora: %s-%s', fechaArchivo, IDbus, horaInicio, horaFinal);
+General = sprintf(' - Fecha: %s, Bus ID: %s, Hora: %s-%s', fechaArchivo, IDbus, horaInicio, horaFinal);
 
 %Graficas.graficarConsumoBateria(datosP60, fechaInicio, fechaFinal, 'Consumo', 'b-', 'Bus');
 
@@ -399,12 +407,39 @@ evento1 = ImportarDatos.Evento1(rutalogs);
 %Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFinal, tituloGrafica)
 
 
+
+Ruta4104Ida = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
+Ruta4104Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
+
+
+Ruta4020Ida = [2.3, 8.1, 11.9, 12.9, 14.8, 19.25];
+Ruta4020Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
+
+
+
+
+
 % Grafica giros
+tituloGrafica = [Etiqueta sprintf(' Riesgo curvatura ') General];
+% Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal, tituloGrafica);
 
-%Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal);
-
+tituloGrafica = [Etiqueta sprintf(' Distancia vs velocidad ') General];
 % Grafica de distancia vs velocidad
-Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal);
+Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal, tituloGrafica);
+
+dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaInicio, fechaFinal);
+
+
+
+
+    if strcmp(IDbus, '4020') && strcmp(Etiqueta, 'Ida')
+        Promedios = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltrada, Ruta4020Ida);
+        disp(Promedios);
+    else
+        disp('ID del bus o etiqueta no coinciden.');
+    end
+
+
 
 %Grafica de distancia vs energia
 %Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
