@@ -788,9 +788,9 @@ end
         
         % Calcular el máximo de la columna 3 (relación velocidad/radio) de esta curva
         %if ~isempty(datosCurva) % Verificar si datosCurva no está vacío
-        try    
+        %try    
         maximos(Ncurva,1) = max(datosCurva(:, 3));
-        end
+        %end
         %end
     end
     
