@@ -23,10 +23,44 @@ datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
 %% Importar todos los datos tomados por el movil
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
-%%
-% Calculo de todos los tiempos para cada ruta
 
-tiemposRutas = Calculos.calcularTiemposRutas(datosBuses);
+
+%% Calculo de todos los tiempos para cada ruta
+
+datosBuses = Calculos.calcularTiemposRutas(datosBuses);
+
+%% calcula la velocidad
+
+datosBuses = Calculos.calcularVelocidadRutas(datosBuses);
+
+%%
+
+datosBuses = Calculos.extraerP60(datosBuses);
+
+%% Calcula los promedios por segmentos
+
+datosBuses = Calculos.calcularPromedioVelocidadRutas(datosBuses);
+
+%% Organiza la estructura por bus y ruta
+
+Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
+%%
+
+generarDatos(Buses.bus_4020.ida.f_2024_04_15.Tres(1), Buses.bus_4020.ida.f_2024_04_15.asas(1), '4020', 'ida');
+
+%%
+generarDatos(Buses.bus_4020.ida.f_2024_04_15.Tres(2), Buses.bus_4020.ida.f_2024_04_15.asas(2), '4020', 'ida');
+generarDatos(Buses.bus_4020.ida.f_2024_04_15.Tres(3), Buses.bus_4020.ida.f_2024_04_15.asas(3), '4020', 'ida');
+
+%%
+
+Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.General, 'Promedio velocidad', 1, 'ascend' );
+
+
+%%
+
+procesarRutas(Buses);
+
 
 %% Reorganiza los tiempos
 
@@ -324,8 +358,8 @@ horaFinal = datestr(fechaFinalDT, 'HH:MM:SS');
 
 
 % Rutas para datos del teléfono y P20
-rutaSensor = fullfile('Datos', fechaArchivo, IDbus);
-rutalogs = fullfile('Datos', fechaArchivo, IDbus, 'log');
+rutaSensor = fullfile('Datos', fechaArchivo, strrep(IDbus, 'bus_', ''));
+rutalogs = fullfile('Datos', fechaArchivo, strrep(IDbus, 'bus_', ''), 'log');
 
 % Importar datos del sensor y del P20
 datosSensor = ImportarDatos.Sensor(rutaSensor);
@@ -347,9 +381,9 @@ General = sprintf(' - Fecha: %s, Bus ID: %s, Hora: %s-%s', fechaArchivo, IDbus, 
 %Graficas.graficarConsumoBateria(datosP60, fechaInicio, fechaFinal, 'Consumo', 'b-', 'Bus');
 
 % Preparar el título con la palabra 'velocidad', la fecha, el ID del bus y las horas de inicio y final
-%tituloGrafica = [Etiqueta sprintf(' Ruta -celular y sts ') General];
+tituloGrafica = [Etiqueta sprintf(' Ruta -celular y sts ') General];
 % ruta celular
-%MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'b--', tituloGrafica, 'Celular');
+% MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', tituloGrafica, 'Celular');
 % ruta sts
 %Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', tituloGrafica, 'STS', MapaRuta);
 
@@ -419,19 +453,12 @@ tituloGrafica = [Etiqueta sprintf(' Riesgo curvatura ') General];
 
 tituloGrafica = [Etiqueta sprintf(' Distancia vs velocidad ') General];
 % Grafica de distancia vs velocidad
-Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal, tituloGrafica);
+%Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal, tituloGrafica);
 
 dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 
 
-
-    if strcmp(IDbus, '4020') && strcmp(Etiqueta, 'Ida')
-        Promedios = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltrada, Ruta4020Ida);
-        disp(Promedios);
-    else
-        disp('ID del bus o etiqueta no coinciden.');
-    end
 
 
 
@@ -442,11 +469,50 @@ dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaI
 %Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 % Grafica tiempo vs energia
-%Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+Velocidad = Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+Graficas.TiempovsEnergiaCorregida(datosP60, fechaInicio, fechaFinal, Velocidad);
 
 % Graficas ocupacion vs tiempo
 %Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
 end
 
+
+%%
+
+function procesarRutas(datosReorganizados)
+    % Esta función procesa las rutas para cada bus según los tiempos y datos reorganizados.
+
+    % Obtener todos los buses disponibles en los datos
+    buses = fieldnames(datosReorganizados);
+    
+    % Iterar sobre cada bus
+    for i = 1:length(buses)
+        bus = buses{i};  % bus actual en el ciclo
+        tiposRuta = fieldnames(datosReorganizados.(bus));  % 'ida' y 'vuelta'
+
+        % Iterar sobre cada tipo de ruta ('ida' y 'vuelta')
+        for j = 1:length(tiposRuta)
+            tipoRuta = tiposRuta{j};  % 'ida' o 'vuelta'
+            fechas = fieldnames(datosReorganizados.(bus).(tipoRuta));  % Todas las fechas para este tipo de ruta
+
+            % Iterar sobre cada fecha
+            for k = 1:length(fechas)
+                fecha = fechas{k};  % fecha actual en el ciclo
+                datosRuta = datosReorganizados.(bus).(tipoRuta).(fecha);
+                
+                % Asumiendo que datosRuta es un array de celdas con {inicio, fin}
+                % y que cada fila corresponde a una ruta diferente
+                for m = 1:size(datosRuta, 1)
+                    inicio = datosRuta{m, 3};  % Hora de inicio
+                    fin = datosRuta{m, 4};     % Hora de fin
+
+                    % Llamar a la función generarDatos con la hora de inicio y fin
+                    generarDatos(inicio, fin, bus, tipoRuta);
+                    disp(['Ruta ', num2str(m), ' del bus ', bus, ' tipo ', tipoRuta, ' en la fecha ', fecha, ' procesada.']);
+                end
+            end
+        end
+    end
+end
 
 

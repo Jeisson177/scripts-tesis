@@ -200,7 +200,10 @@ end
             distancia=Calculos.CalcularDistancia(datosFiltrados);
             %datosFiltrados.kilometrosOdometro=datosFiltrados.kilometrosOdometro-datosFiltrados.kilometrosOdometro(1);
             %plot(datosFiltrados.kilometrosOdometro,datosFiltrados.nivelRestanteEnergia);
-            plot(distancia,datosFiltrados.nivelRestanteEnergia);
+
+            porcentaje = Calculos.interpolarPorcentajeBateria2(datosFiltrados);
+
+            plot(distancia,porcentaje);
             title(['Conductor ', num2str(conductor),bus]); % Asegúrate de concatenar correctamente
             xlabel('Distancia');
             ylabel('Porcentaje de energía');
@@ -265,39 +268,88 @@ end
         
         
         %%
-        function grafica = TiempovsEnergia(datos, fechaInicio, fechaFin, grafica)
-            % Convertir fechas de inicio y fin a datetime si son strings
-            if ischar(fechaInicio) || isstring(fechaInicio)
-                fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-            end
-            if ischar(fechaFin) || isstring(fechaFin)
-                fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-            end
-            
-            % Filtrar los datos por el rango de fechas
-            indices = datos.fechaHoraLecturaDato >= fechaInicio & datos.fechaHoraLecturaDato <= fechaFin;
-            datosFiltrados = datos(indices, :);
-            
-            % Crear un nuevo gráfico o utilizar uno existente
-            if nargin < 4 || isempty(grafica)
-                grafica = figure;
-            else
-                figure(grafica); % Hace que 'grafica' sea la figura actual sin crear una nueva
-            end
-            
-            % Trazar energía en función del tiempo
-            plot(datosFiltrados.fechaHoraLecturaDato, datosFiltrados.nivelRestanteEnergia, 'LineWidth', 2);
-            title('Energía Restante en Función del Tiempo');
-            xlabel('Tiempo');
-            ylabel('Nivel de Energía (%)');
-            grid on;
-            
-            % Devolver el handle de la figura si es necesario
-            if nargout > 0
-                grafica = gcf;
-            end
-        end
         
+        function grafica = TiempovsEnergia(datos, fechaInicio, fechaFin, grafica)
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    
+    % Filtrar los datos por el rango de fechas
+    indices = datos.fechaHoraLecturaDato >= fechaInicio & datos.fechaHoraLecturaDato <= fechaFin;
+    datosFiltrados = datos(indices, :);
+    
+    % Ordenar los datos filtrados por fecha y hora de lectura para garantizar un trazado cronológico correcto
+    datosFiltrados = sortrows(datosFiltrados, 'fechaHoraLecturaDato');
+    
+    % Crear un nuevo gráfico o utilizar uno existente
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+        hold on;  % Asegurarse de que las siguientes trazas se añadan al gráfico existente
+    else
+        figure(grafica); % Hace que 'grafica' sea la figura actual sin crear una nueva
+    end
+    
+
+    % Trazar energía en función del tiempo
+    plot(datosFiltrados.fechaHoraLecturaDato, datosFiltrados.nivelRestanteEnergia, 'LineWidth', 2);
+    title('Energía Restante en Función del Tiempo');
+    xlabel('Tiempo');
+    ylabel('Nivel de Energía (%)');
+    grid on;
+    
+    % Devolver el handle de la figura si es necesario
+    if nargout > 0
+        grafica = gcf;
+    end
+end
+
+
+        %%
+
+        function grafica = TiempovsEnergiaCorregida(datos, fechaInicio, fechaFin, grafica)
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    
+    % Filtrar los datos por el rango de fechas
+    indices = datos.fechaHoraLecturaDato >= fechaInicio & datos.fechaHoraLecturaDato <= fechaFin;
+    datosFiltrados = datos(indices, :);
+    
+    % Ordenar los datos filtrados por fecha y hora de lectura para garantizar un trazado cronológico correcto
+    datosFiltrados = sortrows(datosFiltrados, 'fechaHoraLecturaDato');
+    
+    % Crear un nuevo gráfico o utilizar uno existente
+    if nargin < 4 || isempty(grafica)
+        grafica = figure;
+        hold on;  % Asegurarse de que las siguientes trazas se añadan al gráfico existente
+    else
+        figure(grafica); % Hace que 'grafica' sea la figura actual sin crear una nueva
+    end
+    
+
+    porcentaje = Calculos.interpolarPorcentajeBateria3(datosFiltrados);
+
+    % Trazar energía en función del tiempo
+    plot(datosFiltrados.fechaHoraLecturaDato, porcentaje, 'LineWidth', 2);
+    title('Energía Restante en Función del Tiempo');
+    xlabel('Tiempo');
+    ylabel('Nivel de Energía (%)');
+    grid on;
+    
+    % Devolver el handle de la figura si es necesario
+    if nargout > 0
+        grafica = gcf;
+    end
+end
+
         
         %%
         

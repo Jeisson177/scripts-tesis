@@ -371,48 +371,137 @@ end
             folders = folderNames(~ismember(folderNames, {'.', '..'}));
         end
         
+        %%
+        
         
         function busesDatos = importarTodosLosDatos(basePath)
-            % Esta función importa todos los datos de sensores para cada bus en cada fecha disponible bajo la carpeta base.
-            % basePath es la ruta a la carpeta 'Datos'.
+    % Esta función importa todos los datos de sensores para cada bus en cada fecha disponible bajo la carpeta base.
+    % basePath es la ruta a la carpeta 'Datos'.
+    
+    % Obtener la lista de carpetas de fechas
+    fechas = ImportarDatos.getFolderList(basePath);
+    
+    % Inicializar un contenedor para los datos de todos los buses
+    busesDatos = struct();
+    
+    % Iterar sobre cada fecha
+    for i = 1:length(fechas)
+        fechaPath = fullfile(basePath, fechas{i});
+        
+        % Normalizar nombre de campo para fecha (añadir 'f_' y reemplazar guiones con guiones bajos)
+        fechaFieldName = ['f_' strrep(fechas{i}, '-', '_')];
+        
+        % Obtener la lista de buses en esta fecha
+        buses = ImportarDatos.getFolderList(fechaPath);
+        
+        % Iterar sobre cada bus
+        for j = 1:length(buses)
+            busPath = fullfile(fechaPath, buses{j});
+            busFieldName = ['bus_' buses{j}];  % Añadir 'bus_' para hacer el nombre válido
+
+
+            rutalogs = fullfile(fechaPath, strrep(buses{j}, 'bus_', ''), 'log');
+
+
+            try 
+            datosP20 = ImportarDatos.P20(rutalogs);
+
+            datosP60 = ImportarDatos.P60(rutalogs);
+            catch
             
-            % Obtener la lista de carpetas de fechas
-            fechas = ImportarDatos.getFolderList(basePath);
+            datosP20 = {};
+
+            datosP60 = {};
+
+            end
+
             
-            % Inicializar un contenedor para los datos de todos los buses
-            busesDatos = struct();
+            % Importar los datos del sensor
+            datosSensor = ImportarDatos.Sensor(busPath);
+            datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
             
-            % Iterar sobre cada fecha
-            for i = 1:length(fechas)
-                fechaPath = fullfile(basePath, fechas{i});
-                
-                % Normalizar nombre de campo para fecha (añadir 'f_' y reemplazar guiones con guiones bajos)
-                fechaFieldName = ['f_' strrep(fechas{i}, '-', '_')];
-                
-                % Obtener la lista de buses en esta fecha
-                buses = ImportarDatos.getFolderList(fechaPath);
-                
-                % Iterar sobre cada bus
-                for j = 1:length(buses)
-                    busPath = fullfile(fechaPath, buses{j});
-                    busFieldName = ['bus_' buses{j}];  % Añadir 'bus_' para hacer el nombre válido
-                    
-                    % Importar los datos del sensor
-                    datosSensor = ImportarDatos.Sensor(busPath);
-                    datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
-                    
-                    % Guardar los datos en una estructura organizada por fecha y bus
-                    if ~isfield(busesDatos, fechaFieldName)
-                        busesDatos.(fechaFieldName) = struct();
-                    end
-                    if ~isfield(busesDatos.(fechaFieldName), busFieldName)
-                        busesDatos.(fechaFieldName).(busFieldName) = struct();
-                    end
-                    busesDatos.(fechaFieldName).(busFieldName) = datosCordenadasSensor;
+            % Guardar los datos en una estructura organizada por fecha y bus
+            if ~isfield(busesDatos, fechaFieldName)
+                busesDatos.(fechaFieldName) = struct();
+            end
+            if ~isfield(busesDatos.(fechaFieldName), busFieldName)
+                busesDatos.(fechaFieldName).(busFieldName) = struct();
+            end
+            
+            % Inicializar la estructura del bus con una subestructura para los datos del sensor
+            % y un campo adicional para datos extras
+            busesDatos.(fechaFieldName).(busFieldName).datosSensor = datosCordenadasSensor;
+
+            busesDatos.(fechaFieldName).(busFieldName).P20 = datosP20;
+            busesDatos.(fechaFieldName).(busFieldName).P60 = datosP60;
+        end
+    end
+        end
+
+        %%
+
+
+        function datosReorganizados = reorganizarDatosBuses(datosBuses)
+    % Inicializar la nueva estructura
+    datosReorganizados = struct();
+    
+    % Obtener todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    
+    % Iterar sobre cada fecha para acceder a los datos de cada bus
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        buses = fieldnames(datosBuses.(fecha));
+        
+        % Iterar sobre cada bus en la fecha dada
+        for j = 1:numel(buses)
+            bus = buses{j};
+
+            
+            
+            % Asegurarse de que cada bus sea una estructura y contenga las rutas de ida y vuelta
+            if isstruct(datosBuses.(fecha).(bus)) && isfield(datosBuses.(fecha).(bus), 'PromediosIda') && isfield(datosBuses.(fecha).(bus), 'PromediosVuelta')
+                % Reorganizar los datos para la ruta de ida
+                if ~isfield(datosReorganizados, bus)
+                    datosReorganizados.(bus) = struct();
                 end
+                if ~isfield(datosReorganizados.(bus), 'ida')
+                    datosReorganizados.(bus).ida = struct();
+                end
+                if ~isfield(datosReorganizados.(bus).ida, 'General')
+                    datosReorganizados.(bus).ida.General = [];  % Asegura que el campo General esté inicializado.
+                end
+
+                
+                
+                % Asigna este cell array a la estructura
+                datosReorganizados.(bus).ida.(fecha) = cell2table([...
+                    datosBuses.(fecha).(bus).PromediosIda, ...
+                    datosBuses.(fecha).(bus).velocidadRuta(:,1),...
+                    datosBuses.(fecha).(bus).tiempoRuta(:, [1, 2])], "VariableNames", {'Promedio velocidad', 'Velocidad', 'Hora Inicio', 'Hora Fin'});
+                
+                datosReorganizados.(bus).ida.General = [datosReorganizados.(bus).ida.General; datosReorganizados.(bus).ida.(fecha)];
+
+
+                % Reorganizar los datos para la ruta de vuelta
+                if ~isfield(datosReorganizados.(bus), 'vuelta')
+                    datosReorganizados.(bus).vuelta = struct();
+                end
+
+                if ~isfield(datosReorganizados.(bus).vuelta, 'General')
+                    datosReorganizados.(bus).vuelta.General = [];  % Asegura que el campo General esté inicializado.
+                end
+
+                datosReorganizados.(bus).vuelta.(fecha) = cell2table([...
+                    datosBuses.(fecha).(bus).PromediosVuelta, ...
+                    datosBuses.(fecha).(bus).velocidadRuta(:,2),...
+                    datosBuses.(fecha).(bus).tiempoRuta(:, [2, 3])] , "VariableNames", {'Promedio velocidad', 'Velocidad', 'Hora Inicio', 'Hora Fin'});
+
+                datosReorganizados.(bus).vuelta.General = [datosReorganizados.(bus).vuelta.General; datosReorganizados.(bus).vuelta.(fecha)];
             end
         end
-        
+    end
+end
         
         
         

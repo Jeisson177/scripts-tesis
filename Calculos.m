@@ -79,6 +79,101 @@ end
 
 
 
+        %%
+
+
+        function tablaOrdenada = ordenarTablaPorElementoVector(tabla, nombreColumna, indiceElemento, direccion)
+    % Verificar si la tabla está vacía
+    if isempty(tabla)
+        error('La tabla proporcionada está vacía.');
+    end
+    
+    % Verificar si la columna existe en la tabla
+    if ~any(strcmp(tabla.Properties.VariableNames, nombreColumna))
+        error('La columna especificada no existe en la tabla.');
+    end
+    
+    % Verificar si la dirección del ordenamiento es válida
+    if ~ismember(direccion, {'ascend', 'descend'})
+        error('La dirección del ordenamiento debe ser "ascend" o "descend".');
+    end
+    
+    % Extraer el elemento del vector en la posición dada para cada fila
+    vectorColumn = tabla{:, nombreColumna};
+    if any(cellfun(@(x) numel(x) < indiceElemento, vectorColumn))
+        error('Algunos vectores no tienen el elemento en el índice especificado.');
+    end
+    elementosExtraidos = cellfun(@(x) x(indiceElemento), vectorColumn);
+    
+    % Ordenar la tabla basada en los elementos extraídos
+    [~, idx] = sort(elementosExtraidos, direccion);
+    tablaOrdenada = tabla(idx, :);
+end
+
+
+
+        %%
+
+        
+        function datosBuses = calcularPromedioVelocidadRutas(datosBuses)
+
+            Ruta4104Ida = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
+            Ruta4104Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
+
+
+            Ruta4020Ida = [2.3, 8.1, 11.9, 12.9, 14.8, 19.25];
+            Ruta4020Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
+
+                % Procesar cada ruta del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    fechaInicioIda = tiempoRuta{k, 1};
+                    fechaFinIda = tiempoRuta{k, 2};
+                    dataFiltradaIda = ImportarDatos.filtrarDatosPorFechas(datosSensor, fechaInicioIda, fechaFinIda);
+
+                    % Trayecto de vuelta
+                    fechaInicioVuelta = tiempoRuta{k, 2};
+                    fechaFinVuelta = tiempoRuta{k, 3};
+                    dataFiltradaVuelta = ImportarDatos.filtrarDatosPorFechas(datosSensor, fechaInicioVuelta, fechaFinVuelta);
+
+                    IDbus = bus(5:end);  % Asume que el nombre del bus es 'bus_XXXX'
+                    
+                    % Calcular y almacenar los promedios para ida
+                    if strcmp(IDbus, '4020')
+                        PromediosIda = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltradaIda, Ruta4020Ida);
+                        PromediosVuelta = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltradaVuelta, Ruta4020Vuelta);
+                    elseif strcmp(IDbus, '4104')
+                        PromediosIda = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltradaIda, Ruta4104Ida);
+                        PromediosVuelta = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltradaVuelta, Ruta4104Vuelta);
+                    end
+                    
+                    % Almacenar los promedios en la estructura de datos
+                    datosBuses.(fecha).(bus).PromediosIda{k, 1} = PromediosIda;
+                    datosBuses.(fecha).(bus).PromediosVuelta{k, 1} = PromediosVuelta;
+                end
+            end
+        end
+    end
+    return;
+end
+
+
+
         
         %%
         function velocidad = calcularVelocidadMS(datos)
@@ -422,28 +517,100 @@ end
 
         %%
 
-       function porcentajeInterpolado = interpolarPorcentajeBateria2(datosFiltrados)
+     function porcentajeInterpolado = interpolarPorcentajeBateria2(datosFiltrados)
     % Obtener el vector de porcentajes de batería
     porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
 
-    % Inicializar el vector de porcentaje interpolado
+    % Inicializar el vector de porcentaje interpolado con los valores originales
     porcentajeInterpolado = porcentajes;
 
     % Encontrar los índices donde cambia el porcentaje de batería
-    cambios = find(diff(porcentajes) ~= 0);
+    cambios = find(diff(porcentajes) ~= 0) + 1;  % Incluir índices correctos de los cambios
 
-    % Iterar sobre los cambios y realizar la interpolación lineal entre ellos
-    for i = 1:length(cambios)
-        inicio = cambios(i);
-        if i < length(cambios)
-            fin = cambios(i+1);
-        else
-            fin = length(porcentajes);
+    % Asegurarse de incluir el primer y último punto
+    cambios = unique([1; cambios; length(porcentajes)]);
+
+    % Extraer los valores de porcentaje correspondientes a los índices de cambios
+    x = cambios;  % Puntos x donde los cambios ocurren
+    y = porcentajes(x);  % Valores de porcentaje en esos puntos
+
+    % Realizar interpolación spline sobre todo el rango
+    xq = 1:length(porcentajes);  % Puntos x de consulta para la interpolación
+    porcentajeInterpolado = interp1(x, y, xq, 'pchip');  % Cambiado a 'pchip' para evitar problemas de interpolación
+
+     end
+
+     %%
+
+     function porcentajeInterpolado = interpolarPorcentajeBateria3(datosFiltrados)
+        porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
+    
+    % Calcular las diferencias entre elementos consecutivos
+    diferencias = diff(porcentajes) ~= 0;
+    
+    % Obtener los índices donde ocurren cambios
+    indicesCambio = find(diferencias) + 1; % +1 porque diff reduce la longitud por 1
+
+    
+    indicesCambio = [1; indicesCambio]; % Incluir el primer punto si es diferente al segundo
+    
+    
+    % Incluir los índices de los valores justo antes de cada cambio
+    indicesAnteriores = indicesCambio - 1; % Calcular los índices previos
+    indicesAnteriores = indicesAnteriores(indicesAnteriores > 0); % Filtrar índices inválidos
+
+    % Combinar y ordenar los índices de los cambios y sus antecesores
+    indicesDeCambio = unique([indicesCambio; indicesAnteriores]); % Combinar y eliminar duplicados
+
+
+    
+
+
+
+
+
+    porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
+    porcentajeInterpolado = porcentajes;  % Copia inicial de porcentajes
+    
+    umbral = 0.09; % Umbral para cambio en la pendiente
+        puntoInicial = 1;
+
+    i = 1; % Iniciar con el primer índice de cambio
+    while i < length(indicesDeCambio) - 1
+        pendienteInicial = (porcentajes(indicesDeCambio(i)) - porcentajes(indicesDeCambio(i+1))) / (indicesDeCambio(i+1) - indicesDeCambio(i));  % Inicializar pendiente como infinito para la primera comparación
+        
+        % Buscar el siguiente índice donde la pendiente cambia significativamente
+        for j = i + 1:length(indicesDeCambio)
+            puntoFinal = indicesDeCambio(j);
+            pendienteActual = (porcentajes(puntoFinal) - porcentajes(puntoInicial)) / (puntoFinal - puntoInicial);
+
+            % Verificar si la pendiente actual es significativamente diferente
+            if abs(pendienteActual - pendienteInicial) > umbral && ~isinf(pendienteInicial)
+                % Interpolar desde el último punto de cambio hasta el actual
+                porcentajeInterpolado(puntoInicial:puntoFinal) = linspace(porcentajes(puntoInicial), porcentajes(puntoFinal), puntoFinal - puntoInicial + 1);
+                
+                % Actualizar i al índice del último punto de cambio y romper el bucle interno
+                i = puntoFinal;
+                puntoInicial = puntoFinal;
+                break;
+            end
+
+            % Actualizar pendienteInicial después del primer ciclo
+            if isinf(pendienteInicial)
+                pendienteInicial = pendienteActual;
+            end
         end
-        % Interpolar entre los valores de porcentaje de batería en los índices inicio y fin
-        porcentajeInterpolado(inicio+1:fin) = linspace(porcentajes(inicio), porcentajes(fin), fin - inicio);
     end
+   
+
+
+
+
+
 end
+
+
+
 %%
 
 function marcadores = Lcurvasida4020()% se asegura que todas las curvas de esta ruta correspondan
@@ -1026,42 +1193,142 @@ end
             d = R * c;
         end
         
+        %%
         
-        function tiemposRutas = calcularTiemposRutas(datosBuses)
-            % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados.
-            
-            Ida4020 = [4.593216, -74.178910];
-            Vuelta4020 = [4.6096941, -74.0738544];
-            
-            Ida4104 = [4.587917000000000, -74.149976900000000];
-            Vuelta4104 = [4.562243400000000, -74.083503800000000];
-            
-            % Inicializar estructura para almacenar los tiempos de ruta
-            tiemposRutas = struct();
-            
-            % Fechas disponibles en los datos
-            fechas = fieldnames(datosBuses);
-            
-            % Iterar sobre cada fecha
-            for i = 1:numel(fechas)
-                fecha = fechas{i};
-                
-                % Comprobar si los datos del bus 4104 están disponibles para esa fecha
-                if isfield(datosBuses.(fecha), 'bus_4104')
-                    datos4104 = datosBuses.(fecha).bus_4104;
-                    tiemposRutas.(fecha).bus4104 = Calculos.Ruta(datos4104, Ida4104, Vuelta4104, 20);
-                end
-                
-                % Comprobar si los datos del bus 4020 están disponibles para esa fecha
-                if isfield(datosBuses.(fecha), 'bus_4020')
-                    datos4020 = datosBuses.(fecha).bus_4020;
-                    tiemposRutas.(fecha).bus4020 = Calculos.Ruta(datos4020, Ida4020, Vuelta4020, 20);
-                end
-            end
-            
-            return;
+        
+        function datosBuses = calcularTiemposRutas(datosBuses)
+    % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados
+    % y almacena los resultados directamente en la estructura de entrada datosBuses.
+    
+    Ida4020 = [4.593216, -74.178910];
+    Vuelta4020 = [4.6096941, -74.0738544];
+    
+    Ida4104 = [4.587917000000000, -74.149976900000000];
+    Vuelta4104 = [4.562243400000000, -74.083503800000000];
+    
+    % Fechas disponibles en los datos
+    fechas = fieldnames(datosBuses);
+    
+    % Iterar sobre cada fecha
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Comprobar si los datos del bus 4104 están disponibles para esa fecha
+        if isfield(datosBuses.(fecha), 'bus_4104')
+            datos4104 = datosBuses.(fecha).bus_4104.datosSensor;
+            % Calcular y almacenar los tiempos de ruta directamente en la estructura datosBuses
+            datosBuses.(fecha).bus_4104.tiempoRuta = Calculos.Ruta(datos4104, Ida4104, Vuelta4104, 20);
         end
         
+        % Comprobar si los datos del bus 4020 están disponibles para esa fecha
+        if isfield(datosBuses.(fecha), 'bus_4020')
+            datos4020 = datosBuses.(fecha).bus_4020.datosSensor;
+            % Calcular y almacenar los tiempos de ruta directamente en la estructura datosBuses
+            datosBuses.(fecha).bus_4020.tiempoRuta = Calculos.Ruta(datos4020, Ida4020, Vuelta4020, 20);
+        end
+    end
+    
+    return;
+end
+
+
+%%
+
+
+function datosBuses = calcularVelocidadRutas(datosBuses)
+    % Esta función calcula la velocidad para las rutas de cada bus en cada fecha
+    % basándose en los tiempos de ruta y los datos del sensor.
+    
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
+                
+                % Calcular la velocidad para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    datosIda = datosSensor(datosSensor{:, 1} >= inicioIda & datosSensor{:, 1} <= finIda, :);
+                    velocidadIda = Calculos.corregirVelocidadPendiente(datosIda, 3);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    datosVuelta = datosSensor(datosSensor{:, 1} >= inicioVuelta & datosSensor{:, 1} <= finVuelta, :);
+                    velocidadVuelta = Calculos.corregirVelocidadPendiente(datosVuelta, 3);
+                    
+                    % Almacenar los datos calculados de velocidad en la estructura de datos
+                    datosBuses.(fecha).(bus).velocidadRuta{k, 1} = velocidadIda;
+                    datosBuses.(fecha).(bus).velocidadRuta{k, 2} = velocidadVuelta;
+                end
+            end
+        end
+    end
+
+    return;
+
+end
+
+
+%%
+
+function datosBuses = extraerP60(datosBuses)
+    % Esta función extrae segmentos de la tabla P60 para cada ruta de cada bus en cada fecha.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos P60 para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'P60')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosP60 = datosBuses.(fecha).(bus).P60;
+                
+                % Calcular y almacenar el segmento P60 para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    segmentoP60Ida = datosP60(datosP60.fechaHoraLecturaDato >= inicioIda & datosP60.fechaHoraLecturaDato <= finIda, :);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    segmentoP60Vuelta = datosP60(datosP60.fechaHoraLecturaDato >= inicioVuelta & datosP60.fechaHoraLecturaDato <= finVuelta, :);
+                    
+                    % Almacenar los segmentos P60 en la estructura de datos
+                    datosBuses.(fecha).(bus).segmentoP60{k, 1} = segmentoP60Ida;
+                    datosBuses.(fecha).(bus).segmentoP60{k, 2} = segmentoP60Vuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+
+
+
+        %%
+
         function busesOrganizados = reorganizarDatosPorBus(tiemposRutas)
             % Esta función reorganiza los tiempos de ruta para acceder primero por bus y luego por fecha.
             
