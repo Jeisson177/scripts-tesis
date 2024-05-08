@@ -772,13 +772,13 @@ end
             distanciaInicio = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), inicioCurva(1), inicioCurva(2));
             distanciaFin = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), finCurva(1), finCurva(2));
             
-            if distanciaInicio < 5 % Si estamos cerca del inicio de la curva
+            if distanciaInicio < 10 % Si estamos cerca del inicio de la curva
                 % Guardar los datos de velocidad, radio y relación velocidad/radio
                 datosCurva(j, 1) = velocidad(i);
                 datosCurva(j, 2) = radio(i);
                 datosCurva(j, 3) = velocidad(i) / radio(i);
                 j = j + 1;
-            elseif distanciaFin < 5 % Si estamos cerca del final de la curva
+            elseif distanciaFin < 10 % Si estamos cerca del final de la curva
                 break; % Salir del bucle
             end
         end
