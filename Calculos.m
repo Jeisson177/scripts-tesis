@@ -941,9 +941,18 @@ end
             
             if distanciaInicio < 10 % Si estamos cerca del inicio de la curva
                 % Guardar los datos de velocidad, radio y relación velocidad/radio
+                
+                if velocidad(i)<1.5
+                    radio(i)=1;
+                end
+                
                 datosCurva(j, 1) = velocidad(i);
                 datosCurva(j, 2) = radio(i);
                 datosCurva(j, 3) = velocidad(i) / radio(i);
+                if isnan(datosCurva(j, 3))
+                    datosCurva(j, 3)=0;
+                end
+                
                 j = j + 1;
             elseif distanciaFin < 10 % Si estamos cerca del final de la curva
                 break; % Salir del bucle
@@ -956,7 +965,7 @@ end
         % Calcular el máximo de la columna 3 (relación velocidad/radio) de esta curva
         %if ~isempty(datosCurva) % Verificar si datosCurva no está vacío
         try    
-        maximos(Ncurva,1) = max(datosCurva(:, 3));
+        maximos(Ncurva,1) = mean(datosCurva(:, 3));
         catch
            maximos(Ncurva,1)=0; 
         end
