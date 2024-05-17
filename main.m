@@ -17,17 +17,17 @@ Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %% importar solo un dato
-Sensor=ImportarDatos.Sensor('Datos\2024-04-16\4104');
-datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
-tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
-T=size(tiempoR);
-%Ccurvas=Calculos.Lcurvasida4020();
-%Ccurvas=Calculos.LcurvasVuelta4020();
-%Ccurvas=Calculos.Lcurvasida4104();
-Ccurvas=Calculos.LcurvasVuelta4104();
-for i=1:T(1)
-array(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
-end
+% Sensor=ImportarDatos.Sensor('Datos\2024-04-16\4104');
+% datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
+% tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
+% T=size(tiempoR);
+Ccurvas1=Calculos.Lcurvasida4020();
+Ccurvas2=Calculos.LcurvasVuelta4020();
+Ccurvas3=Calculos.Lcurvasida4104();
+Ccurvas4=Calculos.LcurvasVuelta4104();
+% for i=1:T(1)
+% array(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
+% end
 % for i=1:T(1)
 %     m{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,1},tiempoR{i,2},'r','ida','ida');
 %     m2{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},'b','vuelta','vuelta');

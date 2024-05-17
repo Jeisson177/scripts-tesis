@@ -726,7 +726,9 @@ function marcadores = LcurvasVuelta4020()% se asegura que todas las curvas de es
             
           
             cantidadN=1;
+            marcador(end,:)=[];
             marcadores{:,1}=marcador;
+            
             marcadores{:,2}=marcador2;
   
 end
