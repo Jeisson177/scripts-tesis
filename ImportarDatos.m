@@ -441,11 +441,11 @@ end
         %%
 
 function datosBuses = agregarCodigoConductor(datosBuses)
-    % Esta función crea y agrega una tabla vacía con columnas 'IDConductor' y 'Sexo'
-    % a cada bus en la estructura de datos proporcionada.
+    % Esta función crea y agrega una tabla con columnas 'IDConductor' y 'Sexo' a cada bus en la estructura de datos proporcionada.
+    % Además, agrega una fila inicial con los valores 0 para ambas columnas.
     
-    % Crear una tabla vacía con las columnas especificadas
-    tablaVacia = table([], [], 'VariableNames', {'IDConductor', 'Sexo'});
+    % Crear una tabla con una fila inicial con los valores 0 para 'IDConductor' y 'Sexo'
+    tablaInicial = table([0], [0], 'VariableNames', {'IDConductor', 'Sexo'});
     
     % Fechas disponibles en los datos
     fechas = fieldnames(datosBuses);
@@ -459,8 +459,8 @@ function datosBuses = agregarCodigoConductor(datosBuses)
         for j = 1:numel(buses)
             bus = buses{j};
             
-            % Agregar la tabla vacía a cada bus
-            datosBuses.(fecha).(bus).codigoConductor = tablaVacia;
+            % Agregar la tabla con la fila inicial a cada bus
+            datosBuses.(fecha).(bus).codigoConductor = tablaInicial;
         end
     end
     
