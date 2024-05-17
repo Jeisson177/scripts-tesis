@@ -17,17 +17,17 @@ Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %% importar solo un dato
-Sensor=ImportarDatos.Sensor('Datos\2024-04-16\4104');
-datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
-tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
-T=size(tiempoR);
-%Ccurvas=Calculos.Lcurvasida4020();
-%Ccurvas=Calculos.LcurvasVuelta4020();
-%Ccurvas=Calculos.Lcurvasida4104();
-Ccurvas=Calculos.LcurvasVuelta4104();
-for i=1:T(1)
-array(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
-end
+% Sensor=ImportarDatos.Sensor('Datos\2024-04-16\4104');
+% datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
+% tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
+% T=size(tiempoR);
+Ccurvas1=Calculos.Lcurvasida4020();
+Ccurvas2=Calculos.LcurvasVuelta4020();
+Ccurvas3=Calculos.Lcurvasida4104();
+Ccurvas4=Calculos.LcurvasVuelta4104();
+% for i=1:T(1)
+% array(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
+% end
 % for i=1:T(1)
 %     m{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,1},tiempoR{i,2},'r','ida','ida');
 %     m2{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},'b','vuelta','vuelta');
@@ -95,13 +95,21 @@ fechas = fieldnames(tiemposRutas);  % Obtiene todos los campos de fecha
 for i = 1:length(fechas)
     fecha = fechas{i};  % fecha actual en el ciclo
     buses = fieldnames(tiemposRutas.(fecha));  % Obtiene todos los buses para la fecha actual
-    
+    if fecha<='2024-04-20'
+        break;%se rompe cuando acaba semana 1
+    end
     % Iterar sobre cada bus para la fecha actual
     for j = 1:length(buses)
         bus = buses{j};  % bus actual en el ciclo
         busNumber = strrep(bus, 'bus', '');  % Eliminar el prefijo 'bus'
         rutas = tiemposRutas.(fecha).(bus);  % Matriz de celdas con rutas para el bus actual
-        
+        if busNumber=='4020'
+            ida=Cida4020;
+            vuelta=Cretorno4020;
+        elseif busNumber=='4104'
+            ida=Cida4104;
+            vuelta=Cretorno4104;
+        end
         % Comprobar que la variable contiene una matriz de celdas
         if iscell(rutas)
             % Iterar sobre cada fila de la matriz de celdas (cada ruta)
@@ -111,11 +119,44 @@ for i = 1:length(fechas)
                 fin = rutas{k, 3};     % Hora de llegada al punto de inicio
 
                 % Ejecutar para Ida usando la hora de inicio
-                %generarDatos(inicio, retorno, busNumber, 'Ida');
+                generarDatos(inicio, retorno, busNumber, 'Ida');
+                % Convertir las fechas de inicio y final a formato datetime
+
+fechaInicioDT = datetime(inicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+fechaFinalDT = datetime(retorno, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+
+% Extraer la fecha y hora de inicio y final para el título
+fechaArchivo = datestr(fechaInicioDT, 'yyyy-mm-dd');
+horaInicio = datestr(fechaInicioDT, 'HH:MM:SS');
+horaFinal = datestr(fechaFinalDT, 'HH:MM:SS');
+
+
+% Rutas para datos del teléfono y P20
+rutaSensor = fullfile('Datos', fechaArchivo, strrep(busNumber, 'bus_', ''));
+datosSensor = ImportarDatos.Sensor(rutaSensor);
+datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
+
+                
+                arrayI(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,ida);
+ 
+                
                 % Ejecutar para Vuelta usando la hora de retorno como inicio
                
-                %generarDatos(retorno, fin, busNumber, 'Vuelta');
+                generarDatos(retorno, fin, busNumber, 'Vuelta');
                 
+                fechaInicioDT = datetime(retorno, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+fechaFinalDT = datetime(fin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+
+% Extraer la fecha y hora de inicio y final para el título
+fechaArchivo = datestr(fechaInicioDT, 'yyyy-mm-dd');
+horaInicio = datestr(fechaInicioDT, 'HH:MM:SS');
+horaFinal = datestr(fechaFinalDT, 'HH:MM:SS');
+rutaSensor = fullfile('Datos', fechaArchivo, strrep(busNumber, 'bus_', ''));
+datosSensor = ImportarDatos.Sensor(rutaSensor);
+datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
+
+arrayV(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,vuelta);
+ 
                 disp(['Ruta ', num2str(k), ' del bus ', busNumber, ' en la fecha ', fecha, ' procesada.']);
             end
         else
