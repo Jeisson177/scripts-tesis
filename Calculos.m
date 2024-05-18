@@ -944,13 +944,15 @@ end
             if distanciaInicio < 10 % Si estamos cerca del inicio de la curva
                 % Guardar los datos de velocidad, radio y relación velocidad/radio
                 
-                if velocidad(i)<1.5
-                    radio(i)=1;
-                end
+                
                 
                 datosCurva(j, 1) = velocidad(i);
                 datosCurva(j, 2) = radio(i);
                 datosCurva(j, 3) = velocidad(i) / radio(i);
+                
+                if velocidad(i)<1.5
+                    radio(i)=1;
+                end
                 if isnan(datosCurva(j, 3))
                     datosCurva(j, 3)=0;
                 end
