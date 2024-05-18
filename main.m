@@ -17,17 +17,17 @@ Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %% importar solo un dato
-% Sensor=ImportarDatos.Sensor('Datos\2024-04-16\4104');
-% datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
-% tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
-% T=size(tiempoR);
+Sensor=ImportarDatos.Sensor('Datos\2024-04-18\4104');
+datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
+tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
+T=size(tiempoR);
 Ccurvas1=Calculos.Lcurvasida4020();
 Ccurvas2=Calculos.LcurvasVuelta4020();
 Ccurvas3=Calculos.Lcurvasida4104();
-Ccurvas4=Calculos.LcurvasVuelta4104();
-% for i=1:T(1)
-% array(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
-% end
+Ccurvas=Calculos.LcurvasVuelta4104();
+for i=1:T(1)
+array2(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
+end
 % for i=1:T(1)
 %     m{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,1},tiempoR{i,2},'r','ida','ida');
 %     m2{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},'b','vuelta','vuelta');
@@ -137,7 +137,7 @@ datosSensor = ImportarDatos.Sensor(rutaSensor);
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
                 
-                arrayI(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,ida);
+                % arrayI(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,ida);
  
                 
                 % Ejecutar para Vuelta usando la hora de retorno como inicio
@@ -155,7 +155,7 @@ rutaSensor = fullfile('Datos', fechaArchivo, strrep(busNumber, 'bus_', ''));
 datosSensor = ImportarDatos.Sensor(rutaSensor);
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
-arrayV(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,vuelta);
+%arrayV(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,vuelta);
  
                 disp(['Ruta ', num2str(k), ' del bus ', busNumber, ' en la fecha ', fecha, ' procesada.']);
             end

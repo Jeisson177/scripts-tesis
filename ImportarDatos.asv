@@ -545,7 +545,7 @@ end
 
 
                 % Asigna este cell array a la estructura
-                datosReorganizados.(bus).vuelta.(fecha) = tabla2;
+                datosReorganizados.(bus).ida.(fecha) = tabla2;
 
                 datosReorganizados.(bus).vuelta.General = [datosReorganizados.(bus).vuelta.General; datosReorganizados.(bus).vuelta.(fecha)];
             end
