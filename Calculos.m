@@ -954,7 +954,9 @@ end
                 if isnan(datosCurva(j, 3))
                     datosCurva(j, 3)=0;
                 end
-                
+                if radio(i)==-1
+                     datosCurva(j, 3)=0;
+                end
                 j = j + 1;
             elseif distanciaFin < 10 % Si estamos cerca del final de la curva
                 break; % Salir del bucle

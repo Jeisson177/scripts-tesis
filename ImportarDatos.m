@@ -503,13 +503,20 @@ end
                     datosReorganizados.(bus).ida.General = [];  % Asegura que el campo General esté inicializado.
                 end
 
-                
-                
-                % Asigna este cell array a la estructura
-                datosReorganizados.(bus).ida.(fecha) = cell2table([...
+
+                tabla1 = [...
                     datosBuses.(fecha).(bus).PromediosIda, ...
                     datosBuses.(fecha).(bus).velocidadRuta(:,1),...
-                    datosBuses.(fecha).(bus).tiempoRuta(:, [1, 2])], "VariableNames", {'Promedio velocidad', 'Velocidad', 'Hora Inicio', 'Hora Fin'});
+                    datosBuses.(fecha).(bus).tiempoRuta(:, [1, 2])...
+                    datosBuses.(fecha).(bus).codigoConductor];
+
+                tabla1.Properties.VariableNames{1} = 'Promedio velocidad';
+                tabla1.Properties.VariableNames{2} = 'Velocidad';
+                tabla1.Properties.VariableNames{3} = 'Hora Inicio';
+                tabla1.Properties.VariableNames{4} = 'Hora Fin';
+                
+                % Asigna este cell array a la estructura
+                datosReorganizados.(bus).ida.(fecha) = tabla1;
                 
                 datosReorganizados.(bus).ida.General = [datosReorganizados.(bus).ida.General; datosReorganizados.(bus).ida.(fecha)];
 
@@ -523,10 +530,22 @@ end
                     datosReorganizados.(bus).vuelta.General = [];  % Asegura que el campo General esté inicializado.
                 end
 
-                datosReorganizados.(bus).vuelta.(fecha) = cell2table([...
-                    datosBuses.(fecha).(bus).PromediosVuelta, ...
+
+
+                tabla2 = [...
+                    datosBuses.(fecha).(bus).PromediosIda, ...
                     datosBuses.(fecha).(bus).velocidadRuta(:,2),...
-                    datosBuses.(fecha).(bus).tiempoRuta(:, [2, 3])] , "VariableNames", {'Promedio velocidad', 'Velocidad', 'Hora Inicio', 'Hora Fin'});
+                    datosBuses.(fecha).(bus).tiempoRuta(:, [2, 3])...
+                    datosBuses.(fecha).(bus).codigoConductor];
+
+                tabla1.Properties.VariableNames{1} = 'Promedio velocidad';
+                tabla1.Properties.VariableNames{2} = 'Velocidad';
+                tabla1.Properties.VariableNames{3} = 'Hora Inicio';
+                tabla1.Properties.VariableNames{4} = 'Hora Fin';
+
+
+                % Asigna este cell array a la estructura
+                datosReorganizados.(bus).vuelta.(fecha) = tabla2;
 
                 datosReorganizados.(bus).vuelta.General = [datosReorganizados.(bus).vuelta.General; datosReorganizados.(bus).vuelta.(fecha)];
             end
