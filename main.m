@@ -137,7 +137,7 @@ datosSensor = ImportarDatos.Sensor(rutaSensor);
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
                 
-                arrayI(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,ida);
+                arrayI(:,k)=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,ida);
  
                 
                 % Ejecutar para Vuelta usando la hora de retorno como inicio
@@ -155,7 +155,7 @@ rutaSensor = fullfile('Datos', fechaArchivo, strrep(busNumber, 'bus_', ''));
 datosSensor = ImportarDatos.Sensor(rutaSensor);
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
-arrayV(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,vuelta);
+arrayV(:,k)=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,vuelta);
  
                 disp(['Ruta ', num2str(k), ' del bus ', busNumber, ' en la fecha ', fecha, ' procesada.']);
             end
