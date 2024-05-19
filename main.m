@@ -33,6 +33,34 @@ end
 %     m2{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},'b','vuelta','vuelta');
 %     
 % end
+
+%%
+nombres = fieldnames(datosBuses);
+narray = 1;
+
+%Ccurvas = Calculos.Lcurvasida4020();
+%Ccurvas = Calculos.LcurvasVuelta4020();
+%Ccurvas = Calculos.Lcurvasida4104();
+ Ccurvas = Calculos.LcurvasVuelta4104();
+
+for i = 1:5
+    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
+    data = datosBuses.(Na).bus_4104.datosSensor;
+    tiempos=datosBuses.(Na).bus_4104.tiempoRuta;
+    T = size(datosBuses.(Na).bus_4104.tiempoRuta);
+    for j = 1:T(1)
+        array4(:, narray) = Calculos.riesgoCurva2(data, tiempos{j, 2}, tiempos{j, 3}, Ccurvas);
+        narray = narray + 1;
+    end
+end
+
+
+%%
+for i=1:5
+    
+    
+end
+
 %% Importar todos los datos tomados por el movil
 
 sim = ImportarDatos.importarTodosLosDatos('Datos');

@@ -17,22 +17,43 @@ Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %% importar solo un dato
-% Sensor=ImportarDatos.Sensor('Datos\2024-04-16\4104');
-% datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
-% tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
-% T=size(tiempoR);
+Sensor=ImportarDatos.Sensor('Datos\2024-04-18\4104');
+datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
+tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
+T=size(tiempoR);
 Ccurvas1=Calculos.Lcurvasida4020();
 Ccurvas2=Calculos.LcurvasVuelta4020();
 Ccurvas3=Calculos.Lcurvasida4104();
-Ccurvas4=Calculos.LcurvasVuelta4104();
-% for i=1:T(1)
-% array(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
-% end
+Ccurvas=Calculos.LcurvasVuelta4104();
+for i=1:T(1)
+array2(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
+end
 % for i=1:T(1)
 %     m{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,1},tiempoR{i,2},'r','ida','ida');
 %     m2{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},'b','vuelta','vuelta');
 %     
 % end
+
+%%
+nombres = fieldnames(datosBuses);
+narray = 1;
+
+%Ccurvas = Calculos.Lcurvasida4020();
+% Ccurvas2 = Calculos.LcurvasVuelta4020();
+% Ccurvas3 = Calculos.Lcurvasida4104();
+% Ccurvas = Calculos.LcurvasVuelta4104();
+
+for i = 1:5
+    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
+    data = datosBuses.(Na).bus_4020.datosSensor;
+    tiempos=datosBuses.(Na).bus_4020.tiempoRuta;
+    T = size(datosBuses.(Na).bus_4020.tiempoRuta);
+    for j = 1:T(1)
+        array(:, narray) = Calculos.riesgoCurva2(data, tiempos{j, 1}, tiempos{j, 2}, Ccurvas);
+        narray = narray + 1;
+    end
+end
+
 %% Importar todos los datos tomados por el movil
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
@@ -137,7 +158,9 @@ datosSensor = ImportarDatos.Sensor(rutaSensor);
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
                 
-                arrayI(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,ida);
+
+                arrayI(:,k)=Calculos.riesgoCurva2(datosCordenadasSensor,inicio,retorno,ida);
+
  
                 
                 % Ejecutar para Vuelta usando la hora de retorno como inicio
@@ -151,14 +174,13 @@ fechaFinalDT = datetime(fin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
 fechaArchivo = datestr(fechaInicioDT, 'yyyy-mm-dd');
 horaInicio = datestr(fechaInicioDT, 'HH:MM:SS');
 horaFinal = datestr(fechaFinalDT, 'HH:MM:SS');
-arrayV(:,k){i,j}=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,ida);
- 
-
-% Rutas para datos del teléfono y P20
 rutaSensor = fullfile('Datos', fechaArchivo, strrep(busNumber, 'bus_', ''));
 datosSensor = ImportarDatos.Sensor(rutaSensor);
 datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
+arrayV(:,k)=Calculos.riesgoCurva2(datosCordenadasSensor,retorno,fin,vuelta);
+
+ 
                 disp(['Ruta ', num2str(k), ' del bus ', busNumber, ' en la fecha ', fecha, ' procesada.']);
             end
         else
