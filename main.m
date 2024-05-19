@@ -35,7 +35,7 @@ end
 % end
 %% Importar todos los datos tomados por el movil
 
-datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
+sim = ImportarDatos.importarTodosLosDatos('Datos');
 
 
 %% Calculo de todos los tiempos para cada ruta
@@ -75,6 +75,11 @@ Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.General, 'Promedio vel
 %%
 
 procesarRutas(Buses);
+
+%%
+
+a = ans.("Promedio velocidad")
+dataMatrix = cell2mat(a');
 
 
 %% Reorganiza los tiempos
@@ -522,7 +527,7 @@ dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaI
 
 
 %Grafica de distancia vs energia
-%Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
+Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
 
 % Grafica de aceleraciones histograma
 %Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);

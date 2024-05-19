@@ -184,6 +184,8 @@ end
             % Leer el archivo CSV
             mar = readtable(ruta_archivo, opts);
         end
+        
+        
         function mar = Evento2(carpeta)
             if nargin < 1
                 carpeta = '4001_15_02'; % Carpeta predeterminada
@@ -320,6 +322,32 @@ end
             % Leer el archivo CSV en una tabla de MATLAB
             mar = readtable(ruta_archivo, opts);
         end
+
+
+        %%
+
+        function mar = Evento10(carpeta)
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
+    end
+
+    nombre_archivo = 'EV10.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 21);
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'codigoEvento', 'peso', 'temperaturaCabina', 'estimacionOcupacionSuben', 'estimacionOcupacionBajan', 'estimacionOcupacionAbordo'};
+    opts.VariableTypes = {'string','string','string','string','string','string','datetime','datetime','string','double','double','string','logical','string','string','string','double','double','double','double','double'};
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+
+    % Leer el archivo CSV
+    mar = readtable(ruta_archivo, opts);
+end
+
         %%
         function [tabla1, tabla2, tabla3, tabla4] = Evento19Coordenadas(datos)
             % Verificar que los datos sean una tabla
@@ -374,52 +402,66 @@ end
         %%
         
         
-        function busesDatos = importarTodosLosDatos(basePath)
+        function busesDatos = importarTodosLosDatos(basePath, busesDatos)
     % Esta función importa todos los datos de sensores para cada bus en cada fecha disponible bajo la carpeta base.
     % basePath es la ruta a la carpeta 'Datos'.
-    
+    % busesDatos es una estructura opcional de entrada que contiene datos previos.
+
+    % Verificar si se proporcionó la estructura busesDatos
+    if nargin < 2
+        busesDatos = struct(); % Crear una nueva estructura si no se proporcionó
+    end
+
     % Obtener la lista de carpetas de fechas
     fechas = ImportarDatos.getFolderList(basePath);
-    
-    % Inicializar un contenedor para los datos de todos los buses
-    busesDatos = struct();
-    
+
     % Iterar sobre cada fecha
     for i = 1:length(fechas)
         fechaPath = fullfile(basePath, fechas{i});
-        
+
         % Normalizar nombre de campo para fecha (añadir 'f_' y reemplazar guiones con guiones bajos)
         fechaFieldName = ['f_' strrep(fechas{i}, '-', '_')];
-        
+
         % Obtener la lista de buses en esta fecha
         buses = ImportarDatos.getFolderList(fechaPath);
-        
+
         % Iterar sobre cada bus
         for j = 1:length(buses)
             busPath = fullfile(fechaPath, buses{j});
             busFieldName = ['bus_' buses{j}];  % Añadir 'bus_' para hacer el nombre válido
 
-
             rutalogs = fullfile(fechaPath, strrep(buses{j}, 'bus_', ''), 'log');
 
-
             try 
-            datosP20 = ImportarDatos.P20(rutalogs);
+                datosP20 = ImportarDatos.P20(rutalogs);
+                datosP60 = ImportarDatos.P60(rutalogs);
 
-            datosP60 = ImportarDatos.P60(rutalogs);
-            catch
-            
-            datosP20 = {};
+                datosE19 = ImportarDatos.Evento19(rutalogs);
+                datosE1 = ImportarDatos.Evento1(rutalogs);
+                datosE2 = ImportarDatos.Evento2(rutalogs);
+                datosE8 = ImportarDatos.Evento8(rutalogs);
+                datosE18 = ImportarDatos.Evento18(rutalogs);
+            catch Me
 
-            datosP60 = {};
 
+                % Mostrar el mensaje de error
+    disp('Ocurrió un error durante la importación de datos:');
+    disp(getReport(Me, 'extended'));
+
+                datosP20 = {};
+                datosP60 = {};
+
+                datosE19 = {};
+                datosE1 =  {};
+                datosE2 =  {};
+                datosE8 =  {};
+                datosE18 =  {};
             end
 
-            
             % Importar los datos del sensor
             datosSensor = ImportarDatos.Sensor(busPath);
             datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
-            
+
             % Guardar los datos en una estructura organizada por fecha y bus
             if ~isfield(busesDatos, fechaFieldName)
                 busesDatos.(fechaFieldName) = struct();
@@ -427,17 +469,53 @@ end
             if ~isfield(busesDatos.(fechaFieldName), busFieldName)
                 busesDatos.(fechaFieldName).(busFieldName) = struct();
             end
-            
+
             % Inicializar la estructura del bus con una subestructura para los datos del sensor
             % y un campo adicional para datos extras
             busesDatos.(fechaFieldName).(busFieldName).datosSensor = datosCordenadasSensor;
-
             busesDatos.(fechaFieldName).(busFieldName).P20 = datosP20;
             busesDatos.(fechaFieldName).(busFieldName).P60 = datosP60;
+
+            busesDatos.(fechaFieldName).(busFieldName).EV19 = datosE19;
+            busesDatos.(fechaFieldName).(busFieldName).EV1 = datosE1;
+            busesDatos.(fechaFieldName).(busFieldName).EV2 = datosE2;
+            busesDatos.(fechaFieldName).(busFieldName).EV8 = datosE8;
+            busesDatos.(fechaFieldName).(busFieldName).EV18 = datosE18;
         end
     end
         end
 
+
+
+
+        %%
+
+        function mar = Evento9(carpeta)
+    if nargin < 1
+        carpeta = '4001_15_02'; % Carpeta predeterminada
+    end
+
+    nombre_archivo = 'EV9.csv'; % Nombre del archivo a leer
+    ruta_archivo = fullfile(carpeta, nombre_archivo);
+
+    % Opciones para la importación de datos
+    opts = delimitedTextImportOptions("NumVariables", 17);
+    opts.DataLines = [1, Inf];
+    opts.Delimiter = ",";
+    opts.VariableNames = {'versionTrama', 'idRegistro', 'idOperador', 'idVehiculo', 'idRuta', 'idConductor', 'fechaHoraLecturaDato', 'fechaHoraEnvioDato', 'tipoBus', 'latitud', 'longitud', 'tipoTrama', 'tecnologiaMotor', 'tramaRetransmitida', 'tipoFreno', 'codigoEvento', 'peso', 'temperaturaCabina', 'estimacionOcupacionSuben', 'estimacionOcupacionBajan', 'estimacionOcupacionAbordo'};
+    opts.VariableTypes = {'string','string','string','string','string','string','datetime','datetime','string','double','double','string','logical','string','string','string','double','double','double','double','double'};
+    opts.ExtraColumnsRule = "ignore";
+    opts.EmptyLineRule = "read";
+    opts = setvaropts(opts, {'fechaHoraLecturaDato','fechaHoraEnvioDato'}, 'InputFormat', "yyyy-MM-dd HH:mm:ss.SSS");
+
+    % Leer el archivo CSV
+    mar = readtable(ruta_archivo, opts);
+end
+
+
+
+
+        
         %%
 
 function datosBuses = agregarCodigoConductor(datosBuses)

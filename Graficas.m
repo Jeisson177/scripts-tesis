@@ -198,12 +198,12 @@ end
             datosFiltrados = datosp60(datosp60.fechaHoraLecturaDato >= fechaInicio & datosp60.fechaHoraLecturaDato <= fechaFin, :);
             
             distancia=Calculos.CalcularDistancia(datosFiltrados);
-            %datosFiltrados.kilometrosOdometro=datosFiltrados.kilometrosOdometro-datosFiltrados.kilometrosOdometro(1);
-            %plot(datosFiltrados.kilometrosOdometro,datosFiltrados.nivelRestanteEnergia);
+            datosFiltrados.kilometrosOdometro=datosFiltrados.kilometrosOdometro-datosFiltrados.kilometrosOdometro(1);
+            plot(datosFiltrados.kilometrosOdometro,datosFiltrados.nivelRestanteEnergia);
 
-            porcentaje = Calculos.interpolarPorcentajeBateria2(datosFiltrados);
-
-            plot(distancia,porcentaje);
+            % porcentaje = Calculos.interpolarPorcentajeBateria3(datosFiltrados);
+            % 
+            % plot(distancia,porcentaje(:,end-1));
             title(['Conductor ', num2str(conductor),bus]); % Asegúrate de concatenar correctamente
             xlabel('Distancia');
             ylabel('Porcentaje de energía');
