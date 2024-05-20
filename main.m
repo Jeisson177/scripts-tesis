@@ -44,7 +44,7 @@ narray = 1;
  Ccurvas = Calculos.LcurvasVuelta4104();
 
 for i = 1:5
-    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
+    Na = nombres{i}; 
     data = datosBuses.(Na).bus_4104.datosSensor;
     tiempos=datosBuses.(Na).bus_4104.tiempoRuta;
     T = size(datosBuses.(Na).bus_4104.tiempoRuta);
@@ -56,9 +56,34 @@ end
 
 
 %%
+nombres = fieldnames(sim);
+narray = 1;
 for i=1:5
-    
-    
+    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
+    data=t.(Na).bus_4104.EV19;
+    tiempos=t.(Na).bus_4104.tiempoRuta;
+    Ti = size(t.(Na).bus_4104.tiempoRuta);
+    for j=1:Ti(1)
+        fechaInicio= tiempos{j, 1};
+        fechaFin=tiempos{j, 3};
+        
+            if ischar(fechaInicio) || isstring(fechaInicio)
+                fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+            end
+            if ischar(fechaFin) || isstring(fechaFin)
+                fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+            end
+        Filtrados =data(data.fechaHoraLecturaDato >= fechaInicio & data.fechaHoraLecturaDato <= fechaFin, :);%se filtran por fecha
+           Filtrados = Filtrados(Filtrados.codigoComportamientoAnomalo == '4', :);
+
+        Evento18=size(Filtrados);
+            
+            E(:,narray)=Evento18(1);
+            
+%             E(:,narray)=sum(Filtrados.estadoAperturaCierrePuertas);
+            
+            narray=narray+1;
+    end
 end
 
 %% Importar todos los datos tomados por el movil

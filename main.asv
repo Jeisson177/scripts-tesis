@@ -39,24 +39,53 @@ nombres = fieldnames(datosBuses);
 narray = 1;
 
 %Ccurvas = Calculos.Lcurvasida4020();
-% Ccurvas2 = Calculos.LcurvasVuelta4020();
-% Ccurvas3 = Calculos.Lcurvasida4104();
-% Ccurvas = Calculos.LcurvasVuelta4104();
+%Ccurvas = Calculos.LcurvasVuelta4020();
+%Ccurvas = Calculos.Lcurvasida4104();
+ Ccurvas = Calculos.LcurvasVuelta4104();
 
 for i = 1:5
-    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
-    data = datosBuses.(Na).bus_4020.datosSensor;
-    tiempos=datosBuses.(Na).bus_4020.tiempoRuta;
-    T = size(datosBuses.(Na).bus_4020.tiempoRuta);
+    Na = nombres{i}; 
+    data = datosBuses.(Na).bus_4104.datosSensor;
+    tiempos=datosBuses.(Na).bus_4104.tiempoRuta;
+    T = size(datosBuses.(Na).bus_4104.tiempoRuta);
     for j = 1:T(1)
-        array(:, narray) = Calculos.riesgoCurva2(data, tiempos{j, 1}, tiempos{j, 2}, Ccurvas);
+        array4(:, narray) = Calculos.riesgoCurva2(data, tiempos{j, 2}, tiempos{j, 3}, Ccurvas);
         narray = narray + 1;
+    end
+end
+
+
+%%
+nombres = fieldnames(sim);
+narray = 1;
+for i=1:5
+    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
+    data=t.(Na).bus_4020.EV2;
+    tiempos=t.(Na).bus_4020.tiempoRuta;
+    Ti = size(t.(Na).bus_4020.tiempoRuta);
+    for j=1:Ti(1)
+        fechaInicio= tiempos{j, 1};
+        fechaFin=tiempos{j, 3};
+        
+            if ischar(fechaInicio) || isstring(fechaInicio)
+                fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+            end
+            if ischar(fechaFin) || isstring(fechaFin)
+                fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+            end
+        Filtrados =data(data.fechaHoraLecturaDato >= fechaInicio & data.fechaHoraLecturaDato <= fechaFin, :);%se filtran por fecha
+            Evento18=size(Filtrados);
+            
+            E(:,narray)=Evento18(1);
+            
+            
+            narray=narray+1;
     end
 end
 
 %% Importar todos los datos tomados por el movil
 
-datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
+sim = ImportarDatos.importarTodosLosDatos('Datos');
 
 
 %% Calculo de todos los tiempos para cada ruta
@@ -96,6 +125,11 @@ Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.General, 'Promedio vel
 %%
 
 procesarRutas(Buses);
+
+%%
+
+a = ans.("Promedio velocidad")
+dataMatrix = cell2mat(a');
 
 
 %% Reorganiza los tiempos
@@ -543,7 +577,7 @@ dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaI
 
 
 %Grafica de distancia vs energia
-%Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
+Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
 
 % Grafica de aceleraciones histograma
 %Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
