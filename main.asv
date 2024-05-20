@@ -44,7 +44,8 @@ narray = 1;
  Ccurvas = Calculos.LcurvasVuelta4104();
 
 for i = 1:5
-    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
+
+    Na = nombres{i};
     data = datosBuses.(Na).bus_4104.datosSensor;
     tiempos=datosBuses.(Na).bus_4104.tiempoRuta;
     T = size(datosBuses.(Na).bus_4104.tiempoRuta);
@@ -56,14 +57,40 @@ end
 
 
 %%
+
+nombres = fieldnames(sim);
+narray = 1;
 for i=1:5
-    
-    
+    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
+    data=t.(Na).bus_4020.EV2;
+    tiempos=t.(Na).bus_4020.tiempoRuta;
+    Ti = size(t.(Na).bus_4020.tiempoRuta);
+    for j=1:Ti(1)
+        fechaInicio= tiempos{j, 1};
+        fechaFin=tiempos{j, 3};
+        
+            if ischar(fechaInicio) || isstring(fechaInicio)
+                fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+            end
+            if ischar(fechaFin) || isstring(fechaFin)
+                fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+            end
+        Filtrados =data(data.fechaHoraLecturaDato >= fechaInicio & data.fechaHoraLecturaDato <= fechaFin, :);%se filtran por fecha
+            Evento18=size(Filtrados);
+            
+            E(:,narray)=Evento18(1);
+            
+            
+            narray=narray+1;
+    end
 end
 
 %% Importar todos los datos tomados por el movil
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos', datosBuses);
+
+%%
+sim = ImportarDatos.importarTodosLosDatos('Datos');
 
 
 %% Calculo de todos los tiempos para cada ruta
