@@ -580,6 +580,13 @@ end
                 if ~isfield(datosReorganizados.(bus).ida, 'General')
                     datosReorganizados.(bus).ida.General = [];  % Asegura que el campo General esté inicializado.
                 end
+                % Inicializar campos de hora pico y hora valle si no existen
+                if ~isfield(datosReorganizados.(bus).ida, 'horaPico')
+                    datosReorganizados.(bus).ida.horaPico = [];  % Asegura que el campo horaPico esté inicializado.
+                end
+                if ~isfield(datosReorganizados.(bus).ida, 'horaValle')
+                    datosReorganizados.(bus).ida.horaValle = [];  % Asegura que el campo horaValle esté inicializado.
+                end
 
 
                 tabla1 = [...
@@ -599,6 +606,42 @@ end
                 datosReorganizados.(bus).ida.General = [datosReorganizados.(bus).ida.General; datosReorganizados.(bus).ida.(fecha)];
 
 
+                horaInicioPico1 = 5.5;   % Hora de inicio del primer rango de hora pico
+                horaFinPico1 = 6.5;     % Hora de fin del primer rango de hora pico
+                
+                horaInicioPico2 = 17;  % Hora de inicio del segundo rango de hora pico (5 PM)
+                horaFinPico2 = 18;     % Hora de fin del segundo rango de hora pico (8 PM)
+
+                % Calcular horas de inicio y fin en formato decimal
+                horasInicio = hour(datetime([datosBuses.(fecha).(bus).tiempoRuta{:, 1}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) + ...
+                              (minute(datetime([datosBuses.(fecha).(bus).tiempoRuta{:, 1}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) / 60);
+                horasFin = hour(datetime([datosBuses.(fecha).(bus).tiempoRuta{:, 3}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) + ...
+                           (minute(datetime([datosBuses.(fecha).(bus).tiempoRuta{:, 3}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) / 60);
+                
+                % Crear un vector con intervalos de tiempo desde horasInicio hasta horasFin
+                intervalosTiempo = arrayfun(@(inicio, fin) linspace(inicio, fin, 100), horasInicio, horasFin, 'UniformOutput', false);
+                
+                % Verificar si alguno de los puntos en los intervalos está en las horas pico
+                indicesPico = false(size(horasInicio));
+                for i = 1:length(intervalosTiempo)
+                    intervalo = intervalosTiempo{i};
+                    % Verificar para el primer intervalo pico
+                    if any((intervalo >= horaInicioPico1 & intervalo <= horaFinPico1)) || ...
+                       any((intervalo >= horaInicioPico2 & intervalo <= horaFinPico2))
+                        indicesPico(i) = true;
+                    end
+                end
+
+                indicesValle = ~indicesPico;
+
+% Ahora indicesPico contendrá true para los registros que tienen alguna parte de su intervalo en hora pico
+
+
+                datosReorganizados.(bus).ida.horaPico = [datosReorganizados.(bus).ida.horaPico; datosReorganizados.(bus).ida.(fecha)(indicesPico, :)];
+                
+                datosReorganizados.(bus).ida.horaValle = [datosReorganizados.(bus).ida.horaValle; datosReorganizados.(bus).ida.(fecha)(indicesValle, :)];
+
+
                 % Reorganizar los datos para la ruta de vuelta
                 if ~isfield(datosReorganizados.(bus), 'vuelta')
                     datosReorganizados.(bus).vuelta = struct();
@@ -606,6 +649,13 @@ end
 
                 if ~isfield(datosReorganizados.(bus).vuelta, 'General')
                     datosReorganizados.(bus).vuelta.General = [];  % Asegura que el campo General esté inicializado.
+                end
+                % Inicializar campos de hora pico y hora valle si no existen
+                if ~isfield(datosReorganizados.(bus).vuelta, 'horaPico')
+                    datosReorganizados.(bus).vuelta.horaPico = [];  % Asegura que el campo horaPico esté inicializado.
+                end
+                if ~isfield(datosReorganizados.(bus).vuelta, 'horaValle')
+                    datosReorganizados.(bus).vuelta.horaValle = [];  % Asegura que el campo horaValle esté inicializado.
                 end
 
 
@@ -616,16 +666,24 @@ end
                     datosBuses.(fecha).(bus).tiempoRuta(:, [2, 3])...
                     datosBuses.(fecha).(bus).codigoConductor];
 
-                tabla1.Properties.VariableNames{1} = 'Promedio velocidad';
-                tabla1.Properties.VariableNames{2} = 'Velocidad';
-                tabla1.Properties.VariableNames{3} = 'Hora Inicio';
-                tabla1.Properties.VariableNames{4} = 'Hora Fin';
+                tabla2.Properties.VariableNames{1} = 'Promedio velocidad';
+                tabla2.Properties.VariableNames{2} = 'Velocidad';
+                tabla2.Properties.VariableNames{3} = 'Hora Inicio';
+                tabla2.Properties.VariableNames{4} = 'Hora Fin';
 
 
                 % Asigna este cell array a la estructura
                 datosReorganizados.(bus).vuelta.(fecha) = tabla2;
 
                 datosReorganizados.(bus).vuelta.General = [datosReorganizados.(bus).vuelta.General; datosReorganizados.(bus).vuelta.(fecha)];
+            
+
+                datosReorganizados.(bus).vuelta.horaPico = [datosReorganizados.(bus).vuelta.horaPico; datosReorganizados.(bus).vuelta.(fecha)(indicesPico, :)];
+                
+                datosReorganizados.(bus).vuelta.horaValle = [datosReorganizados.(bus).vuelta.horaValle; datosReorganizados.(bus).vuelta.(fecha)(indicesValle, :)];
+
+            
+            
             end
         end
     end

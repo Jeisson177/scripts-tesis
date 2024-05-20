@@ -63,7 +63,7 @@ end
 
 %% Importar todos los datos tomados por el movil
 
-sim = ImportarDatos.importarTodosLosDatos('Datos');
+datosBuses = ImportarDatos.importarTodosLosDatos('Datos', datosBuses);
 
 
 %% Calculo de todos los tiempos para cada ruta
@@ -97,12 +97,39 @@ generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.
 
 %%
 
-Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.General, 'Promedio velocidad', 1, 'ascend' );
+ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
+ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Promedio velocidad")')')];
+
+% ordenValler = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
+
+aa= (cell2mat(ordenpico.("Promedio velocidad")')');
+boxplot(aa');
 
 
 %%
 
-procesarRutas(Buses);
+% Datos de prueba
+datosPrueba = struct('latitud', [4.65, 4.66, 4.67], 'longitud', [-74.05, -74.06, -74.07], 'velocidad', [20, 30, 25]);
+
+% Calcular distancia y velocidad
+distanciaPrueba = Calculos.CalcularDistancia(datosPrueba);
+velocidadPrueba = Calculos.calcularVelocidadKH(datosPrueba);
+
+% Mostrar las longitudes
+disp('--- Verificación de Datos de Prueba ---');
+disp(['Longitud de distanciaPrueba: ', num2str(length(distanciaPrueba))]);
+disp(['Longitud de velocidadPrueba: ', num2str(length(velocidadPrueba))]);
+
+% Llamar a la función con datos de prueba
+puntosSegmentosPrueba = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
+promediosPrueba = calcularPromedioVelocidadPorSegmentos(datosPrueba, puntosSegmentosPrueba);
+
+% Verificar la longitud de los promedios
+disp('Longitud de promediosPrueba:');
+disp(length(promediosPrueba));
+disp('Valores de promediosPrueba:');
+disp(promediosPrueba);
+
 
 %%
 

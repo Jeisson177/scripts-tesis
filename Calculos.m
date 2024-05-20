@@ -32,7 +32,7 @@ classdef Calculos
         %%
         
 
-        function promediosVelocidad = calcularPromedioVelocidadPorSegmentos(datos, puntosSegmentos)
+      function promediosVelocidad = calcularPromedioVelocidadPorSegmentos(datos, puntosSegmentos)
     % Asegurar que la distancia inicial (0 km) esté incluida si no está ya
     if puntosSegmentos(1) ~= 0
         puntosSegmentos = [0 puntosSegmentos];
@@ -42,10 +42,20 @@ classdef Calculos
     distancia = Calculos.CalcularDistancia(datos);
     velocidad = Calculos.calcularVelocidadKH(datos);
 
-    % Extender puntosSegmentos para incluir el máximo de distancia
-    if puntosSegmentos(end) < max(distancia)
-        puntosSegmentos = [puntosSegmentos, max(distancia)];
+    % Ajustar la longitud de distancia para que coincida con velocidad
+    % La distancia debe ser una menos que la longitud original
+    if length(distancia) > length(velocidad)
+        distancia = distancia(1:end-1);
     end
+
+    % Verificar que distancia y velocidad tengan la misma longitud
+    if length(distancia) ~= length(velocidad)
+        error('La longitud de distancia y velocidad no coincide.');
+    end
+
+    
+    puntosSegmentos = [puntosSegmentos, max(distancia)];
+    
 
     % Inicializar el vector de promedios de velocidad y las listas de velocidad por segmento
     numSegmentos = length(puntosSegmentos) - 1;
@@ -54,11 +64,6 @@ classdef Calculos
 
     % Asignar cada velocidad a su respectivo segmento
     for i = 1:length(distancia)
-        % Asegurarse de que i no exceda la longitud de la matriz de velocidad
-        if i > length(velocidad)
-            continue;
-        end
-        
         for j = 1:numSegmentos
             if distancia(i) >= puntosSegmentos(j) && distancia(i) < puntosSegmentos(j+1)
                 velocidadesPorSegmento{j} = [velocidadesPorSegmento{j}, velocidad(i)];
@@ -72,11 +77,25 @@ classdef Calculos
         if ~isempty(velocidadesPorSegmento{k})
             promediosVelocidad(k) = mean(velocidadesPorSegmento{k}, 'omitnan');
         else
-            promediosVelocidad(k) = NaN;
+            promediosVelocidad(k) = 0; % Rellenar con cero si no hay datos
         end
     end
-end
 
+    % Asegurar que la longitud sea consistente con los puntos de segmentación originales
+    if length(promediosVelocidad) < numSegmentos
+        promediosVelocidad = [promediosVelocidad; zeros(numSegmentos - length(promediosVelocidad), 1)];
+    elseif length(promediosVelocidad) > numSegmentos
+        promediosVelocidad = promediosVelocidad(1:numSegmentos);
+    end
+
+    % Verificación y salida de información
+    disp('--- Verificación ---');
+    disp(['Número de segmentos: ', num2str(numSegmentos)]);
+    disp(['Longitud de promediosVelocidad: ', num2str(length(promediosVelocidad))]);
+    disp('Valores de promediosVelocidad:');
+    disp(promediosVelocidad);
+    disp('--------------------');
+end
 
 
         %%
