@@ -121,6 +121,10 @@ datosBuses = Calculos.extraerP60(datosBuses);
 
 datosBuses = Calculos.calcularPromedioVelocidadRutas(datosBuses);
 
+%%
+
+datosBuses = Calculos.calcularPromedioConsumoRutas(datosBuses);
+
 %% Organiza la estructura por bus y ruta
 
 Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);

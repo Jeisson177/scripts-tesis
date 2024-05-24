@@ -296,11 +296,11 @@ function datosBuses = calcularPromedioConsumoRutas(datosBuses)
                     
                     % Calcular y almacenar los promedios para ida
                     if strcmp(IDbus, '4020')
-                        PromediosIda = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 1}.('kilometrosOdometro'), consumoEnergiaRuta, Ruta4020Ida);
-                        PromediosVuelta = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 2}.('kilometrosOdometro'), consumoEnergiaRuta, Ruta4020Vuelta);
+                        PromediosIda = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 1}.('kilometrosOdometro') - P60{k, 1}.('kilometrosOdometro')(0), consumoEnergiaRuta{k, 1}, Ruta4020Ida);
+                        PromediosVuelta = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 2}.('kilometrosOdometro') - P60{k, 2}.('kilometrosOdometro')(0), consumoEnergiaRuta{k, 2}, Ruta4020Vuelta);
                     elseif strcmp(IDbus, '4104')
-                        PromediosIda = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 1}.('kilometrosOdometro'), consumoEnergiaRuta, Ruta4104Ida);
-                        PromediosVuelta = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 2}.('kilometrosOdometro'), consumoEnergiaRuta, Ruta4104Vuelta);
+                        PromediosIda = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 1}.('kilometrosOdometro') - P60{k, 1}.('kilometrosOdometro')(0), consumoEnergiaRuta{k, 1}, Ruta4104Ida);
+                        PromediosVuelta = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 2}.('kilometrosOdometro') - P60{k, 2}.('kilometrosOdometro')(0), consumoEnergiaRuta{k, 2}, Ruta4104Vuelta);
                     end
                     
                     % Almacenar los promedios en la estructura de datos
