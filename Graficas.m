@@ -689,7 +689,7 @@ end
     
     % Segundo subplot para los datos del dispositivo P20
     subplot(2, 1, 2);
-    plot(datosCordenadasP20Filtrados.kilometrosOdometro , datosCordenadasP20Filtrados.velocidadVehiculo);
+    plot(datosCordenadasP20Filtrados.kilometrosOdometro - datosCordenadasP20Filtrados.kilometrosOdometro(1) , datosCordenadasP20Filtrados.velocidadVehiculo);
     title('Velocidad vs distancia (P20)');
     xlabel('Distancia (km)');
     ylabel('Velocidad (km/h)');

@@ -98,6 +98,69 @@ classdef Calculos
 end
 
 
+%%
+
+
+function promediosConsumo = calcularPromedioConsumoPorSegmentos(distancia, consumo, puntosSegmentos)
+            % Asegurar que la distancia inicial (0 km) esté incluida si no está ya
+            if puntosSegmentos(1) ~= 0
+                puntosSegmentos = [0 puntosSegmentos];
+            end
+
+            % Ajustar la longitud de distancia para que coincida con consumo
+            % La distancia debe ser una menos que la longitud original
+            if length(distancia) > length(consumo)
+                distancia = distancia(1:end-1);
+            end
+
+            % Verificar que distancia y consumo tengan la misma longitud
+            if length(distancia) ~= length(consumo)
+                error('La longitud de distancia y consumo no coincide.');
+            end
+
+            % Añadir el último punto de segmentación si no está incluido
+            puntosSegmentos = [puntosSegmentos, max(distancia)];
+
+            % Inicializar el vector de promedios de consumo y las listas de consumo por segmento
+            numSegmentos = length(puntosSegmentos) - 1;
+            promediosConsumo = zeros(numSegmentos, 1);
+            consumosPorSegmento = cell(numSegmentos, 1);
+
+            % Asignar cada consumo a su respectivo segmento
+            for i = 1:length(distancia)
+                for j = 1:numSegmentos
+                    if distancia(i) >= puntosSegmentos(j) && distancia(i) < puntosSegmentos(j+1)
+                        consumosPorSegmento{j} = [consumosPorSegmento{j}, consumo(i)];
+                        break;
+                    end
+                end
+            end
+
+            % Calcular el promedio de consumo para cada segmento
+            for k = 1:numSegmentos
+                if ~isempty(consumosPorSegmento{k})
+                    promediosConsumo(k) = mean(consumosPorSegmento{k}, 'omitnan');
+                else
+                    promediosConsumo(k) = 0; % Rellenar con cero si no hay datos
+                end
+            end
+
+            % Asegurar que la longitud sea consistente con los puntos de segmentación originales
+            if length(promediosConsumo) < numSegmentos
+                promediosConsumo = [promediosConsumo; zeros(numSegmentos - length(promediosConsumo), 1)];
+            elseif length(promediosConsumo) > numSegmentos
+                promediosConsumo = promediosConsumo(1:numSegmentos);
+            end
+
+            % Verificación y salida de información
+            disp('--- Verificación ---');
+            disp(['Número de segmentos: ', num2str(numSegmentos)]);
+            disp(['Longitud de promediosConsumo: ', num2str(length(promediosConsumo))]);
+            disp('Valores de promediosConsumo:');
+            disp(promediosConsumo);
+            disp('--------------------');
+        end
+
         %%
 
 
@@ -184,6 +247,65 @@ end
                     % Almacenar los promedios en la estructura de datos
                     datosBuses.(fecha).(bus).PromediosIda{k, 1} = PromediosIda;
                     datosBuses.(fecha).(bus).PromediosVuelta{k, 1} = PromediosVuelta;
+                end
+            end
+        end
+    end
+    return;
+end
+
+%%
+
+function datosBuses = calcularPromedioConsumoRutas(datosBuses)
+
+            Ruta4104Ida = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
+            Ruta4104Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
+
+
+            Ruta4020Ida = [2.3, 8.1, 11.9, 12.9, 14.8, 19.25];
+            Ruta4020Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'consumoEnergiaRuta') && isfield(datosBuses.(fecha).(bus), 'segmentoP60') && isfield(datosBuses.(fecha).(bus), 'tiempoRuta')
+                consumoEnergiaRuta = datosBuses.(fecha).(bus).consumoEnergiaRuta;
+                P60 = datosBuses.(fecha).(bus).segmentoP60;
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                
+
+                % Procesar cada ruta del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    fechaInicioIda = tiempoRuta{k, 1};
+                    fechaFinIda = tiempoRuta{k, 2};
+
+                    % Trayecto de vuelta
+                    fechaInicioVuelta = tiempoRuta{k, 2};
+                    fechaFinVuelta = tiempoRuta{k, 3};
+
+                    IDbus = bus(5:end);  % Asume que el nombre del bus es 'bus_XXXX'
+                    
+                    % Calcular y almacenar los promedios para ida
+                    if strcmp(IDbus, '4020')
+                        PromediosIda = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 1}.('kilometrosOdometro'), consumoEnergiaRuta, Ruta4020Ida);
+                        PromediosVuelta = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 2}.('kilometrosOdometro'), consumoEnergiaRuta, Ruta4020Vuelta);
+                    elseif strcmp(IDbus, '4104')
+                        PromediosIda = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 1}.('kilometrosOdometro'), consumoEnergiaRuta, Ruta4104Ida);
+                        PromediosVuelta = Calculos.calcularPromedioConsumoPorSegmentos(P60{k, 2}.('kilometrosOdometro'), consumoEnergiaRuta, Ruta4104Vuelta);
+                    end
+                    
+                    % Almacenar los promedios en la estructura de datos
+                    datosBuses.(fecha).(bus).PromediosConsumoIda{k, 1} = PromediosIda;
+                    datosBuses.(fecha).(bus).PromediosConsumoVuelta{k, 1} = PromediosVuelta;
                 end
             end
         end
@@ -562,17 +684,22 @@ end
      %%
 
      function porcentajeInterpolado = interpolarPorcentajeBateria3(datosFiltrados)
-        porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
+    % Asegurarse de que 'nivelRestanteEnergia' existe en datosFiltrados
+    if ~ismember('nivelRestanteEnergia', datosFiltrados.Properties.VariableNames)
+        error('La columna nivelRestanteEnergia no existe en datosFiltrados.');
+    end
+
+    % Obtener los porcentajes de la columna 'nivelRestanteEnergia'
+    porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
     
     % Calcular las diferencias entre elementos consecutivos
     diferencias = diff(porcentajes) ~= 0;
     
     % Obtener los índices donde ocurren cambios
     indicesCambio = find(diferencias) + 1; % +1 porque diff reduce la longitud por 1
-
     
-    indicesCambio = [1; indicesCambio]; % Incluir el primer punto si es diferente al segundo
-    
+    % Incluir el primer punto si es diferente al segundo
+    indicesCambio = [1; indicesCambio]; 
     
     % Incluir los índices de los valores justo antes de cada cambio
     indicesAnteriores = indicesCambio - 1; % Calcular los índices previos
@@ -581,22 +708,19 @@ end
     % Combinar y ordenar los índices de los cambios y sus antecesores
     indicesDeCambio = unique([indicesCambio; indicesAnteriores]); % Combinar y eliminar duplicados
 
-
-    
-
-
-
-
-
-    porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
+    % Inicializar el vector de porcentaje interpolado
     porcentajeInterpolado = porcentajes;  % Copia inicial de porcentajes
     
-    umbral = 0.09; % Umbral para cambio en la pendiente
-        puntoInicial = 1;
+    % Umbral para cambio en la pendiente
+    umbral = 0.09; 
 
-    i = 1; % Iniciar con el primer índice de cambio
-    while i < length(indicesDeCambio) - 1
-        pendienteInicial = (porcentajes(indicesDeCambio(i)) - porcentajes(indicesDeCambio(i+1))) / (indicesDeCambio(i+1) - indicesDeCambio(i));  % Inicializar pendiente como infinito para la primera comparación
+    % Iniciar con el primer índice de cambio
+    i = 1; 
+    puntoInicial = indicesDeCambio(i);
+
+    % Bucle principal para la interpolación
+    while i < length(indicesDeCambio)
+        pendienteInicial = (porcentajes(indicesDeCambio(i+1)) - porcentajes(indicesDeCambio(i))) / (indicesDeCambio(i+1) - indicesDeCambio(i));  % Pendiente inicial
         
         % Buscar el siguiente índice donde la pendiente cambia significativamente
         for j = i + 1:length(indicesDeCambio)
@@ -604,33 +728,159 @@ end
             pendienteActual = (porcentajes(puntoFinal) - porcentajes(puntoInicial)) / (puntoFinal - puntoInicial);
 
             % Verificar si la pendiente actual es significativamente diferente
-            if abs(pendienteActual - pendienteInicial) > umbral && ~isinf(pendienteInicial)
+            if abs(pendienteActual - pendienteInicial) > umbral
                 % Interpolar desde el último punto de cambio hasta el actual
                 porcentajeInterpolado(puntoInicial:puntoFinal) = linspace(porcentajes(puntoInicial), porcentajes(puntoFinal), puntoFinal - puntoInicial + 1);
                 
                 % Actualizar i al índice del último punto de cambio y romper el bucle interno
-                i = puntoFinal;
+                i = j;
                 puntoInicial = puntoFinal;
                 break;
             end
 
-            % Actualizar pendienteInicial después del primer ciclo
-            if isinf(pendienteInicial)
-                pendienteInicial = pendienteActual;
+            % Si estamos en el último índice, terminar la interpolación
+            if j == length(indicesDeCambio)
+                porcentajeInterpolado(puntoInicial:end) = linspace(porcentajes(puntoInicial), porcentajes(end), length(porcentajes) - puntoInicial + 1);
+                i = length(indicesDeCambio);
             end
         end
     end
-   
+end
+
+     %%
+
+     function consumoPorKm = calcularConsumoEnergiaPorKm(datosFiltrados)
+    % Capacidad de la batería en kWh
+    capacidadBateria = 280;
+
+    % Asegurarse de que 'nivelRestanteEnergia' y 'kilometrosOdometro' existen en datosFiltrados
+    if ~ismember('nivelRestanteEnergia', datosFiltrados.Properties.VariableNames)
+        error('La columna nivelRestanteEnergia no existe en datosFiltrados.');
+    end
+    if ~ismember('kilometrosOdometro', datosFiltrados.Properties.VariableNames)
+        error('La columna kilometrosOdometro no existe en datosFiltrados.');
+    end
+
+    % Obtener los porcentajes de la columna 'nivelRestanteEnergia'
+    porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
+    % Obtener los kilómetros de la columna 'kilometrosOdometro'
+    kilometros = datosFiltrados{:, 'kilometrosOdometro'};
+
+    % Interpolar los porcentajes de batería
+    porcentajeInterpolado = Calculos.interpolarPorcentajeBateria3(datosFiltrados);
+
+    % Calcular la diferencia en porcentaje de la batería y distancia recorrida
+    deltaPorcentaje = porcentajeInterpolado(1:end-1) - porcentajeInterpolado(2:end);
+    deltaKilometros = kilometros(2:end) - kilometros(1:end-1);
+
+    % Calcular el consumo de energía en kWh para cada segmento
+    consumoEnergia = (deltaPorcentaje / 100) * capacidadBateria;
+
+    % Calcular el consumo de energía por km
+    consumoPorKm = consumoEnergia ./ deltaKilometros;
+
+    % Manejar casos donde deltaKilometros es cero para evitar división por cero
+    consumoPorKm(deltaKilometros == 0) = NaN;
+end
 
 
+%%
 
 
+function datosBuses = calcularPorcentajeBateriaRutas(datosBuses)
+    % Esta función calcula el porcentaje de batería para las rutas de cada bus en cada fecha
+    % basándose en los tiempos de ruta y los datos del sensor.
+    
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).P60;
+                
+                % Calcular el porcentaje de batería para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    datosIda = datosSensor(datosSensor{:, 7} >= inicioIda & datosSensor{:, 7} <= finIda, :);
+                    porcentajeBateriaIda = Calculos.interpolarPorcentajeBateria3(datosIda);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    datosVuelta = datosSensor(datosSensor{:, 7} >= inicioVuelta & datosSensor{:, 7} <= finVuelta, :);
+                    porcentajeBateriaVuelta = Calculos.interpolarPorcentajeBateria3(datosVuelta);
+                    
+                    % Almacenar los datos calculados de porcentaje de batería en la estructura de datos
+                    datosBuses.(fecha).(bus).porcentajeBateriaRuta{k, 1} = porcentajeBateriaIda;
+                    datosBuses.(fecha).(bus).porcentajeBateriaRuta{k, 2} = porcentajeBateriaVuelta;
+                end
+            end
+        end
+    end
 
+    return;
+end
+
+%%
+
+function datosBuses = calcularConsumoEnergiaRutas(datosBuses)
+    % Esta función calcula el consumo de energía por km para las rutas de cada bus en cada fecha
+    % basándose en los tiempos de ruta y los datos del sensor.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'P60')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).P60;
+                
+                % Calcular el consumo de energía para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    datosIda = datosSensor(datosSensor{:, 7} >= inicioIda & datosSensor{:, 7} <= finIda, :);
+                    consumoEnergiaIda = Calculos.calcularConsumoEnergiaPorKm(datosIda);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    datosVuelta = datosSensor(datosSensor{:, 7} >= inicioVuelta & datosSensor{:, 7} <= finVuelta, :);
+                    consumoEnergiaVuelta = Calculos.calcularConsumoEnergiaPorKm(datosVuelta);
+                    
+                    % Almacenar los datos calculados de consumo de energía en la estructura de datos
+                    datosBuses.(fecha).(bus).consumoEnergiaRuta{k, 1} = consumoEnergiaIda;
+                    datosBuses.(fecha).(bus).consumoEnergiaRuta{k, 2} = consumoEnergiaVuelta;
+                end
+            end
+        end
+    end
+
+    return;
 end
 
 
 
 %%
+
 
 function marcadores = Lcurvasida4020()% se asegura que todas las curvas de esta ruta correspondan
     datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-15\4020');
@@ -1360,6 +1610,112 @@ function datosBuses = extraerP60(datosBuses)
     return;
 end
 
+
+%%
+
+
+function datosBuses = calcularPicosAceleracionRutas(datosBuses)
+    % Esta función calcula los picos de aceleración para las rutas de cada bus en cada fecha
+    % basándose en los tiempos de ruta y los datos del sensor.
+    
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
+                
+                % Calcular los picos de aceleración para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    datosIda = datosSensor(datosSensor{:, 1} >= inicioIda & datosSensor{:, 1} <= finIda, :);
+                    aceleracionIda = Calculos.calcularAceleracionFiltrada(datosIda, 3);
+                    picosIda = Calculos.encontrarPicos(aceleracionIda);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    datosVuelta = datosSensor(datosSensor{:, 1} >= inicioVuelta & datosSensor{:, 1} <= finVuelta, :);
+                    aceleracionVuelta = Calculos.calcularAceleracionFiltrada(datosVuelta, 3);
+                    picosVuelta = Calculos.encontrarPicos(aceleracionVuelta);
+                    
+                    % Almacenar los datos de picos de aceleración en la estructura de datos
+                    datosBuses.(fecha).(bus).picosAceleracion{k, 1} = picosIda;
+                    datosBuses.(fecha).(bus).picosAceleracion{k, 2} = picosVuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+function picos = encontrarPicos(aceleracion)
+    % Esta función encuentra los picos en los datos de aceleración
+    % Utiliza la función findpeaks de MATLAB para identificar los picos.
+    
+    [picos, ~] = findpeaks(aceleracion);
+    
+    return;
+end
+
+
+
+%%
+
+function datosBuses = calcularAceleracionRutas(datosBuses)
+    % Esta función calcula la aceleración para las rutas de cada bus en cada fecha
+    % basándose en los tiempos de ruta y los datos del sensor.
+    
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
+                
+                % Calcular la aceleración para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    datosIda = datosSensor(datosSensor{:, 1} >= inicioIda & datosSensor{:, 1} <= finIda, :);
+                    aceleracionIda = Calculos.calcularAceleracionFiltrada(datosIda, 3);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    datosVuelta = datosSensor(datosSensor{:, 1} >= inicioVuelta & datosSensor{:, 1} <= finVuelta, :);
+                    aceleracionVuelta = Calculos.calcularAceleracionFiltrada(datosVuelta, 3);
+                    
+                    % Almacenar los datos calculados de aceleración en la estructura de datos
+                    datosBuses.(fecha).(bus).aceleracionRuta{k, 1} = aceleracionIda;
+                    datosBuses.(fecha).(bus).aceleracionRuta{k, 2} = aceleracionVuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
 
 
 

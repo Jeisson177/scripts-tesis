@@ -44,8 +44,7 @@ narray = 1;
  Ccurvas = Calculos.LcurvasVuelta4104();
 
 for i = 1:5
-
-    Na = nombres{i};
+    Na = nombres{i}; 
     data = datosBuses.(Na).bus_4104.datosSensor;
     tiempos=datosBuses.(Na).bus_4104.tiempoRuta;
     T = size(datosBuses.(Na).bus_4104.tiempoRuta);
@@ -57,14 +56,13 @@ end
 
 
 %%
-
 nombres = fieldnames(sim);
 narray = 1;
 for i=1:5
     Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
-    data=t.(Na).bus_4020.EV2;
-    tiempos=t.(Na).bus_4020.tiempoRuta;
-    Ti = size(t.(Na).bus_4020.tiempoRuta);
+    data=t.(Na).bus_4104.EV19;
+    tiempos=t.(Na).bus_4104.tiempoRuta;
+    Ti = size(t.(Na).bus_4104.tiempoRuta);
     for j=1:Ti(1)
         fechaInicio= tiempos{j, 1};
         fechaFin=tiempos{j, 3};
@@ -76,10 +74,13 @@ for i=1:5
                 fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
             end
         Filtrados =data(data.fechaHoraLecturaDato >= fechaInicio & data.fechaHoraLecturaDato <= fechaFin, :);%se filtran por fecha
-            Evento18=size(Filtrados);
+           Filtrados = Filtrados(Filtrados.codigoComportamientoAnomalo == '4', :);
+
+        Evento18=size(Filtrados);
             
             E(:,narray)=Evento18(1);
             
+%             E(:,narray)=sum(Filtrados.estadoAperturaCierrePuertas);
             
             narray=narray+1;
     end
@@ -89,9 +90,6 @@ end
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos', datosBuses);
 
-%%
-sim = ImportarDatos.importarTodosLosDatos('Datos');
-
 
 %% Calculo de todos los tiempos para cada ruta
 
@@ -100,6 +98,19 @@ datosBuses = Calculos.calcularTiemposRutas(datosBuses);
 %% calcula la velocidad
 
 datosBuses = Calculos.calcularVelocidadRutas(datosBuses);
+
+%%
+datosBuses = Calculos.calcularAceleracionRutas(datosBuses);
+
+%%
+datosBuses = Calculos.calcularPorcentajeBateriaRutas(datosBuses);
+
+%%
+datosBuses = Calculos.calcularPorcentajeBateriaRutas(datosBuses);
+
+%%
+
+datosBuses = Calculos.calcularPicosAceleracionRutas(datosBuses);
 
 %%
 
@@ -124,18 +135,61 @@ generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.
 
 %%
 
-%ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.horaPico, 'Promedio velocidad', 1, 'ascend' );
-%ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Promedio velocidad")')')];
+ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.General, 'Promedio velocidad', 1, 'ascend' );
+%ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Picos Aceleracion")')')];
 
 % ordenValler = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
 
 aa= (cell2mat(ordenpico.("Promedio velocidad")')');
 boxplot(aa');
+xlabel('Grupo');
+ylabel('Promedio velocidad');
+title('Boxplot de Promedio velocidad por Ruta');
+%%
+ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.vuelta.General, 'Picos Aceleracion', 1, 'ascend' );
+% Extraer los picos de aceleración
+picosAceleracion = ordenpico.("Picos Aceleracion");
+
+% Concatenar todos los datos en un solo vector
+concatenatedData = cell2mat(picosAceleracion);
+
+% Crear un vector de agrupación
+group = cellfun(@(x, idx) repmat(idx, size(x)), picosAceleracion, num2cell(1:numel(picosAceleracion))', 'UniformOutput', false);
+group = cell2mat(group);
+
+% Hacer el boxplot
+figure;
+boxplot(concatenatedData, group);
+xlabel('Grupo');
+ylabel('Picos de Aceleración');
+title('Boxplot de Picos de Aceleración por Ruta');
+
 
 
 %%
 
-procesarRutas(Buses);
+% Datos de prueba
+datosPrueba = struct('latitud', [4.65, 4.66, 4.67], 'longitud', [-74.05, -74.06, -74.07], 'velocidad', [20, 30, 25]);
+
+% Calcular distancia y velocidad
+distanciaPrueba = Calculos.CalcularDistancia(datosPrueba);
+velocidadPrueba = Calculos.calcularVelocidadKH(datosPrueba);
+
+% Mostrar las longitudes
+disp('--- Verificación de Datos de Prueba ---');
+disp(['Longitud de distanciaPrueba: ', num2str(length(distanciaPrueba))]);
+disp(['Longitud de velocidadPrueba: ', num2str(length(velocidadPrueba))]);
+
+% Llamar a la función con datos de prueba
+puntosSegmentosPrueba = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
+promediosPrueba = calcularPromedioVelocidadPorSegmentos(datosPrueba, puntosSegmentosPrueba);
+
+% Verificar la longitud de los promedios
+disp('Longitud de promediosPrueba:');
+disp(length(promediosPrueba));
+disp('Valores de promediosPrueba:');
+disp(promediosPrueba);
+
 
 %%
 
@@ -541,10 +595,10 @@ tituloGrafica = [Etiqueta sprintf(' Ruta -celular y sts ') General];
 % Grafico sts velocidad trama
 %Graficas.graficarVelocidadSts(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'b-', 'P20');
 
-%tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
+tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
 %Grafica aceleracion celular
 %graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'sin filtrar');
-%Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', graficaAce);
+Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada');
 
 
 %tituloGrafica = [Etiqueta sprintf(' Aceleracion STS coordenadas ') General];
