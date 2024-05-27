@@ -594,6 +594,7 @@ end
 
                 tabla1 = [...
                     datosBuses.(fecha).(bus).PromediosIda, ...
+                    datosBuses.(fecha).(bus).PromediosConsumoIda...
                     datosBuses.(fecha).(bus).velocidadRuta(:,1),...
                     datosBuses.(fecha).(bus).tiempoRuta(:, [1, 2])...
                     datosBuses.(fecha).(bus).codigoConductor,...
@@ -602,13 +603,14 @@ end
                     ];
 
                 tabla1.Properties.VariableNames{1} = 'Promedio velocidad';
-                tabla1.Properties.VariableNames{2} = 'Velocidad';
-                tabla1.Properties.VariableNames{3} = 'Hora Inicio';
-                tabla1.Properties.VariableNames{4} = 'Hora Fin';
-                tabla1.Properties.VariableNames{5} = 'Codigo conductor';
-                tabla1.Properties.VariableNames{6} = 'Sexo';
-                tabla1.Properties.VariableNames{7} = 'Aceleracion';
-                tabla1.Properties.VariableNames{8} = 'Picos Aceleracion';
+                tabla1.Properties.VariableNames{2} = 'Promedio consumo';
+                tabla1.Properties.VariableNames{3} = 'Velocidad';
+                tabla1.Properties.VariableNames{4} = 'Hora Inicio';
+                tabla1.Properties.VariableNames{5} = 'Hora Fin';
+                tabla1.Properties.VariableNames{6} = 'Codigo conductor';
+                tabla1.Properties.VariableNames{7} = 'Sexo';
+                tabla1.Properties.VariableNames{8} = 'Aceleracion';
+                tabla1.Properties.VariableNames{9} = 'Picos Aceleracion';
                 
                 % Asigna este cell array a la estructura
                 datosReorganizados.(bus).ida.(fecha) = tabla1;
@@ -687,7 +689,8 @@ end
 
 
                 tabla2 = [...
-                    datosBuses.(fecha).(bus).PromediosIda, ...
+                    datosBuses.(fecha).(bus).PromediosVuelta, ...
+                    datosBuses.(fecha).(bus).PromediosConsumoVuelta, ...
                     datosBuses.(fecha).(bus).velocidadRuta(:,2),...
                     datosBuses.(fecha).(bus).tiempoRuta(:, [2, 3])...
                     datosBuses.(fecha).(bus).codigoConductor,...
@@ -698,13 +701,14 @@ end
                 datosBuses.(fecha).(bus).aceleracionRuta(:,1)
 
                 tabla2.Properties.VariableNames{1} = 'Promedio velocidad';
-                tabla2.Properties.VariableNames{2} = 'Velocidad';
-                tabla2.Properties.VariableNames{3} = 'Hora Inicio';
-                tabla2.Properties.VariableNames{4} = 'Hora Fin';
-                tabla2.Properties.VariableNames{5} = 'Codigo conductor';
-                tabla2.Properties.VariableNames{6} = 'Sexo';
-                tabla2.Properties.VariableNames{7} = 'Aceleracion';
-                tabla2.Properties.VariableNames{8} = 'Picos Aceleracion';
+                tabla2.Properties.VariableNames{2} = 'Promedio consumo';
+                tabla2.Properties.VariableNames{3} = 'Velocidad';
+                tabla2.Properties.VariableNames{4} = 'Hora Inicio';
+                tabla2.Properties.VariableNames{5} = 'Hora Fin';
+                tabla2.Properties.VariableNames{6} = 'Codigo conductor';
+                tabla2.Properties.VariableNames{7} = 'Sexo';
+                tabla2.Properties.VariableNames{8} = 'Aceleracion';
+                tabla2.Properties.VariableNames{9} = 'Picos Aceleracion';
 
 
                 % Asigna este cell array a la estructura

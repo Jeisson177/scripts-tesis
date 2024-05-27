@@ -174,8 +174,32 @@ boxplot(aa');
 xlabel('Grupo');
 ylabel('Promedio velocidad');
 title('Boxplot de Promedio velocidad por Ruta');
+
 %%
-ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.vuelta.General, 'Picos Aceleracion', 1, 'ascend' );
+
+%%
+
+ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.horaValle, 'Promedio consumo', 1, 'ascend' );
+%ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Picos Aceleracion")')')];
+
+% ordenValler = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
+
+aa= (cell2mat(ordenpico.("Promedio consumo")')');
+
+figure;
+bar(aa);
+xlabel('Grupo');
+ylabel('Promedio consumo');
+title('Bar de Promedio consumo por Ruta');
+
+figure;
+boxplot(aa');
+xlabel('Grupo');
+ylabel('Promedio consumo');
+title('Boxplot de Promedio consumo por Ruta');
+
+%%
+ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.horaPico, 'Picos Aceleracion', 1, 'ascend' );
 % Extraer los picos de aceleración
 picosAceleracion = ordenpico.("Picos Aceleracion");
 
