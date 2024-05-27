@@ -592,7 +592,9 @@ end
                 end
 
 
-                tabla1 = [...
+try
+ 
+    tabla1 = [...
                     datosBuses.(fecha).(bus).PromediosIda, ...
                     datosBuses.(fecha).(bus).PromediosConsumoIda...
                     datosBuses.(fecha).(bus).velocidadRuta(:,1),...
@@ -611,6 +613,12 @@ end
                 tabla1.Properties.VariableNames{7} = 'Sexo';
                 tabla1.Properties.VariableNames{8} = 'Aceleracion';
                 tabla1.Properties.VariableNames{9} = 'Picos Aceleracion';
+
+catch ME
+    % Manejo de errores con un mensaje descriptivo
+    fprintf('Error al crear y configurar la tabla: %s\n', ME.message);
+end
+
                 
                 % Asigna este cell array a la estructura
                 datosReorganizados.(bus).ida.(fecha) = tabla1;
@@ -686,7 +694,7 @@ end
                     datosReorganizados.(bus).vuelta.horaLibre = [];  % Asegura que el campo horaValle esté inicializado.
                 end
 
-
+try
 
                 tabla2 = [...
                     datosBuses.(fecha).(bus).PromediosVuelta, ...
@@ -709,6 +717,11 @@ end
                 tabla2.Properties.VariableNames{7} = 'Sexo';
                 tabla2.Properties.VariableNames{8} = 'Aceleracion';
                 tabla2.Properties.VariableNames{9} = 'Picos Aceleracion';
+
+catch ME
+    % Manejo de errores con un mensaje descriptivo
+    fprintf('Error al crear y configurar la tabla: %s\n', ME.message);
+end
 
 
                 % Asigna este cell array a la estructura

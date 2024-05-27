@@ -1760,6 +1760,8 @@ function datosBuses = calcularAceleracionRutas(datosBuses)
             % Asegurarse de que existen datos de velocidad para el bus
             if isfield(datosBuses.(fecha).(bus), 'velocidadRuta')
                 velocidadRuta = datosBuses.(fecha).(bus).velocidadRuta;
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
                 
                 % Calcular la aceleración para cada trayecto de ida y vuelta en las rutas del día
                 for k = 1:size(velocidadRuta, 1)
@@ -1768,21 +1770,22 @@ function datosBuses = calcularAceleracionRutas(datosBuses)
                     velocidadVuelta = velocidadRuta{k, 2};
                     
                     % Tiempos de los datos de velocidad
-                    tiemposIda = velocidadIda(:, 1);
-                    tiemposVuelta = velocidadVuelta(:, 1);
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
 
+                    datosIda = datosSensor(datosSensor{:, 1} >= inicioIda & datosSensor{:, 1} <= finIda, :);
                     
                     % Calcular aceleración de ida
-                    aceleracionIda = diff(velocidadIda) ./ diff(tiemposIda);
-                    tiemposAcelIda = tiemposIda(1:end-1) + diff(tiemposIda)/2; % Tiempo medio entre mediciones
+                    diffv = diff(velocidadIda);
+                    difft = diff(datosIda(1:end-1, 1));
+                    aceleracionIda =  diffv ./ difft;
                     
                     % Calcular aceleración de vuelta
                     aceleracionVuelta = diff(velocidadVuelta) ./ diff(tiemposVuelta);
-                    tiemposAcelVuelta = tiemposVuelta(1:end-1) + diff(tiemposVuelta)/2; % Tiempo medio entre mediciones
                     
                     % Almacenar los datos calculados de aceleración en la estructura de datos
-                    datosBuses.(fecha).(bus).aceleracionRuta{k, 1} = [tiemposAcelIda, aceleracionIda];
-                    datosBuses.(fecha).(bus).aceleracionRuta{k, 2} = [tiemposAcelVuelta, aceleracionVuelta];
+                    datosBuses.(fecha).(bus).aceleracionRuta{k, 1} =  aceleracionIda;
+                    datosBuses.(fecha).(bus).aceleracionRuta{k, 2} =  aceleracionVuelta;
                 end
             end
         end

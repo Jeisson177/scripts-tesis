@@ -116,7 +116,7 @@ datosBuses = Calculos.calcularVelocidadRutas(datosBuses);
 datosBuses = Calculos.calcularAceleracionRutas(datosBuses);
 
 %%
-datosBuses = Calculos.calcularAceleracionRutas(datosBuses);
+datosBuses = Calculos.calcularAceleracionRutas2(datosBuses);
 
 %%
 
