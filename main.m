@@ -112,12 +112,30 @@ datosBuses = Calculos.calcularTiemposRutas(datosBuses);
 datosBuses = Calculos.calcularVelocidadRutas(datosBuses);
 
 %%
+datosBuses = Calculos.calcularAceleracionRutas(datosBuses);
+
+%%
+
+datosBuses = Calculos.calcularPorcentajeBateriaRutas(datosBuses);
+
+%%
+datosBuses = Calculos.calcularConsumoEnergiaRutas(datosBuses);
+
+%%
+
+datosBuses = Calculos.calcularPicosAceleracionRutas(datosBuses);
+
+%%
 
 datosBuses = Calculos.extraerP60(datosBuses);
 
 %% Calcula los promedios por segmentos
 
 datosBuses = Calculos.calcularPromedioVelocidadRutas(datosBuses);
+
+%%
+
+datosBuses = Calculos.calcularPromedioConsumoRutas(datosBuses);
 
 %% Organiza la estructura por bus y ruta
 
@@ -134,13 +152,43 @@ generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.
 
 %%
 
-ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
-ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Promedio velocidad")')')];
+ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
+%ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Picos Aceleracion")')')];
 
 % ordenValler = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
 
 aa= (cell2mat(ordenpico.("Promedio velocidad")')');
+
+figure;
+bar(aa);
+xlabel('Grupo');
+ylabel('Promedio velocidad');
+title('Boxplot de Promedio velocidad por Ruta');
+
+figure;
 boxplot(aa');
+xlabel('Grupo');
+ylabel('Promedio velocidad');
+title('Boxplot de Promedio velocidad por Ruta');
+%%
+ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.vuelta.General, 'Picos Aceleracion', 1, 'ascend' );
+% Extraer los picos de aceleración
+picosAceleracion = ordenpico.("Picos Aceleracion");
+
+% Concatenar todos los datos en un solo vector
+concatenatedData = cell2mat(picosAceleracion);
+
+% Crear un vector de agrupación
+group = cellfun(@(x, idx) repmat(idx, size(x)), picosAceleracion, num2cell(1:numel(picosAceleracion))', 'UniformOutput', false);
+group = cell2mat(group);
+
+% Hacer el boxplot
+figure;
+boxplot(concatenatedData, group);
+xlabel('Grupo');
+ylabel('Picos de Aceleración');
+title('Boxplot de Picos de Aceleración por Ruta');
+
 
 
 %%
@@ -593,10 +641,10 @@ tituloGrafica = [Etiqueta sprintf(' Ruta -celular y sts ') General];
 % Grafico sts velocidad trama
 %Graficas.graficarVelocidadSts(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'b-', 'P20');
 
-%tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
+tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
 %Grafica aceleracion celular
 %graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'sin filtrar');
-%Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', graficaAce);
+Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada');
 
 
 %tituloGrafica = [Etiqueta sprintf(' Aceleracion STS coordenadas ') General];
@@ -630,7 +678,7 @@ tituloGrafica = [Etiqueta sprintf(' Riesgo curvatura ') General];
 
 tituloGrafica = [Etiqueta sprintf(' Distancia vs velocidad ') General];
 % Grafica de distancia vs velocidad
-%Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal, tituloGrafica);
+Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal, tituloGrafica);
 
 dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaInicio, fechaFinal);
 
