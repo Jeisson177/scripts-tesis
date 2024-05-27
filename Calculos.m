@@ -1741,6 +1741,55 @@ function datosBuses = calcularVelocidadRutas(datosBuses)
 
 end
 
+%%
+
+function datosBuses = calcularAceleracionRutas(datosBuses)
+    % Esta función calcula la aceleración para las rutas de cada bus en cada fecha
+    % basándose en los datos de velocidad ya calculados.
+    
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de velocidad para el bus
+            if isfield(datosBuses.(fecha).(bus), 'velocidadRuta')
+                velocidadRuta = datosBuses.(fecha).(bus).velocidadRuta;
+                
+                % Calcular la aceleración para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(velocidadRuta, 1)
+                    % Datos de velocidad de ida y de vuelta
+                    velocidadIda = velocidadRuta{k, 1};
+                    velocidadVuelta = velocidadRuta{k, 2};
+                    
+                    % Tiempos de los datos de velocidad
+                    tiemposIda = velocidadIda(:, 1);
+                    tiemposVuelta = velocidadVuelta(:, 1);
+
+                    
+                    % Calcular aceleración de ida
+                    aceleracionIda = diff(velocidadIda) ./ diff(tiemposIda);
+                    tiemposAcelIda = tiemposIda(1:end-1) + diff(tiemposIda)/2; % Tiempo medio entre mediciones
+                    
+                    % Calcular aceleración de vuelta
+                    aceleracionVuelta = diff(velocidadVuelta) ./ diff(tiemposVuelta);
+                    tiemposAcelVuelta = tiemposVuelta(1:end-1) + diff(tiemposVuelta)/2; % Tiempo medio entre mediciones
+                    
+                    % Almacenar los datos calculados de aceleración en la estructura de datos
+                    datosBuses.(fecha).(bus).aceleracionRuta{k, 1} = [tiemposAcelIda, aceleracionIda];
+                    datosBuses.(fecha).(bus).aceleracionRuta{k, 2} = [tiemposAcelVuelta, aceleracionVuelta];
+                end
+            end
+        end
+    end
+
+    return;
+end
 
 %%
 
@@ -1814,14 +1863,14 @@ function datosBuses = calcularPicosAceleracionRutas(datosBuses)
                     inicioIda = tiempoRuta{k, 1};
                     finIda = tiempoRuta{k, 2};
                     datosIda = datosSensor(datosSensor{:, 1} >= inicioIda & datosSensor{:, 1} <= finIda, :);
-                    aceleracionIda = Calculos.calcularAceleracionFiltrada(datosIda, 3);
+                    aceleracionIda = datosBuses.(fecha).(bus).aceleracionRuta{k, 1};
                     picosIda = Calculos.encontrarPicos(aceleracionIda);
                     
                     % Trayecto de vuelta
                     inicioVuelta = tiempoRuta{k, 2};
                     finVuelta = tiempoRuta{k, 3};
                     datosVuelta = datosSensor(datosSensor{:, 1} >= inicioVuelta & datosSensor{:, 1} <= finVuelta, :);
-                    aceleracionVuelta = Calculos.calcularAceleracionFiltrada(datosVuelta, 3);
+                    aceleracionVuelta = datosBuses.(fecha).(bus).aceleracionRuta{k, 2};
                     picosVuelta = Calculos.encontrarPicos(aceleracionVuelta);
                     
                     % Almacenar los datos de picos de aceleración en la estructura de datos
@@ -1836,19 +1885,33 @@ function datosBuses = calcularPicosAceleracionRutas(datosBuses)
 end
 
 function picos = encontrarPicos(aceleracion)
-    % Esta función encuentra los picos en los datos de aceleración
-    % Utiliza la función findpeaks de MATLAB para identificar los picos.
+    % Esta función encuentra los picos en los datos de aceleración, tanto positivos como negativos
+    % Utiliza la función findpeaks de MATLAB para identificar los picos y valles.
     
-    [picos, ~] = findpeaks(aceleracion);
+    % Asegurarse de que la aceleración sea un vector
+    if ~isvector(aceleracion)
+        aceleracion = aceleracion(:);  % Convertir a vector si no lo es
+    end
+    
+    % Encontrar picos positivos (aceleración hacia arriba)
+    [picosPositivos, ~] = findpeaks(aceleracion);
+    
+    % Encontrar picos negativos (aceleración hacia abajo) invirtiendo el signo de la aceleración
+    [picosNegativos, ~] = findpeaks(-aceleracion);
+    picosNegativos = -picosNegativos;  % Revertir el signo para obtener los valores originales de los valles como picos negativos
+    
+    % Combinar los picos positivos y negativos en un solo array
+    picos = [picosPositivos; picosNegativos];
     
     return;
 end
 
 
 
+
 %%
 
-function datosBuses = calcularAceleracionRutas(datosBuses)
+function datosBuses = calcularAceleracionRutas2(datosBuses)
     % Esta función calcula la aceleración para las rutas de cada bus en cada fecha
     % basándose en los tiempos de ruta y los datos del sensor.
     
