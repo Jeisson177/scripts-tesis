@@ -17,7 +17,7 @@ Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %% importar solo un dato
-Sensor=ImportarDatos.Sensor('Datos\2024-04-18\4104');
+Sensor=ImportarDatos.Sensor('Datos\2024-04-22\4104');
 datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
 tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
 T=size(tiempoR);
@@ -37,32 +37,31 @@ end
 %%
 nombres = fieldnames(datosBuses);
 narray = 1;
-
-%Ccurvas = Calculos.Lcurvasida4020();
+Ccurvas = Calculos.Lcurvasida4020();
 %Ccurvas = Calculos.LcurvasVuelta4020();
 %Ccurvas = Calculos.Lcurvasida4104();
- Ccurvas = Calculos.LcurvasVuelta4104();
+% Ccurvas = Calculos.LcurvasVuelta4104();
 
 for i = 1:5
     Na = nombres{i}; 
-    data = datosBuses.(Na).bus_4104.datosSensor;
-    tiempos=datosBuses.(Na).bus_4104.tiempoRuta;
-    T = size(datosBuses.(Na).bus_4104.tiempoRuta);
+    data = datosBuses.(Na).bus_4020.datosSensor;
+    tiempos=datosBuses.(Na).bus_4020.tiempoRuta;
+    T = size(datosBuses.(Na).bus_4020.tiempoRuta);
     for j = 1:T(1)
-        array4(:, narray) = Calculos.riesgoCurva2(data, tiempos{j, 2}, tiempos{j, 3}, Ccurvas);
+        array3(:, narray) = Calculos.riesgoCurva2(data, tiempos{j, 1}, tiempos{j, 2}, Ccurvas);
         narray = narray + 1;
     end
 end
 
 
 %%
-nombres = fieldnames(sim);
+nombres = fieldnames(datosBuses);
 narray = 1;
 for i=1:5
     Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
-    data=t.(Na).bus_4104.EV19;
-    tiempos=t.(Na).bus_4104.tiempoRuta;
-    Ti = size(t.(Na).bus_4104.tiempoRuta);
+    data=datosBuses.(Na).bus_4104.EV19;
+    tiempos=datosBuses.(Na).bus_4104.tiempoRuta;
+    Ti = size(datosBuses.(Na).bus_4104.tiempoRuta);
     for j=1:Ti(1)
         fechaInicio= tiempos{j, 1};
         fechaFin=tiempos{j, 3};
@@ -74,11 +73,24 @@ for i=1:5
                 fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
             end
         Filtrados =data(data.fechaHoraLecturaDato >= fechaInicio & data.fechaHoraLecturaDato <= fechaFin, :);%se filtran por fecha
-           Filtrados = Filtrados(Filtrados.codigoComportamientoAnomalo == '4', :);
+        F1 = Filtrados(Filtrados.codigoComportamientoAnomalo == '1', :);
+F2 = Filtrados(Filtrados.codigoComportamientoAnomalo == '2', :);
+F3 = Filtrados(Filtrados.codigoComportamientoAnomalo == '3', :);
+F4 = Filtrados(Filtrados.codigoComportamientoAnomalo == '4', :);
 
-        Evento18=size(Filtrados);
+        Evento18=size(F1);
             
-            E(:,narray)=Evento18(1);
+            E1(1,narray)=Evento18(1);
+            Evento18=size(F2);
+            
+            E2(1,narray)=Evento18(1);
+            
+            Evento18=size(F3);
+            
+            E3(1,narray)=Evento18(1);
+            Evento18=size(F4);
+            
+            E4(1,narray)=Evento18(1);
             
 %             E(:,narray)=sum(Filtrados.estadoAperturaCierrePuertas);
             
@@ -328,11 +340,32 @@ datosEventos = ImportarDatos.Evento19();
 
 
 %% Graficar ruta
-HoraInicio = '2024-04-16 3:31:23.434';
-HoraFinal  = '2024-04-16 4:34:00.434';
+datosSensor = ImportarDatos.Sensor("Datos\2024-04-23\4020");% Importar los datos del telefono
+datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);%Importar coordenadas y stampas de tiempo del telefono
 
-mis = Map.Ruta(datosCordenadasSensor, HoraInicio, HoraFinal, 'b-')
-mis = Map.Ruta(datosCordenadasSensor, HoraFinal, '2024-04-16 6:20:45.434','r-', mis)
+HoraInicio = '2024-04-23 4:47:23.434';
+HoraFinal  = '2024-04-23 6sae:40:00.434';
+
+%mis = Map.Ruta(datosCordenadasSensor, HoraInicio, HoraFinal, 'b-',"titulo","ruta");
+a=Calculos.riesgoCurva(datosCordenadasSensor, HoraInicio, HoraFinal);
+%mis = Map.Ruta(datosCordenadasSensor, HoraFinal, '2024-04-22 6:20:45.434','r-', mis)
+
+%%
+
+Pcurvas.s4020_2.ida = m;
+%%
+% marcador=Pcurvas.s4020_1.ida{1,1};
+% marcador2=Pcurvas.s4020_1.ida{1,2};
+m=Calculos.LcurvasVuelta4020s2();
+marcador=m{1,1};
+marcador2=m{1,2};
+HoraInicio = '2024-04-23 4:25:23.434';
+HoraFinal  = '2024-04-23 4:47:00.434';
+mapita=Map.Curvatura(datosCordenadasSensor, HoraInicio, HoraFinal,'titulo');
+
+geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
+hold on
+geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
 
 
 %%
