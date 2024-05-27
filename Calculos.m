@@ -1481,16 +1481,20 @@ end
         
         %%
         
-        
         function datosBuses = calcularTiemposRutas(datosBuses)
     % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados
     % y almacena los resultados directamente en la estructura de entrada datosBuses.
     
-    Ida4020 = [4.593216, -74.178910];
-    Vuelta4020 = [4.6096941, -74.0738544];
-    
-    Ida4104 = [4.587917000000000, -74.149976900000000];
-    Vuelta4104 = [4.562243400000000, -74.083503800000000];
+    % Definir las rutas con sus coordenadas de ida y vuelta
+    rutas = struct();
+    rutas.Ruta4020.Ida = [4.593216, -74.178910];
+    rutas.Ruta4020.Vuelta = [4.6096941, -74.0738544];
+    rutas.Ruta4104.Ida = [4.587917000000000, -74.149976900000000];
+    rutas.Ruta4104.Vuelta = [4.562243400000000, -74.083503800000000];
+    rutas.Ruta4104S2.Ida = [4.587954800000000, -74.172482000000000];
+    rutas.Ruta4104S2.Vuelta = [4.652558600000000, -74.061468400000000];
+    rutas.Ruta4020S2.Ida = [4.575836400000000, -74.168218100000000];
+    rutas.Ruta4020S2.Vuelta = [4.676501100000000, -74.141395100000000];
     
     % Fechas disponibles en los datos
     fechas = fieldnames(datosBuses);
@@ -1499,24 +1503,35 @@ end
     for i = 1:numel(fechas)
         fecha = fechas{i};
         
-        % Comprobar si los datos del bus 4104 están disponibles para esa fecha
-        if isfield(datosBuses.(fecha), 'bus_4104')
-            datos4104 = datosBuses.(fecha).bus_4104.datosSensor;
-            % Calcular y almacenar los tiempos de ruta directamente en la estructura datosBuses
-            datosBuses.(fecha).bus_4104.tiempoRuta = Calculos.Ruta(datos4104, Ida4104, Vuelta4104, 20);
-        end
-        
-        % Comprobar si los datos del bus 4020 están disponibles para esa fecha
-        if isfield(datosBuses.(fecha), 'bus_4020')
-            datos4020 = datosBuses.(fecha).bus_4020.datosSensor;
-            % Calcular y almacenar los tiempos de ruta directamente en la estructura datosBuses
-            datosBuses.(fecha).bus_4020.tiempoRuta = Calculos.Ruta(datos4020, Ida4020, Vuelta4020, 20);
+        % Buscar cada bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            datosSensor = datosBuses.(fecha).(bus).datosSensor;
+            
+            % Inicializar el campo tiempoRuta como una celda vacía
+            datosBuses.(fecha).(bus).tiempoRuta = {};
+            
+            % Iterar sobre cada ruta y calcular los tiempos de ruta
+            rutaNames = fieldnames(rutas);
+            for k = 1:numel(rutaNames)
+                ruta = rutaNames{k};
+                Ida = rutas.(ruta).Ida;
+                Vuelta = rutas.(ruta).Vuelta;
+                
+                % Calcular los tiempos de ruta y almacenar en una celda temporal
+                tiempoRutaTemp = Calculos.Ruta(datosSensor, Ida, Vuelta, 20);
+                
+                % Concatenar los resultados en el campo tiempoRuta
+                datosBuses.(fecha).(bus).tiempoRuta = [datosBuses.(fecha).(bus).tiempoRuta; tiempoRutaTemp];
+            end
         end
     end
     
     return;
 end
 
+      
 
 %%
 

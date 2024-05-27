@@ -88,10 +88,10 @@ end
 
 %% Importar todos los datos tomados por el movil
 
-datosBuses = ImportarDatos.importarTodosLosDatos('Datos', datosBuses);
+datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
 
 
-%% Calculo de todos los tiempos para cada ruta
+% Calculo de todos los tiempos para cada ruta
 
 datosBuses = Calculos.calcularTiemposRutas(datosBuses);
 
@@ -103,10 +103,11 @@ datosBuses = Calculos.calcularVelocidadRutas(datosBuses);
 datosBuses = Calculos.calcularAceleracionRutas(datosBuses);
 
 %%
+
 datosBuses = Calculos.calcularPorcentajeBateriaRutas(datosBuses);
 
 %%
-datosBuses = Calculos.calcularPorcentajeBateriaRutas(datosBuses);
+datosBuses = Calculos.calcularConsumoEnergiaRutas(datosBuses);
 
 %%
 
@@ -120,6 +121,10 @@ datosBuses = Calculos.extraerP60(datosBuses);
 
 datosBuses = Calculos.calcularPromedioVelocidadRutas(datosBuses);
 
+%%
+
+datosBuses = Calculos.calcularPromedioConsumoRutas(datosBuses);
+
 %% Organiza la estructura por bus y ruta
 
 Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
@@ -127,7 +132,7 @@ Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
 
 %%
 
-generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(1), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(1), '4020', 'ida');
+generarDatos(Buses.bus_4104.ida.f_2024_04_16.("Hora Inicio")(1), Buses.bus_4104.vuelta.f_2024_04_16.("Hora Fin")(1), '4104', 'ida');
 
 %%
 generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(2), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(2), '4020', 'ida');
@@ -135,12 +140,20 @@ generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.
 
 %%
 
-ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.General, 'Promedio velocidad', 1, 'ascend' );
+ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
 %ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Picos Aceleracion")')')];
 
 % ordenValler = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
 
 aa= (cell2mat(ordenpico.("Promedio velocidad")')');
+
+figure;
+bar(aa);
+xlabel('Grupo');
+ylabel('Promedio velocidad');
+title('Boxplot de Promedio velocidad por Ruta');
+
+figure;
 boxplot(aa');
 xlabel('Grupo');
 ylabel('Promedio velocidad');
@@ -302,7 +315,7 @@ tiemposViaje = Calculos.Ruta(datosCordenadasSensor, Ida4104, Vuelta4104, 20);
 
 %% Prueba para probar la generacion
 
-generarDatos('2024-04-16 3:31:23.434', '2024-04-16 4:34:00.434', '4104', 'Ida')
+generarDatos('2024-04-23 4:06:23.434', '2024-04-23 4:06:04.434', '4020', 'Ida')
 
 %%
 %Tramas de p20 recolectadas del bus
@@ -562,7 +575,7 @@ General = sprintf(' - Fecha: %s, Bus ID: %s, Hora: %s-%s', fechaArchivo, IDbus, 
 % Preparar el título con la palabra 'velocidad', la fecha, el ID del bus y las horas de inicio y final
 tituloGrafica = [Etiqueta sprintf(' Ruta -celular y sts ') General];
 % ruta celular
-% MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', tituloGrafica, 'Celular');
+MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', tituloGrafica, 'Celular');
 % ruta sts
 %Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', tituloGrafica, 'STS', MapaRuta);
 
@@ -632,7 +645,7 @@ tituloGrafica = [Etiqueta sprintf(' Riesgo curvatura ') General];
 
 tituloGrafica = [Etiqueta sprintf(' Distancia vs velocidad ') General];
 % Grafica de distancia vs velocidad
-%Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal, tituloGrafica);
+Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal, tituloGrafica);
 
 dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaInicio, fechaFinal);
 
@@ -642,14 +655,14 @@ dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaI
 
 
 %Grafica de distancia vs energia
-Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
+%Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
 
 % Grafica de aceleraciones histograma
 %Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 % Grafica tiempo vs energia
-Velocidad = Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
-Graficas.TiempovsEnergiaCorregida(datosP60, fechaInicio, fechaFinal, Velocidad);
+% Velocidad = Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+% Graficas.TiempovsEnergiaCorregida(datosP60, fechaInicio, fechaFinal, Velocidad);
 
 % Graficas ocupacion vs tiempo
 %Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);

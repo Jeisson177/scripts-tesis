@@ -91,7 +91,7 @@ end
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos', datosBuses);
 
 
-%% Calculo de todos los tiempos para cada ruta
+% Calculo de todos los tiempos para cada ruta
 
 datosBuses = Calculos.calcularTiemposRutas(datosBuses);
 
@@ -132,7 +132,7 @@ Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
 
 %%
 
-generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(1), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(1), '4020', 'ida');
+generarDatos(Buses.bus_4104.ida.f_2024_04_16.("Hora Inicio")(1), Buses.bus_4104.vuelta.f_2024_04_16.("Hora Fin")(1), '4104', 'ida');
 
 %%
 generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(2), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(2), '4020', 'ida');
@@ -315,7 +315,7 @@ tiemposViaje = Calculos.Ruta(datosCordenadasSensor, Ida4104, Vuelta4104, 20);
 
 %% Prueba para probar la generacion
 
-generarDatos('2024-04-16 3:31:23.434', '2024-04-16 4:34:00.434', '4104', 'Ida')
+generarDatos('2024-04-23 12:27:21.434', '2024-04-23 15:36:04.434', '4020', 'Ida')
 
 %%
 %Tramas de p20 recolectadas del bus
@@ -575,7 +575,7 @@ General = sprintf(' - Fecha: %s, Bus ID: %s, Hora: %s-%s', fechaArchivo, IDbus, 
 % Preparar el título con la palabra 'velocidad', la fecha, el ID del bus y las horas de inicio y final
 tituloGrafica = [Etiqueta sprintf(' Ruta -celular y sts ') General];
 % ruta celular
-% MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', tituloGrafica, 'Celular');
+MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', tituloGrafica, 'Celular');
 % ruta sts
 %Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', tituloGrafica, 'STS', MapaRuta);
 
@@ -655,14 +655,14 @@ dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaI
 
 
 %Grafica de distancia vs energia
-Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
+%Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
 
 % Grafica de aceleraciones histograma
 %Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 % Grafica tiempo vs energia
-Velocidad = Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
-Graficas.TiempovsEnergiaCorregida(datosP60, fechaInicio, fechaFinal, Velocidad);
+% Velocidad = Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+% Graficas.TiempovsEnergiaCorregida(datosP60, fechaInicio, fechaFinal, Velocidad);
 
 % Graficas ocupacion vs tiempo
 %Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
