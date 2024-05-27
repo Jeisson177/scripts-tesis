@@ -635,8 +635,8 @@ end
 function marcadores = Lcurvasida4020()% se asegura que todas las curvas de esta ruta correspondan
     datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-15\4020');
     datosCordenadasSensor=ImportarDatos.SensorCordenadas(datosCordenadasSensor);
-    fechaInicio='2024-04-15 3:31:23.434';
-    fechaFin='2024-04-15 4:34:00.434';
+    fechaInicio='2024-04-15 3:30:23.434';
+    fechaFin='2024-04-15 4:50:00.434';
     
     if ischar(fechaInicio) || isstring(fechaInicio)
        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
@@ -694,8 +694,8 @@ end
 function marcadores = LcurvasVuelta4020()% se asegura que todas las curvas de esta ruta correspondan
     datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-15\4020');
     datosCordenadasSensor=ImportarDatos.SensorCordenadas(datosCordenadasSensor);
-    fechaInicio='15-Apr-2024 04:49:24';
-    fechaFin='15-Apr-2024 06:00:46';
+    fechaInicio='15-Apr-2024 3:30:23.434';
+    fechaFin='15-Apr-2024 4:50:00.434';
     
 %     if ischar(fechaInicio) || isstring(fechaInicio)
 %        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
@@ -751,13 +751,173 @@ function marcadores = LcurvasVuelta4020()% se asegura que todas las curvas de es
             marcadores{:,2}=marcador2;
   
 end
+function marcadores=Lcurvasida4104s2()
+    datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-23\4104');
+    datosCordenadasSensor=ImportarDatos.SensorCordenadas(datosCordenadasSensor);
+    fechaInicio='23-Apr-2024 3:30:23.434';
+    fechaFin='23-Apr-2024 5:20:00.434';
+    
+    
+    datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
+            
+            radio=Calculos.calcularCurvatura(datosCordenadasSensor,68);
+            %velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            velocidad=Calculos.corregirVelocidadPendiente(datosCordenadasSensor,3);
+            curva=0;
+            Ncurva=1;
+            j=1;
+            % Calcula numero curvatura
+            for i = 1:length(radio)
+                
+                distancia2puntos=Calculos.geodist(datosCordenadasSensor.lat(i+1),datosCordenadasSensor.lon(i+1),datosCordenadasSensor.lat(i+2),datosCordenadasSensor.lon(i+2));
+                if i>=(length(radio)-4)
+                    d2=3;
+                    d3=3;
+                else
+                    d2=Calculos.geodist(datosCordenadasSensor.lat(i+2),datosCordenadasSensor.lon(i+2),datosCordenadasSensor.lat(i+3),datosCordenadasSensor.lon(i+3));
+                    d3=Calculos.geodist(datosCordenadasSensor.lat(i+3),datosCordenadasSensor.lon(i+3),datosCordenadasSensor.lat(i+4),datosCordenadasSensor.lon(i+4));
+                    r1=radio(i);
+                    r2=radio(i+1);
+                    r3=radio(i+2);
+                end
+                
+                
+                if (r1 >1 && r2 >1 && curva==0 && velocidad(i) >1.5 && distancia2puntos>2.5 && d2>2.5 && d3>2.5)%empieza curva
+                    marcador(Ncurva,1)=datosCordenadasSensor.lat(i);
+                    marcador(Ncurva,2)=datosCordenadasSensor.lon(i);
+                    curva = 1;
+                elseif (curva==1 && (r1 > 1 || r2 > 1 || r3 > 1))%la curva no ha terminado
+                    
+                    
+                elseif(r1 < 1 && curva==1)%termina curva
+                    marcador2(Ncurva,1)=datosCordenadasSensor.lat(i);
+                    marcador2(Ncurva,2)=datosCordenadasSensor.lon(i);
+                    Ncurva = Ncurva + 1;
+                    
+                    curva = 0;
+                end
+            end
+            
+          
+            cantidadN=1;
+            marcadores{:,1}=marcador;
+            marcadores{:,2}=marcador2;
+  
+end
+
+function marcadores=LcurvasVuelta4104s2()
+    datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-23\4104');
+    datosCordenadasSensor=ImportarDatos.SensorCordenadas(datosCordenadasSensor);
+    fechaInicio='23-Apr-2024 5:00:23.434';
+    fechaFin='23-Apr-2024 6:18:00.434';
+    
+    
+    datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
+            
+            radio=Calculos.calcularCurvatura(datosCordenadasSensor,68);
+            %velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            velocidad=Calculos.corregirVelocidadPendiente(datosCordenadasSensor,3);
+            curva=0;
+            Ncurva=1;
+            j=1;
+            % Calcula numero curvatura
+            for i = 1:length(radio)
+                
+                distancia2puntos=Calculos.geodist(datosCordenadasSensor.lat(i+1),datosCordenadasSensor.lon(i+1),datosCordenadasSensor.lat(i+2),datosCordenadasSensor.lon(i+2));
+                if i>=(length(radio)-4)
+                    d2=3;
+                    d3=3;
+                else
+                    d2=Calculos.geodist(datosCordenadasSensor.lat(i+2),datosCordenadasSensor.lon(i+2),datosCordenadasSensor.lat(i+3),datosCordenadasSensor.lon(i+3));
+                    d3=Calculos.geodist(datosCordenadasSensor.lat(i+3),datosCordenadasSensor.lon(i+3),datosCordenadasSensor.lat(i+4),datosCordenadasSensor.lon(i+4));
+                    r1=radio(i);
+                    r2=radio(i+1);
+                    r3=radio(i+2);
+                end
+                
+                
+                if (r1 >1 && r2 >1 && curva==0 && velocidad(i) >1.5 && distancia2puntos>2.5 && d2>2.5 && d3>2.5)%empieza curva
+                    marcador(Ncurva,1)=datosCordenadasSensor.lat(i);
+                    marcador(Ncurva,2)=datosCordenadasSensor.lon(i);
+                    curva = 1;
+                elseif (curva==1 && (r1 > 1 || r2 > 1 || r3 > 1))%la curva no ha terminado
+                    
+                    
+                elseif(r1 < 1 && curva==1)%termina curva
+                    marcador2(Ncurva,1)=datosCordenadasSensor.lat(i);
+                    marcador2(Ncurva,2)=datosCordenadasSensor.lon(i);
+                    Ncurva = Ncurva + 1;
+                    
+                    curva = 0;
+                end
+            end
+            
+          
+            cantidadN=1;
+            marcadores{:,1}=marcador;
+            marcadores{:,2}=marcador2;
+  
+end
+function marcadores=Lcurvasida4020s2()
+    datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-23\4020');
+    datosCordenadasSensor=ImportarDatos.SensorCordenadas(datosCordenadasSensor);
+    fechaInicio='23-Apr-2024  4:25:23.434';
+    fechaFin='23-Apr-2024 4:47:00.434';
+    
+    
+    datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
+            
+            radio=Calculos.calcularCurvatura(datosCordenadasSensor,75);
+            %velocidad=Calculos.calcularVelocidadKH(datosCordenadasSensor);
+            velocidad=Calculos.corregirVelocidadPendiente(datosCordenadasSensor,3);
+            curva=0;
+            Ncurva=1;
+            j=1;
+            % Calcula numero curvatura
+            for i = 1:length(radio)
+                
+                distancia2puntos=Calculos.geodist(datosCordenadasSensor.lat(i+1),datosCordenadasSensor.lon(i+1),datosCordenadasSensor.lat(i+2),datosCordenadasSensor.lon(i+2));
+                if i>=(length(radio)-4)
+                    d2=3;
+                    d3=3;
+                else
+                    d2=Calculos.geodist(datosCordenadasSensor.lat(i+2),datosCordenadasSensor.lon(i+2),datosCordenadasSensor.lat(i+3),datosCordenadasSensor.lon(i+3));
+                    d3=Calculos.geodist(datosCordenadasSensor.lat(i+3),datosCordenadasSensor.lon(i+3),datosCordenadasSensor.lat(i+4),datosCordenadasSensor.lon(i+4));
+                    r1=radio(i);
+                    r2=radio(i+1);
+                    r3=radio(i+2);
+                end
+                
+                
+                if (r1 >1 && r2 >1 && curva==0 && velocidad(i) >1.5 && distancia2puntos>2.5 && d2>2.5 && d3>2.5)%empieza curva
+                    marcador(Ncurva,1)=datosCordenadasSensor.lat(i);
+                    marcador(Ncurva,2)=datosCordenadasSensor.lon(i);
+                    curva = 1;
+                elseif (curva==1 && (r1 > 1 || r2 > 1 || r3 > 1))%la curva no ha terminado
+                    
+                    
+                elseif(r1 < 1 && curva==1)%termina curva
+                    marcador2(Ncurva,1)=datosCordenadasSensor.lat(i);
+                    marcador2(Ncurva,2)=datosCordenadasSensor.lon(i);
+                    Ncurva = Ncurva + 1;
+                    
+                    curva = 0;
+                end
+            end
+            
+          
+            cantidadN=1;
+            marcadores{:,1}=marcador;
+            marcadores{:,2}=marcador2;
+  
+end
 
 
 function marcadores = Lcurvasida4104()% se asegura que todas las curvas de esta ruta correspondan
     datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-16\4104');
     datosCordenadasSensor=ImportarDatos.SensorCordenadas(datosCordenadasSensor);
     fechaInicio='16-Apr-2024 03:31:19';
-    fechaFin='16-Apr-2024 04:32:56';
+    fechaFin='16-Apr-2024 04:40:56';
     
     
     datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
@@ -810,8 +970,8 @@ end
 function marcadores = LcurvasVuelta4104()% se asegura que todas las curvas de esta ruta correspondan
     datosCordenadasSensor=ImportarDatos.Sensor('Datos\2024-04-16\4104');
     datosCordenadasSensor=ImportarDatos.SensorCordenadas(datosCordenadasSensor);
-    fechaInicio='16-Apr-2024 04:32:56';
-    fechaFin='16-Apr-2024 05:19:24';
+    fechaInicio='16-Apr-2024 04:35:56';
+    fechaFin='16-Apr-2024 05:30:24';
     
     
     datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
