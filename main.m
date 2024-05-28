@@ -151,7 +151,8 @@ Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
 generarDatos(Buses.bus_4104.ida.f_2024_04_16.("Hora Inicio")(1), Buses.bus_4104.vuelta.f_2024_04_16.("Hora Fin")(1), '4104', 'ida');
 
 %%
-generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(2), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(2), '4020', 'ida');
+generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(2), Buses.bus_4020.ida.horaPico.("Hora Fin")(2), '4020', 'ida');
+%%
 generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(3), '4020', 'ida');
 
 %%
@@ -659,7 +660,7 @@ MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', titulo
 %tituloGrafica = [Etiqueta sprintf(' Velocidad filtrada y sin filtar ') General];
 % grafica Velocidad celular sin correccion y con correccion
 %graficaVelocidad = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-' , 'sin filtrar' );
-%Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada', graficaVelocidad);
+a = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada');
 
 %tituloGrafica = [Etiqueta sprintf(' Velocidad coordenadas p20 ') General];
 % Grafica sts velocidad
@@ -672,7 +673,7 @@ MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', titulo
 tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
 %Grafica aceleracion celular
 %graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'sin filtrar');
-Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada');
+Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', a);
 
 
 %tituloGrafica = [Etiqueta sprintf(' Aceleracion STS coordenadas ') General];

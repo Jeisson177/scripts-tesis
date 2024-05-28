@@ -1777,11 +1777,10 @@ function datosBuses = calcularAceleracionRutas(datosBuses)
                     
                     % Calcular aceleración de ida
                     diffv = diff(velocidadIda);
-                    difft = diff(datosIda(1:end-1, 1));
-                    aceleracionIda =  diffv ./ difft;
+                    aceleracionIda =  diffv;
                     
                     % Calcular aceleración de vuelta
-                    aceleracionVuelta = diff(velocidadVuelta) ./ diff(tiemposVuelta);
+                    aceleracionVuelta = diff(velocidadVuelta);
                     
                     % Almacenar los datos calculados de aceleración en la estructura de datos
                     datosBuses.(fecha).(bus).aceleracionRuta{k, 1} =  aceleracionIda;
