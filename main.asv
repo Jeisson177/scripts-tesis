@@ -100,7 +100,7 @@ end
 
 %% Importar todos los datos tomados por el movil
 
-datosBuses = ImportarDatos.importarTodosLosDatos('Datos', datosBuses);
+datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
 
 
 % Calculo de todos los tiempos para cada ruta
@@ -145,13 +145,18 @@ datosBuses = Calculos.calcularPromedioConsumoRutas(datosBuses);
 
 Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
 
+%%
+
+plot(Buses.bus_4020.ida.f_2024_04_16.,datosBuses.f_2024_04_16.bus_4020.segmentoP60{1,1}.velocidadVehiculo)
+
 
 %%
 
-generarDatos(Buses.bus_4104.ida.f_2024_04_16.("Hora Inicio")(1), Buses.bus_4104.vuelta.f_2024_04_16.("Hora Fin")(1), '4104', 'ida');
+generarDatos(Buses.bus_4020.ida.f_2024_04_16.("Hora Inicio")(1), Buses.bus_4020.ida.f_2024_04_16.("Hora Fin")(1), '4104', 'ida');
 
 %%
-generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(2), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(2), '4020', 'ida');
+generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(2), Buses.bus_4020.ida.horaPico.("Hora Fin")(2), '4020', 'ida');
+%%
 generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(3), '4020', 'ida');
 
 %%
@@ -659,7 +664,7 @@ MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', titulo
 %tituloGrafica = [Etiqueta sprintf(' Velocidad filtrada y sin filtar ') General];
 % grafica Velocidad celular sin correccion y con correccion
 %graficaVelocidad = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-' , 'sin filtrar' );
-a = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada',);
+a = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada');
 
 %tituloGrafica = [Etiqueta sprintf(' Velocidad coordenadas p20 ') General];
 % Grafica sts velocidad

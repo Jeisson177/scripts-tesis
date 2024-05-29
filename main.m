@@ -100,7 +100,7 @@ end
 
 %% Importar todos los datos tomados por el movil
 
-datosBuses = ImportarDatos.importarTodosLosDatos('Datos', datosBuses);
+datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
 
 
 % Calculo de todos los tiempos para cada ruta
@@ -145,10 +145,14 @@ datosBuses = Calculos.calcularPromedioConsumoRutas(datosBuses);
 
 Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
 
+%%
+
+plot(Buses.bus_4020.ida.f_2024_04_16.,datosBuses.f_2024_04_16.bus_4020.segmentoP60{1,1}.velocidadVehiculo)
+
 
 %%
 
-generarDatos(Buses.bus_4104.ida.f_2024_04_16.("Hora Inicio")(1), Buses.bus_4104.vuelta.f_2024_04_16.("Hora Fin")(1), '4104', 'ida');
+generarDatos(Buses.bus_4020.ida.f_2024_04_16.("Hora Inicio")(1), Buses.bus_4020.ida.f_2024_04_16.("Hora Fin")(1), '4020', 'ida');
 
 %%
 generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(2), Buses.bus_4020.ida.horaPico.("Hora Fin")(2), '4020', 'ida');
