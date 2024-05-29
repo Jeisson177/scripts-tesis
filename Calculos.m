@@ -753,21 +753,21 @@ end
     % Capacidad de la batería en kWh
     capacidadBateria = 280;
 
-    % Asegurarse de que 'nivelRestanteEnergia' y 'kilometrosOdometro' existen en datosFiltrados
-    if ~ismember('nivelRestanteEnergia', datosFiltrados.Properties.VariableNames)
-        error('La columna nivelRestanteEnergia no existe en datosFiltrados.');
+    % Asegurarse de que 'nivelRestanteEnergiaSuavizado' y 'kilometrosOdometro' existen en datosFiltrados
+    if ~ismember('nivelRestanteEnergiaSuavizado', datosFiltrados.Properties.VariableNames)
+        error('La columna nivelRestanteEnergiaSuavizado no existe en datosFiltrados.');
     end
     if ~ismember('kilometrosOdometro', datosFiltrados.Properties.VariableNames)
         error('La columna kilometrosOdometro no existe en datosFiltrados.');
     end
 
     % Obtener los porcentajes de la columna 'nivelRestanteEnergia'
-    porcentajes = datosFiltrados{:, 'nivelRestanteEnergia'};
+    porcentajes = datosFiltrados{:, 'nivelRestanteEnergiaSuavizado'};
     % Obtener los kilómetros de la columna 'kilometrosOdometro'
     kilometros = datosFiltrados{:, 'kilometrosOdometro'};
 
     % Interpolar los porcentajes de batería
-    porcentajeInterpolado = Calculos.interpolarPorcentajeBateria3(datosFiltrados);
+    porcentajeInterpolado = porcentajes;
 
     % Calcular la diferencia en porcentaje de la batería y distancia recorrida
     deltaPorcentaje = porcentajeInterpolado(1:end-1) - porcentajeInterpolado(2:end);
@@ -780,7 +780,7 @@ end
     consumoPorKm = consumoEnergia ./ deltaKilometros;
 
     % Manejar casos donde deltaKilometros es cero para evitar división por cero
-    consumoPorKm(deltaKilometros == 0) = NaN;
+    consumoPorKm(deltaKilometros == 0) = 0;
 end
 
 
@@ -850,26 +850,35 @@ function datosBuses = calcularConsumoEnergiaRutas(datosBuses)
             % Asegurarse de que existen datos de ruta y datos del sensor para el bus
             if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'P60')
                 tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
-                datosSensor = datosBuses.(fecha).(bus).P60;
+
                 
-                % Calcular el consumo de energía para cada trayecto de ida y vuelta en las rutas del día
-                for k = 1:size(tiempoRuta, 1)
-                    % Trayecto de ida
-                    inicioIda = tiempoRuta{k, 1};
-                    finIda = tiempoRuta{k, 2};
-                    datosIda = datosSensor(datosSensor{:, 7} >= inicioIda & datosSensor{:, 7} <= finIda, :);
-                    consumoEnergiaIda = Calculos.calcularConsumoEnergiaPorKm(datosIda);
-                    
-                    % Trayecto de vuelta
-                    inicioVuelta = tiempoRuta{k, 2};
-                    finVuelta = tiempoRuta{k, 3};
-                    datosVuelta = datosSensor(datosSensor{:, 7} >= inicioVuelta & datosSensor{:, 7} <= finVuelta, :);
-                    consumoEnergiaVuelta = Calculos.calcularConsumoEnergiaPorKm(datosVuelta);
-                    
-                    % Almacenar los datos calculados de consumo de energía en la estructura de datos
-                    datosBuses.(fecha).(bus).consumoEnergiaRuta{k, 1} = consumoEnergiaIda;
-                    datosBuses.(fecha).(bus).consumoEnergiaRuta{k, 2} = consumoEnergiaVuelta;
-                end
+               % Intentar acceder a los datos de sensor y calcular el consumo de energía
+try
+    datosSensor = datosBuses.(fecha).(bus).segmentoP60;
+    
+    % Calcular el consumo de energía para cada trayecto de ida y vuelta en las rutas del día
+    for k = 1:size(tiempoRuta, 1)
+        % Trayecto de ida
+        datosIda = datosSensor{k, 1};
+        consumoEnergiaIda = Calculos.calcularConsumoEnergiaPorKm(datosIda);
+        
+        % Trayecto de vuelta
+        datosVuelta = datosSensor{k, 2};
+        consumoEnergiaVuelta = Calculos.calcularConsumoEnergiaPorKm(datosVuelta);
+        
+        % Almacenar los datos calculados de consumo de energía en la estructura de datos
+        datosBuses.(fecha).(bus).consumoEnergiaRuta{k, 1} = consumoEnergiaIda;
+        datosBuses.(fecha).(bus).consumoEnergiaRuta{k, 2} = consumoEnergiaVuelta;
+    end
+
+catch ME
+    % Manejo de excepciones en caso de error
+    fprintf('Error procesando los datos de %s en el bus %s: %s\n', fecha, bus, ME.message);
+    % Aquí podrías también optar por hacer otras acciones como:
+    % - Continuar con el siguiente bus/ruta sin detener el proceso
+    % - Registrar el error en un archivo log
+    % - Notificar a un sistema de monitoreo
+end
             end
         end
     end
@@ -878,6 +887,8 @@ function datosBuses = calcularConsumoEnergiaRutas(datosBuses)
 end
 
 
+
+%%
 
 %%
 
@@ -1908,6 +1919,48 @@ function picos = encontrarPicos(aceleracion)
     return;
 end
 
+%%
+
+function datosBuses = aproximarNivelBateria(datosBuses)
+    % Esta función calcula y almacena una versión suavizada del nivel de batería para cada bus en cada fecha.
+    
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de nivel de batería para el bus
+            if isfield(datosBuses.(fecha).(bus), 'P60')
+                % Acceder a los datos de nivel de batería
+                datosP60 = datosBuses.(fecha).(bus).P60;
+                
+                
+                    % Acceder al nivel de batería del segmento
+                    nivelBateria = datosP60.nivelRestanteEnergia;
+                    
+                    % Suavizar el nivel de batería usando un filtro de Savitzky-Golay
+                    ordenPol = 3; % Orden del polinomio
+                    ventana = 65; % Longitud de la ventana, debe ser impar
+                    if length(nivelBateria) >= ventana % Asegurarse de que hay suficientes datos para aplicar el filtro
+                        nivelBateriaSuavizado = sgolayfilt(nivelBateria, ordenPol, ventana);
+                    else
+                        nivelBateriaSuavizado = nivelBateria; % No se aplica filtro si no hay suficientes datos
+                    end
+                    
+                    % Almacenar los datos suavizados de nivel de batería en un nuevo campo en la estructura de datos
+                    datosBuses.(fecha).(bus).P60.nivelRestanteEnergiaSuavizado = nivelBateriaSuavizado;
+               
+            end
+        end
+    end
+
+    return;
+end
 
 
 
