@@ -776,7 +776,6 @@ end
     % Calcular el consumo de energía en kWh para cada segmento
     consumoEnergia = (deltaPorcentaje / 100) * capacidadBateria;
 
-
     % Calcular el consumo de energía por km
     consumoPorKm = consumoEnergia ./ deltaKilometros;
 
@@ -1972,25 +1971,25 @@ function datosBuses = calcularPosAceleracion(datosBuses)
 
 
                     % Calcular los promedios
-                if conteoAltoIda > 0
+                if conteoAlto > 0
                     promedioAltoIda = sumaAltoIda / conteoAltoIda;
                 else
                     promedioAltoIda = NaN; % Si no hay valores por encima de 0.8, retornar NaN
                 end
 
-                if conteoBajoIda > 0
+                if conteoBajo > 0
                     promedioBajoIda = sumaBajoIda / conteoBajoIda;
                 else
                     promedioBajoIda = NaN; % Si no hay valores por debajo de 0.8, retornar NaN
                 end
 
-                if conteoAltoVuelta > 0
+                if conteoAlto > 0
                     promedioAltoVuelta = sumaAltoVuelta / conteoAltoVuelta;
                 else
                     promedioAltoVuelta = NaN; % Si no hay valores por encima de 0.8, retornar NaN
                 end
 
-                if conteoBajoVuelta > 0
+                if conteoBajo > 0
                     promedioBajoVuelta = sumaBajoVuelta / conteoBajoVuelta;
                 else
                     promedioBajoVuelta = NaN; % Si no hay valores por debajo de 0.8, retornar NaN
