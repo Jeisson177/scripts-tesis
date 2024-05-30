@@ -780,7 +780,7 @@ end
     consumoPorKm = consumoEnergia ./ deltaKilometros;
 
     % Definir una tolerancia pequeña para considerar deltaKilometros como cero
-    tolerancia = 0.05;
+    tolerancia = 0.8;
 
     % Manejar casos donde deltaKilometros es menor que la tolerancia para evitar división por cero
     consumoPorKm(abs(deltaKilometros) < tolerancia) = 0;
