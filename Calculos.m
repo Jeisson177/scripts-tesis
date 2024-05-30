@@ -776,6 +776,7 @@ end
     % Calcular el consumo de energía en kWh para cada segmento
     consumoEnergia = (deltaPorcentaje / 100) * capacidadBateria;
 
+
     % Calcular el consumo de energía por km
     consumoPorKm = consumoEnergia ./ deltaKilometros;
 

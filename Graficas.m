@@ -339,7 +339,7 @@ end
 
     % Aplicar suavizado usando un filtro de Savitzky-Golay
     ordenPol = 2; % Orden del polinomio
-    ventana = 65; % Longitud de la ventana, debe ser impar
+    ventana = 45; % Longitud de la ventana, debe ser impar
     if length(porcentaje) >= ventana % Asegurarse de que hay suficientes datos para aplicar el filtro
         porcentajeSuavizado = sgolayfilt(porcentaje, ordenPol, ventana);
     else
