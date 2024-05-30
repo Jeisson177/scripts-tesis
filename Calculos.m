@@ -1924,6 +1924,106 @@ end
 
 %%
 
+function datosBuses = calcularPosAceleracion(datosBuses)
+    % Esta función calcula los promedios de aceleración para valores por
+    % encima y por debajo de 0.8 m/s^2 y actualiza la estructura datosBuses
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de aceleración para el bus
+            if isfield(datosBuses.(fecha).(bus), 'aceleracionRuta')
+               
+                
+                % Iterar sobre cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(datosBuses.(fecha).(bus).aceleracionRuta, 1)
+
+
+                     % Inicializar sumas y conteos para los promedios
+              
+
+
+                    % Obtener las aceleraciones de ida y vuelta
+                    aceleracionIda = datosBuses.(fecha).(bus).aceleracionRuta{k, 1};
+                    aceleracionVuelta = datosBuses.(fecha).(bus).aceleracionRuta{k, 2};
+                    
+                    % Filtrar y acumular las aceleraciones mayores y menores que 0.8 m/s^2
+                    sumaAltoIda = sum(aceleracionIda(aceleracionIda > 0.8));
+                    conteoAltoIda = sum(aceleracionIda > 0.8);
+
+                    % Filtrar y acumular las aceleraciones mayores y menores que 0.8 m/s^2
+                    sumaAltoVuelta = sum(aceleracionVuelta(aceleracionVuelta > 0.8));
+                    conteoAltoVuelta = sum(aceleracionVuelta > 0.8);
+                    
+                    sumaBajoIda = sum(aceleracionIda(aceleracionIda <= 0.8));
+                    conteoBajoIda = sum(aceleracionIda <= 0.8);
+
+                    sumaBajoVuelta = sum(aceleracionVuelta(aceleracionVuelta <= 0.8));
+                    conteoBajoVuelta = sum(aceleracionVuelta <= 0.8);
+
+
+
+                    % Calcular los promedios
+                if conteoAltoIda > 0
+                    promedioAltoIda = sumaAltoIda / conteoAltoIda;
+                else
+                    promedioAltoIda = NaN; % Si no hay valores por encima de 0.8, retornar NaN
+                end
+
+                if conteoBajoIda > 0
+                    promedioBajoIda = sumaBajoIda / conteoBajoIda;
+                else
+                    promedioBajoIda = NaN; % Si no hay valores por debajo de 0.8, retornar NaN
+                end
+
+                if conteoAltoVuelta > 0
+                    promedioAltoVuelta = sumaAltoVuelta / conteoAltoVuelta;
+                else
+                    promedioAltoVuelta = NaN; % Si no hay valores por encima de 0.8, retornar NaN
+                end
+
+                if conteoBajoVuelta > 0
+                    promedioBajoVuelta = sumaBajoVuelta / conteoBajoVuelta;
+                else
+                    promedioBajoVuelta = NaN; % Si no hay valores por debajo de 0.8, retornar NaN
+                end
+                
+                % Actualizar la estructura con los promedios calculados
+                datosBuses.(fecha).(bus).promedioAceleracionAlto{k, 1} = promedioAltoIda;
+                datosBuses.(fecha).(bus).promedioAceleracionBajo{k, 1} = promedioBajoIda;
+
+                % Actualizar la estructura con los promedios calculados
+                datosBuses.(fecha).(bus).promedioAceleracionAlto{k, 2} = promedioAltoVuelta;
+                datosBuses.(fecha).(bus).promedioAceleracionBajo{k, 2} = promedioBajoVuelta;
+
+                % Actualizar la estructura con los promedios calculados
+                datosBuses.(fecha).(bus).conteoAceleracionAlto{k, 1} = conteoAltoIda;
+                datosBuses.(fecha).(bus).conteoAceleracionBajo{k, 1} = conteoBajoIda;
+
+                % Actualizar la estructura con los promedios calculados
+                datosBuses.(fecha).(bus).conteoAceleracionAlto{k, 2} = conteoAltoVuelta;
+                datosBuses.(fecha).(bus).conteoAceleracionBajo{k, 2} = conteoBajoVuelta;
+
+
+
+                end
+                
+                
+            end
+        end
+    end
+end
+
+
+%%
+
 function datosBuses = aproximarNivelBateria(datosBuses)
     % Esta función calcula y almacena una versión suavizada del nivel de batería para cada bus en cada fecha.
     

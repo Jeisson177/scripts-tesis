@@ -128,6 +128,9 @@ datosBuses = Calculos.calcularConsumoEnergiaRutas(datosBuses);
 %%
 
 datosBuses = Calculos.calcularPicosAceleracionRutas(datosBuses);
+%%
+
+datosBuses = Calculos.calcularPosAceleracion(datosBuses);
 
 %%
 
