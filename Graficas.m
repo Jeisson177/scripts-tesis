@@ -334,12 +334,21 @@ end
         figure(grafica); % Hace que 'grafica' sea la figura actual sin crear una nueva
     end
     
+    % Aproximación del porcentaje de la batería
+    porcentaje = datosFiltrados.nivelRestanteEnergia; 
 
-    porcentaje = Calculos.interpolarPorcentajeBateria3(datosFiltrados);
+    % Aplicar suavizado usando un filtro de Savitzky-Golay
+    ordenPol = 2; % Orden del polinomio
+    ventana = 45; % Longitud de la ventana, debe ser impar
+    if length(porcentaje) >= ventana % Asegurarse de que hay suficientes datos para aplicar el filtro
+        porcentajeSuavizado = sgolayfilt(porcentaje, ordenPol, ventana);
+    else
+        porcentajeSuavizado = porcentaje; % No se aplica filtro si no hay suficientes datos
+    end
 
     % Trazar energía en función del tiempo
-    plot(datosFiltrados.fechaHoraLecturaDato, porcentaje, 'LineWidth', 2);
-    title('Energía Restante en Función del Tiempo');
+    plot(datosFiltrados.fechaHoraLecturaDato, porcentajeSuavizado, 'LineWidth', 2);
+    title('Energía Restante en Función del Tiempo (Suavizado)');
     xlabel('Tiempo');
     ylabel('Nivel de Energía (%)');
     grid on;
