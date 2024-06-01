@@ -48,8 +48,6 @@ accuracy = sum(diag(confusionMat)) / sum(confusionMat(:));
 %el tercero es la desviaciones de los componentes principales en .scorelatent
 %el cuarto la estadística T cuadrada del Hotelling para cada observación en .X
 % explained el porcentaje de la varianza total explicado por cada componente principal y 
-% tambien puede devolver la media como quinto parametro
-
 
 % Elegir el número de componentes principales que explican al menos el 95% de la varianza
 explainedVariance = 0.95;%siempre se hace el 95, o 90 pero yo creo que mejor 95
@@ -58,10 +56,6 @@ numComponents = find(cumsum(explained) >= explainedVariance * 100, 1);
 % Transformar los datos de entrenamiento y prueba usando los componentes principales
 XTrainPCA = score(:, 1:numComponents);
 XTestPCA = XTest * coeff(:, 1:numComponents);
-% en la documentacion de pc hay algp que se llama biplot, ahi se puede ver
-% como.... como la importancia que tiene cada caracteristica de forma mas
-% visible, yo diria usar scatter3 y quitar alguna variable, la que nos diga
-% el pca que tiene menos importancia
 
 
 
