@@ -17,14 +17,14 @@ Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %% importar solo un dato
-Sensor=ImportarDatos.Sensor('Datos\2024-04-23\4020');
+Sensor=ImportarDatos.Sensor('Datos\2024-04-18\4104');
 datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
-fechaInicio="2024-04-23 6:39:00.434";
- fechaFin="2024-04-23 7:50:00.434";
-r=Calculos.riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin);
+% fechaInicio="2024-04-23 6:39:00.434";
+%  fechaFin="2024-04-23 7:50:00.434";
+% r=Calculos.riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin);
 
-%tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
-%T=size(tiempoR);
+tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
+T=size(tiempoR);
 
 % Ccurvas1=Calculos.Lcurvasida4020();
 % Ccurvas2=Calculos.LcurvasVuelta4020();
@@ -38,6 +38,15 @@ r=Calculos.riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin);
 %     m2{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},'b','vuelta','vuelta');
 %     
 % end
+%%
+m=Map.Ruta(datosCordenadasSensor,tiempoR{1,1},tiempoR{1,2},'r','ida','ida');
+hold on
+marcador=Pcurvas.s4104_1.ida{1,1};
+marcador2=Pcurvas.s4104_1.ida{1,2};
+geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
+geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
+            
+%     
 
 %%
 nombres = fieldnames(datosBuses);
