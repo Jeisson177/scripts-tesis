@@ -126,63 +126,66 @@ end
         
         
         function analizarAceleraciones(datos, fechaInicio, fechaFin)
-            
-            
-            
-            % Convertir fechas de inicio y fin a datetime si son strings
-            if ischar(fechaInicio) || isstring(fechaInicio)
-                fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-            end
-            if ischar(fechaFin) || isstring(fechaFin)
-                fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-            end
-            
-            % Obtener los datos en el rango de fechas
-            datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
-            
-            % Calcular la aceleración usando la función proporcionada
-            velocidad=Calculos.calcularVelocidadMS(datosFiltrados);
-            
-            
-            
-            
-            % Calcular aceleraciones usando la función previa
-            aceleracion = Calculos.calcularAceleracion(velocidad, datos);
-            
-            % Filtrar aceleraciones para encontrar valores significativos (mayores a 2 m/s^2)
-            aceleracionesSignificativas = abs(aceleracion) > 2;
-            
-            % Encontrar los picos de aceleraciones significativas
-            [pks, locs] = findpeaks(aceleracion(aceleracionesSignificativas));
-            
-            % Mostrar los picos de aceleraciones bruscas
-            fprintf('Picos de aceleraciones significativas:\n');
-            disp(table(pks, datos{locs, 1}, 'VariableNames', {'Aceleracion', 'Tiempo'}));
-            
-            % Crear un histograma de todas las aceleraciones
-            figure;
-            % Definir los bordes de los bins del histograma en pasos de 0.5 desde el mínimo hasta el máximo de 3
-            binEdges = -3:0.5:3; % Asumiendo que también consideramos aceleraciones negativas hasta -3
-            histogram(aceleracion, binEdges);
-            title('Histograma de Aceleraciones');
-            xlabel('Aceleración (m/s^2)');
-            ylabel('Frecuencia');
-            
-            % Marcar las aceleraciones bruscas en el histograma
-            hold on;
-            histogram(aceleracion(aceleracionesSignificativas), binEdges);
-            legend('Todas las Aceleraciones', 'Aceleraciones > 2 m/s^2');
-            hold off;
-            
-            % Reporte adicional si es necesario
-            if ~isempty(pks)
-                fprintf('Se encontraron %d aceleraciones bruscas mayores a 2 m/s^2.\n', length(pks));
-            else
-                fprintf('No se encontraron aceleraciones bruscas mayores a 2 m/s^2.\n');
-            end
-            
-        end
-        
+    % Convertir fechas de inicio y fin a datetime si son strings
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    
+    % Obtener los datos en el rango de fechas
+    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+    
+    % Calcular la velocidad usando la función proporcionada
+    velocidad = Calculos.calcularVelocidadMS(datosFiltrados);
+    
+    % Calcular aceleraciones usando la función previa
+    aceleracion = Calculos.calcularAceleracion(velocidad, datos);
+    
+    % Filtrar aceleraciones para encontrar valores significativos (mayores a 2 m/s^2)
+    aceleracionesSignificativas = abs(aceleracion) > 2;
+    
+    % Encontrar los picos de aceleraciones significativas
+    [pks, locs] = findpeaks(aceleracion(aceleracionesSignificativas));
+    
+    % Mostrar los picos de aceleraciones bruscas
+    fprintf('Picos de aceleraciones significativas:\n');
+    disp(table(pks, datos{locs, 1}, 'VariableNames', {'Aceleracion', 'Tiempo'}));
+    
+    % Crear un histograma de todas las aceleraciones
+    figure;
+    % Definir los bordes de los bins del histograma en pasos de 0.5 desde el mínimo hasta el máximo de 3
+    binEdges = -3:0.5:3; % Asumiendo que también consideramos aceleraciones negativas hasta -3
+    histogram(aceleracion, binEdges);
+    title('Histograma de Aceleraciones');
+    xlabel('Aceleración (m/s^2)');
+    ylabel('Frecuencia');
+    
+    % Marcar las aceleraciones bruscas en el histograma
+    hold on;
+    histogram(aceleracion(aceleracionesSignificativas), binEdges);
+    legend('Todas las Aceleraciones', 'Aceleraciones > 2 m/s^2');
+    hold off;
+    
+    % Filtrar aceleraciones para valores superiores a 0.8 o inferiores a -0.8
+    aceleracionesExtremas = aceleracion > 0.8 | aceleracion < -0.8;
+    
+    % Crear un histograma de las aceleraciones extremas
+    figure;
+    histogram(aceleracion(aceleracionesExtremas), binEdges);
+    title('Histograma de Aceleraciones Extremas (> 0.8 o < -0.8)');
+    xlabel('Aceleración (m/s^2)');
+    ylabel('Frecuencia');
+    
+    % Reporte adicional si es necesario
+    if ~isempty(pks)
+        fprintf('Se encontraron %d aceleraciones bruscas mayores a 2 m/s^2.\n', length(pks));
+    else
+        fprintf('No se encontraron aceleraciones bruscas mayores a 2 m/s^2.\n');
+    end
+end
+
         
         
         %%
@@ -199,7 +202,7 @@ end
             
             distancia=Calculos.CalcularDistancia(datosFiltrados);
             datosFiltrados.kilometrosOdometro=datosFiltrados.kilometrosOdometro-datosFiltrados.kilometrosOdometro(1);
-            plot(datosFiltrados.kilometrosOdometro,datosFiltrados.nivelRestanteEnergia);
+            plot(datosFiltrados.kilometrosOdometro,datosFiltrados.nivelRestanteEnergiaSuavizado);
 
             % porcentaje = Calculos.interpolarPorcentajeBateria3(datosFiltrados);
             % 
@@ -712,7 +715,7 @@ end
         
         %%
         
-        function DistanciavsVelocidad3(datos, P20, fechaInicio, fechaFin, puntosVerticales)
+        function DistanciavsVelocidad3(datos, P20, fechaInicio, fechaFin, puntosVerticales, tituloGeneral)
             % Convertir fechas de inicio y fin a datetime si son strings
             if ischar(fechaInicio) || isstring(fechaInicio)
                 fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -720,6 +723,9 @@ end
             if ischar(fechaFin) || isstring(fechaFin)
                 fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
             end
+
+            % Crear figura
+    
             
             % Filtrar los datos por el rango de fechas
             datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
@@ -728,32 +734,24 @@ end
             % Calcular distancia y velocidad para datos filtrados
             distancia = Calculos.CalcularDistancia(datosFiltrados);
             velocidad = Calculos.calcularVelocidadKH(datosFiltrados);
-            subplot(2, 1, 1);
             plot(distancia(1:end-1), velocidad);
             title('Velocidad vs distancia (celular)');
             xlabel('Distancia (km)');
             ylabel('Velocidad (km/h)');
+            title(tituloGeneral);
             grid on;
             hold on;
             
             for i = 1:length(puntosVerticales)
-                xline(puntosVerticales(i), '--r'); % Líneas verticales en rojo punteado
+               xline(puntosVerticales(i), '--r', 'LineWidth', 2); % Líneas verticales en rojo punteado
             end
             hold off;
             
             %distancia = Calculos.CalcularDistancia(datosCordenadasP20Filtrados);
             %velocidad = Calculos.calcularVelocidadKH(datosCordenadasP20Filtrados);
             
-            subplot(2, 1, 2);
-            plot(datosCordenadasP20Filtrados.kilometrosOdometro , datosCordenadasP20Filtrados.velocidadVehiculo);
-            title('Velocidad vs distancia (P20)');
-            xlabel('Distancia (km)');
-            ylabel('Velocidad (km/h)');
-            grid on;
-            hold on;
-            for i = 1:length(puntosVerticales)
-                xline(puntosVerticales(i), '--r'); % Líneas verticales en rojo punteado
-            end
+            
+         
             hold off;
         end
         

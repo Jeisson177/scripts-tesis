@@ -102,7 +102,7 @@ end
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
 
-
+%%
 % Calculo de todos los tiempos para cada ruta
 
 datosBuses = Calculos.calcularTiemposRutas(datosBuses);
@@ -139,6 +139,26 @@ datosBuses = Calculos.calcularPosAceleracion(datosBuses);
 
 datosBuses = Calculos.extraerP60(datosBuses);
 
+%%
+
+datosBuses = Calculos.extraerEV1(datosBuses);
+
+%%
+
+datosBuses = Calculos.extraerEV19(datosBuses);
+
+%%
+
+datosBuses = Calculos.extraerEV2(datosBuses);
+
+%%
+
+datosBuses = Calculos.extraerEV8(datosBuses);
+
+%%
+
+datosBuses = Calculos.extraerEV18(datosBuses);
+
 %% Calcula los promedios por segmentos
 
 datosBuses = Calculos.calcularPromedioVelocidadRutas(datosBuses);
@@ -151,6 +171,10 @@ datosBuses = Calculos.calcularPromedioConsumoRutas(datosBuses);
 
 Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
 
+%% Organiza la estructura por bus y ruta
+
+Rutas = ImportarDatos.reorganizarDatosRutas(datosBuses);
+
 %%
 
 %%plot(Buses.bus_4020.ida.f_2024_04_16.,datosBuses.f_2024_04_16.bus_4020.segmentoP60{1,1}.velocidadVehiculo)
@@ -158,16 +182,49 @@ Buses = ImportarDatos.reorganizarDatosBuses(datosBuses);
 
 %%
 
-generarDatos(Buses.bus_4104.ida.horaValle.("Hora Inicio")(9), Buses.bus_4104.ida.horaValle.("Hora Fin")(9), '4104', 'ida');
+generarDatos(Buses.bus_4104.ida.horaValle.("Hora Inicio")(1), Buses.bus_4104.ida.horaValle.("Hora Fin")(1), '4104', 'ida');
 
 %%
-generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(2), Buses.bus_4020.ida.horaPico.("Hora Fin")(2), '4020', 'ida');
+generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(3), Buses.bus_4020.ida.horaPico.("Hora Fin")(3), '4020', 'ida');
 %%
 generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(3), '4020', 'ida');
 
+
+
+%% Graficar eventos
+
+% Obtener la celda de "Evento 1"
+eventos = Buses.bus_4104.ida.horaPico.("Evento 19_2");
+
+% Inicializar un arreglo para almacenar los tamaños de los sub-arreglos
+tamanos = zeros(numel(eventos), 1);
+
+% Iterar sobre cada elemento de la celda y obtener el tamaño del sub-arreglo
+for i = 1:numel(eventos)
+    subArreglo = eventos{i};
+    tamanos(i) = size(subArreglo, 1); % O puedes usar size(subArreglo, 1) para obtener el tamaño en la primera dimensión
+end
+
+% Mostrar los tamaños de los sub-arreglos
+disp(tamanos);
+bar(tamanos);
+title('Numero de eventos 1 por conductor'); % Asegúrate de concatenar correctamente
+xlabel('Conductor');
+ylabel('Numero de repeticiones');
+
 %%
 
-ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
+distancia=datosBuses.f_2024_04_16.bus_4020.segmentoP60{1, 1}.kilometrosOdometro - datosBuses.f_2024_04_16.bus_4020.segmentoP60{1, 1}.kilometrosOdometro(1);
+consumo = datosBuses.f_2024_04_16.bus_4020.consumoEnergiaRuta{1, 1};
+
+plot(distancia(1:end-1),consumo);
+
+title('Conductor '); % Asegúrate de concatenar correctamente
+xlabel('Distancia');
+ylabel('Porcentaje de energía');
+%%
+
+% ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
 %ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Picos Aceleracion")')')];
 
 % ordenValler = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
@@ -175,16 +232,150 @@ ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle,
 aa= (cell2mat(ordenpico.("Promedio velocidad")')');
 
 figure;
-bar(aa);
+bar(percentages');
+xlabel('Grupo');
+ylabel('Promedio velocidad');
+title('Diagrama de barras de Promedio velocidad por Ruta');
+
+figure;
+boxplot(percentages);
 xlabel('Grupo');
 ylabel('Promedio velocidad');
 title('Boxplot de Promedio velocidad por Ruta');
 
-figure;
-boxplot(aa');
-xlabel('Grupo');
-ylabel('Promedio velocidad');
-title('Boxplot de Promedio velocidad por Ruta');
+%% Graficar segmento
+
+% obtenemos los valores del segmento
+% hay que obtener una grafica para cada segmento la idea es recorrer cada
+% ruta, luego en todos los datos todos los segmento
+
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+        dhp = Rutas.(ruta).(trayecto).horaPico;
+        dhp.("PromedioVelocidad")
+        m_dhp = (cell2mat(dhp.("PromedioVelocidad")')');
+        shp = dhp.Sexo;
+
+        dhv = Rutas.(ruta).(trayecto).horaValle;
+        dhv.("PromedioVelocidad")
+        m_dhv = (cell2mat(dhv.("PromedioVelocidad")')');
+        shv = dhv.Sexo;
+
+        tm = size(m_dhv);
+        for k = 1:tm(2)
+            sv = m_dhv(:, k);
+            sp = m_dhp(:, k);
+
+            figure;
+
+            % Primer subplot para horaValle
+            subplot(2, 2, 1);
+            scatter(sv, zeros(1, length(sv)))
+            mu_sv = mean(sv);
+            sig_sv = var(sv);
+            y_sv = pdf('Normal', mu_sv-3*sig_sv:0.1:mu_sv+3*sig_sv, mu_sv, sig_sv);
+            hold on;
+            plot(mu_sv-3*sig_sv:0.1:mu_sv+3*sig_sv, y_sv)
+            title('Hora Valle');
+            xlabel('Promedio Velocidad');
+            ylabel('Frecuencia');
+            hold off;
+
+            % Segundo subplot para horaPico
+            subplot(2, 2, 2);
+            scatter(sp, zeros(1, length(sp)))
+            mu_sp = mean(sp);
+            sig_sp = var(sp);
+            y_sp = pdf('Normal', mu_sp-3*sig_sp:0.1:mu_sp+3*sig_sp, mu_sp, sig_sp);
+            hold on;
+            plot(mu_sp-3*sig_sp:0.1:mu_sp+3*sig_sp, y_sp)
+            title('Hora Pico');
+            xlabel('Promedio Velocidad');
+            ylabel('Frecuencia');
+            hold off;
+
+            % Subplot para hombres y mujeres en Hora Valle
+            subplot(2, 2, 3);
+            sv_hombres = sv(shv == 0);
+            sv_mujeres = sv(shv == 1);
+            scatter(sv_hombres, zeros(1, length(sv_hombres)), 'r', 'DisplayName', 'Hombres');
+            hold on;
+            scatter(sv_mujeres, zeros(1, length(sv_mujeres)), 'b', 'DisplayName', 'Mujeres');
+            mu_sv_hombres = mean(sv_hombres);
+            sig_sv_hombres = var(sv_hombres);
+            y_sv_hombres = pdf('Normal', mu_sv_hombres-3*sig_sv_hombres:0.1:mu_sv_hombres+3*sig_sv_hombres, mu_sv_hombres, sig_sv_hombres);
+            plot(mu_sv_hombres-3*sig_sv_hombres:0.1:mu_sv_hombres+3*sig_sv_hombres, y_sv_hombres, 'r')
+            mu_sv_mujeres = mean(sv_mujeres);
+            sig_sv_mujeres = var(sv_mujeres);
+            y_sv_mujeres = pdf('Normal', mu_sv_mujeres-3*sig_sv_mujeres:0.1:mu_sv_mujeres+3*sig_sv_mujeres, mu_sv_mujeres, sig_sv_mujeres);
+            plot(mu_sv_mujeres-3*sig_sv_mujeres:0.1:mu_sv_mujeres+3*sig_sv_mujeres, y_sv_mujeres, 'b')
+            title('Hora Valle - Hombres y Mujeres');
+            xlabel('Promedio Velocidad');
+            ylabel('Frecuencia');
+            legend;
+            hold off;
+
+            % Subplot para hombres y mujeres en Hora Pico
+            subplot(2, 2, 4);
+            sp_hombres = sp(shp == 0);
+            sp_mujeres = sp(shp == 1);
+            scatter(sp_hombres, zeros(1, length(sp_hombres)), 'r', 'DisplayName', 'Hombres');
+            hold on;
+            scatter(sp_mujeres, zeros(1, length(sp_mujeres)), 'b', 'DisplayName', 'Mujeres');
+            mu_sp_hombres = mean(sp_hombres);
+            sig_sp_hombres = var(sp_hombres);
+            y_sp_hombres = pdf('Normal', mu_sp_hombres-3*sig_sp_hombres:0.1:mu_sp_hombres+3*sig_sp_hombres, mu_sp_hombres, sig_sp_hombres);
+            plot(mu_sp_hombres-3*sig_sp_hombres:0.1:mu_sp_hombres+3*sig_sp_hombres, y_sp_hombres, 'r')
+            mu_sp_mujeres = mean(sp_mujeres);
+            sig_sp_mujeres = var(sp_mujeres);
+            y_sp_mujeres = pdf('Normal', mu_sp_mujeres-3*sig_sp_mujeres:0.1:mu_sp_mujeres+3*sig_sp_mujeres, mu_sp_mujeres, sig_sp_mujeres);
+            plot(mu_sp_mujeres-3*sig_sp_mujeres:0.1:mu_sp_mujeres+3*sig_sp_mujeres, y_sp_mujeres, 'b')
+            title('Hora Pico - Hombres y Mujeres');
+            xlabel('Promedio Velocidad');
+            ylabel('Frecuencia');
+            legend;
+            hold off;
+
+            % Añadir título general a la figura
+            sgtitle(sprintf('Ruta: %s, Segmento: %d', ruta, k));
+        end
+    end
+end
+
+%% Porcentaje
+
+% Obtener el número de filas (conductores)
+n = size(aa, 1);
+
+% Obtener el número de columnas (segmentos)
+s = size(aa, 2);
+
+% Crear una nueva matriz para los porcentajes
+percentages = zeros(n, s);
+
+% Recorrer los segmentos
+for i = 1:s
+    % Obtener el segmento (columna i) de la matriz aa
+    segmento = aa(:, i);
+    
+    % Obtener el valor mínimo y máximo del segmento
+    min_val = min(segmento)*0.9;
+    max_val = max(segmento)*1.1;
+    
+    % Escalar los valores del segmento al rango [0, 1]
+    scaled_segment = (segmento - min_val) / (max_val - min_val);
+    
+    % Convertir los valores escalados a porcentajes
+    percentages(:, i) = scaled_segment * 100;
+end
+
+% Mostrar la nueva matriz de porcentajes
+disp(percentages);
 
 %%
 
@@ -199,7 +390,7 @@ plot(tiempo, velocidad);
 
 %%
 
-ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.horaValle, 'Promedio consumo', 1, 'ascend' );
+%ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio consumo', 1, 'ascend' );
 %ordenpico = [ordenpico, array2table(cell2mat(ordenpico.("Picos Aceleracion")')')];
 
 % ordenValler = Calculos.ordenarTablaPorElementoVector(Buses.bus_4020.ida.horaValle, 'Promedio velocidad', 1, 'ascend' );
@@ -207,7 +398,7 @@ ordenpico = Calculos.ordenarTablaPorElementoVector(Buses.bus_4104.ida.horaValle,
 aa= (cell2mat(ordenpico.("Promedio consumo")')');
 
 figure;
-bar(aa);
+bar(aa');
 xlabel('Grupo');
 ylabel('Promedio consumo');
 title('Bar de Promedio consumo por Ruta');
@@ -676,14 +867,14 @@ MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', titulo
 % Mapa direccion
 %Map.Direccion(datosCordenadasSensor, fechaInicio, fechaFinal);
 
-%tituloGrafica = [Etiqueta sprintf(' Velocidad filtrada y sin filtar ') General];
+tituloGrafica = [Etiqueta sprintf(' Velocidad filtrada y sin filtar ') General];
 % grafica Velocidad celular sin correccion y con correccion
-%graficaVelocidad = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-' , 'sin filtrar' );
-a = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada');
+graficaVelocidad = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-' , 'sin filtrar' );
+Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada', graficaVelocidad);
 
-%tituloGrafica = [Etiqueta sprintf(' Velocidad coordenadas p20 ') General];
+% tituloGrafica = [Etiqueta sprintf(' Velocidad coordenadas p20 ') General];
 % Grafica sts velocidad
-%Graficas.velocidadTiempo(datosCordenadasP20, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-', 'P20 coordenadas');
+% Graficas.velocidadTiempo(datosCordenadasP20, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-', 'P20 coordenadas');
 
 %tituloGrafica = [Etiqueta sprintf(' Velocidad  P20 Trama ') General];
 % Grafico sts velocidad trama
@@ -691,8 +882,8 @@ a = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'fil
 
 tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
 %Grafica aceleracion celular
-%graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'sin filtrar');
-Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', a);
+graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'sin filtrar');
+Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', graficaAce);
 
 
 %tituloGrafica = [Etiqueta sprintf(' Aceleracion STS coordenadas ') General];
@@ -716,27 +907,28 @@ Ruta4104Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
 Ruta4020Ida = [2.3, 8.1, 11.9, 12.9, 14.8, 19.25];
 Ruta4020Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
 
-
-
-
+hold off;
+tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
+dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaInicio, fechaFinal);
+Map.graficarSegmentosEnMapa(dataFiltrada, Ruta4020Ida, tituloGrafica);
 
 % Grafica giros
 tituloGrafica = [Etiqueta sprintf(' Riesgo curvatura ') General];
 % Graficas.riesgoVsCurva(datosCordenadasSensor, fechaInicio, fechaFinal, tituloGrafica);
 
-tituloGrafica = [Etiqueta sprintf(' Distancia vs velocidad ') General];
+tituloGrafica = [Etiqueta sprintf(' Distancia vs velocidad y segmentos ') General];
 % Grafica de distancia vs velocidad
-Graficas.DistanciavsVelocidad2(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal, tituloGrafica);
-
-dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaInicio, fechaFinal);
+Graficas.DistanciavsVelocidad3(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal,Ruta4020Ida,tituloGrafica);
 
 
+
+Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 
 
 
 %Grafica de distancia vs energia
-%Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
+% Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
 
 % Grafica de aceleraciones histograma
 %Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);

@@ -592,24 +592,44 @@ end
                 end
 
 
-                tabla1 = [...
+try
+ 
+    tabla1 = [...
                     datosBuses.(fecha).(bus).PromediosIda, ...
+                    datosBuses.(fecha).(bus).PromediosConsumoIda...
                     datosBuses.(fecha).(bus).velocidadRuta(:,1),...
                     datosBuses.(fecha).(bus).tiempoRuta(:, [1, 2])...
                     datosBuses.(fecha).(bus).codigoConductor,...
                     datosBuses.(fecha).(bus).aceleracionRuta(:,1),...
-                    datosBuses.(fecha).(bus).picosAceleracion(:,1)
+                    datosBuses.(fecha).(bus).picosAceleracion(:,1),...
+                    datosBuses.(fecha).(bus).segmentoEV1(:,1),...
+                    datosBuses.(fecha).(bus).segmentoEV2(:,1),...
+                    datosBuses.(fecha).(bus).segmentoEV8(:,1),...
+                    datosBuses.(fecha).(bus).segmentoEV18(:,1),...
+                    datosBuses.(fecha).(bus).segmentoEV19_1(:,1),...
+                    datosBuses.(fecha).(bus).segmentoEV19_2(:,1),...
+                    datosBuses.(fecha).(bus).segmentoEV19_3(:,1),...
+                    datosBuses.(fecha).(bus).segmentoEV19_4(:,1)...
                     ];
 
                 tabla1.Properties.VariableNames{1} = 'Promedio velocidad';
-                tabla1.Properties.VariableNames{2} = 'Velocidad';
-                tabla1.Properties.VariableNames{3} = 'Hora Inicio';
-                tabla1.Properties.VariableNames{4} = 'Hora Fin';
-                tabla1.Properties.VariableNames{5} = 'Codigo conductor';
-                tabla1.Properties.VariableNames{6} = 'Sexo';
-                tabla1.Properties.VariableNames{7} = 'Aceleracion';
-                tabla1.Properties.VariableNames{8} = 'Picos Aceleracion';
-                
+                tabla1.Properties.VariableNames{2} = 'Promedio consumo';
+                tabla1.Properties.VariableNames{3} = 'Velocidad';
+                tabla1.Properties.VariableNames{4} = 'Hora Inicio';
+                tabla1.Properties.VariableNames{5} = 'Hora Fin';
+                tabla1.Properties.VariableNames{6} = 'Codigo conductor';
+                tabla1.Properties.VariableNames{7} = 'Sexo';
+                tabla1.Properties.VariableNames{8} = 'Aceleracion';
+                tabla1.Properties.VariableNames{9} = 'Picos Aceleracion';
+                tabla1.Properties.VariableNames{10} = 'Evento 1';
+                tabla1.Properties.VariableNames{11} = 'Evento 2';
+                tabla1.Properties.VariableNames{12} = 'Evento 8';
+                tabla1.Properties.VariableNames{13} = 'Evento 18';
+                tabla1.Properties.VariableNames{14} = 'Evento 19_1';
+                tabla1.Properties.VariableNames{15} = 'Evento 19_2';
+                tabla1.Properties.VariableNames{16} = 'Evento 19_3';
+                tabla1.Properties.VariableNames{17} = 'Evento 19_4';
+
                 % Asigna este cell array a la estructura
                 datosReorganizados.(bus).ida.(fecha) = tabla1;
                 
@@ -622,11 +642,11 @@ end
                 horaInicioPico2 = 17;    % Hora de inicio del segundo rango de hora pico (5 PM)
                 horaFinPico2 = 18;       % Hora de fin del segundo rango de hora pico (6 PM)
                 
-                horaInicioFlujoLibre1 = 10;  % Hora de inicio del primer rango de hora de flujo libre
-                horaFinFlujoLibre1 = 11;     % Hora de fin del primer rango de hora de flujo libre
+                horaInicioFlujoLibre1 = 1;  % Hora de inicio del primer rango de hora de flujo libre
+                horaFinFlujoLibre1 = 5;     % Hora de fin del primer rango de hora de flujo libre
                 
-                horaInicioFlujoLibre2 = 14;  % Hora de inicio del segundo rango de hora de flujo libre
-                horaFinFlujoLibre2 = 15;     % Hora de fin del segundo rango de hora de flujo libre
+                horaInicioFlujoLibre2 = 21;  % Hora de inicio del segundo rango de hora de flujo libre
+                horaFinFlujoLibre2 = 23;     % Hora de fin del segundo rango de hora de flujo libre
 
 
                 % Calcular horas de inicio y fin en formato decimal
@@ -661,7 +681,7 @@ end
                 
                 % Reorganizar los datos en las categorías correspondientes
                 datosReorganizados.(bus).ida.horaPico = [datosReorganizados.(bus).ida.horaPico; datosReorganizados.(bus).ida.(fecha)(indicesPico, :)];
-                datosReorganizados.(bus).ida.horaLibre = [datosReorganizados.(bus).ida.horaFlujoLibre; datosReorganizados.(bus).ida.(fecha)(indicesFlujoLibre, :)];
+                datosReorganizados.(bus).ida.horaLibre = [datosReorganizados.(bus).ida.horaLibre; datosReorganizados.(bus).ida.(fecha)(indicesFlujoLibre, :)];
                 datosReorganizados.(bus).ida.horaValle = [datosReorganizados.(bus).ida.horaValle; datosReorganizados.(bus).ida.(fecha)(indicesValle, :)];
 
 
@@ -680,31 +700,50 @@ end
                 if ~isfield(datosReorganizados.(bus).vuelta, 'horaValle')
                     datosReorganizados.(bus).vuelta.horaValle = [];  % Asegura que el campo horaValle esté inicializado.
                 end
+                if ~isfield(datosReorganizados.(bus).vuelta, 'horaLibre')
+                    datosReorganizados.(bus).vuelta.horaLibre = [];  % Asegura que el campo horaValle esté inicializado.
+                end
 
 
+
+catch ME
+    % Manejo de errores con un mensaje descriptivo
+    fprintf('Error al crear y configurar la tabla: %s\n', ME.message);
+end
+
+                
+                
+
+                
+try
 
                 tabla2 = [...
-                    datosBuses.(fecha).(bus).PromediosIda, ...
+                    datosBuses.(fecha).(bus).PromediosVuelta, ...
+                    datosBuses.(fecha).(bus).PromediosConsumoVuelta, ...
                     datosBuses.(fecha).(bus).velocidadRuta(:,2),...
                     datosBuses.(fecha).(bus).tiempoRuta(:, [2, 3])...
                     datosBuses.(fecha).(bus).codigoConductor,...
                     datosBuses.(fecha).(bus).aceleracionRuta(:,2),...
-                    datosBuses.(fecha).(bus).picosAceleracion(:,2)];
+                    datosBuses.(fecha).(bus).picosAceleracion(:,2)...
+                    datosBuses.(fecha).(bus).segmentoEV1(:,2)
+                    
+                    ];
 
 
                 datosBuses.(fecha).(bus).aceleracionRuta(:,1)
 
                 tabla2.Properties.VariableNames{1} = 'Promedio velocidad';
-                tabla2.Properties.VariableNames{2} = 'Velocidad';
-                tabla2.Properties.VariableNames{3} = 'Hora Inicio';
-                tabla2.Properties.VariableNames{4} = 'Hora Fin';
-                tabla2.Properties.VariableNames{5} = 'Codigo conductor';
-                tabla2.Properties.VariableNames{6} = 'Sexo';
-                tabla2.Properties.VariableNames{7} = 'Aceleracion';
-                tabla2.Properties.VariableNames{8} = 'Picos Aceleracion';
+                tabla2.Properties.VariableNames{2} = 'Promedio consumo';
+                tabla2.Properties.VariableNames{3} = 'Velocidad';
+                tabla2.Properties.VariableNames{4} = 'Hora Inicio';
+                tabla2.Properties.VariableNames{5} = 'Hora Fin';
+                tabla2.Properties.VariableNames{6} = 'Codigo conductor';
+                tabla2.Properties.VariableNames{7} = 'Sexo';
+                tabla2.Properties.VariableNames{8} = 'Aceleracion';
+                tabla2.Properties.VariableNames{9} = 'Picos Aceleracion';
 
 
-                % Asigna este cell array a la estructura
+                 % Asigna este cell array a la estructura
                 datosReorganizados.(bus).vuelta.(fecha) = tabla2;
 
                 datosReorganizados.(bus).vuelta.General = [datosReorganizados.(bus).vuelta.General; datosReorganizados.(bus).vuelta.(fecha)];
@@ -714,6 +753,16 @@ end
                 
                 datosReorganizados.(bus).vuelta.horaValle = [datosReorganizados.(bus).vuelta.horaValle; datosReorganizados.(bus).vuelta.(fecha)(indicesValle, :)];
 
+                datosReorganizados.(bus).vuelta.horaLibre = [datosReorganizados.(bus).vuelta.horaLibre; datosReorganizados.(bus).vuelta.(fecha)(indicesFlujoLibre, :)];
+                
+
+catch ME
+    % Manejo de errores con un mensaje descriptivo
+    fprintf('Error al crear y configurar la tabla: %s\n', ME.message);
+end
+
+
+               
             
             
             end
@@ -721,8 +770,410 @@ end
     end
 end
         
+%%
+
+function datosReorganizados = reorganizarDatosRutas(datosBuses)
+    % Inicializar la nueva estructura
+    datosReorganizados = struct();
+    
+    % Obtener todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    
+    % Iterar sobre cada fecha para acceder a los datos de cada bus
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        buses = fieldnames(datosBuses.(fecha));
         
+        % Iterar sobre cada bus en la fecha dada
+        for j = 1:numel(buses)
+            bus = buses{j};
+
+            % Asegurarse de que cada bus sea una estructura y contenga las rutas de ida y vuelta
+            if isstruct(datosBuses.(fecha).(bus)) && isfield(datosBuses.(fecha).(bus), 'tiempoRuta')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                
+                % Iterar sobre cada entrada en tiempoRuta
+                for k = 1:size(tiempoRuta, 1)
+                    ruta = tiempoRuta{k, 4}; % Nombre de la ruta
+                    datos = tiempoRuta(k, :); % Datos de la fila actual
+                    
+                    % Inicializar la estructura para la ruta si no existe
+                    if ~isfield(datosReorganizados, ruta)
+                        datosReorganizados.(ruta) = struct('ida', [], 'vuelta', []);
+                    end
+                    
+                    % Determinar si es ida o vuelta (suponiendo que esto está determinado por alguna lógica específica)
+
+
+                    
+
+                        if ~isfield(datosReorganizados.(ruta), 'ida')
+                            datosReorganizados.(ruta).ida = struct();
+                        end
+                        if ~isfield(datosReorganizados.(ruta).ida, 'General')
+                            datosReorganizados.(ruta).ida.General = [];  % Asegura que el campo General esté inicializado.
+                        end
+                        % Inicializar campos de hora pico y hora valle si no existen
+                        if ~isfield(datosReorganizados.(ruta).ida, 'horaPico')
+                            datosReorganizados.(ruta).ida.horaPico = [];  % Asegura que el campo horaPico esté inicializado.
+                        end
+                        if ~isfield(datosReorganizados.(ruta).ida, 'horaValle')
+                            datosReorganizados.(ruta).ida.horaValle = [];  % Asegura que el campo horaValle esté inicializado.
+                        end
+                        if ~isfield(datosReorganizados.(ruta).ida, 'horaLibre')
+                            datosReorganizados.(ruta).ida.horaLibre = [];  % Asegura que el campo horaValle esté inicializado.
+                        end
+
+
+
+                        try
+ 
+                            
+    tabla1 = table(...
+    datosBuses.(fecha).(bus).PromediosIda(k), ...
+    datosBuses.(fecha).(bus).PromediosConsumoIda(k), ...
+    datosBuses.(fecha).(bus).velocidadRuta(k, 1), ...
+    datosBuses.(fecha).(bus).tiempoRuta(k, 1), ...
+    datosBuses.(fecha).(bus).tiempoRuta(k, 2), ...
+    datosBuses.(fecha).(bus).codigoConductor(k, :).IDConductor, ...
+    datosBuses.(fecha).(bus).codigoConductor(k, :).Sexo, ...
+    datosBuses.(fecha).(bus).aceleracionRuta(k, 1), ...
+    datosBuses.(fecha).(bus).picosAceleracion(k, 1), ...
+    datosBuses.(fecha).(bus).segmentoEV1(k, 1), ...
+    datosBuses.(fecha).(bus).segmentoEV2(k, 1), ...
+    datosBuses.(fecha).(bus).segmentoEV8(k, 1), ...
+    datosBuses.(fecha).(bus).segmentoEV18(k, 1), ...
+    datosBuses.(fecha).(bus).segmentoEV19_1(k, 1), ...
+    datosBuses.(fecha).(bus).segmentoEV19_2(k, 1), ...
+    datosBuses.(fecha).(bus).segmentoEV19_3(k, 1), ...
+    datosBuses.(fecha).(bus).segmentoEV19_4(k, 1), ...
+    'VariableNames', {'PromedioVelocidad', 'PromedioConsumo', 'Velocidad', 'HoraInicio', 'HoraFin', ...
+                      'CodigoConductor', 'Sexo', 'Aceleracion', 'PicosAceleracion', 'EventoUno', 'EventoDos', ...
+                      'EventoOcho', 'EventoDieciocho', 'EventoMicrosueño', 'EventoFumando', 'EventoCelular', 'EventoDistraido'});
+
+
+                % Asigna este cell array a la estructura
+                if ~isfield(datosReorganizados.(ruta).ida, fecha)
+                    datosReorganizados.(ruta).ida.(fecha) = tabla1;
+                else
+                    %ImportarDatos.compareTables(datosReorganizados.(ruta).ida.(fecha), tabla1)
+                    datosReorganizados.(ruta).ida.(fecha) = vertcat(datosReorganizados.(ruta).ida.(fecha), tabla1);
+
+                end
+                
+                datosReorganizados.(ruta).ida.General = [datosReorganizados.(ruta).ida.General; tabla1];
+
+
+                horaInicioPico1 = 5.5;   % Hora de inicio del primer rango de hora pico
+                horaFinPico1 = 6.5;      % Hora de fin del primer rango de hora pico
+                
+                horaInicioPico2 = 17;    % Hora de inicio del segundo rango de hora pico (5 PM)
+                horaFinPico2 = 18;       % Hora de fin del segundo rango de hora pico (6 PM)
+                
+                horaInicioFlujoLibre1 = 1;  % Hora de inicio del primer rango de hora de flujo libre
+                horaFinFlujoLibre1 = 5;     % Hora de fin del primer rango de hora de flujo libre
+                
+                horaInicioFlujoLibre2 = 21;  % Hora de inicio del segundo rango de hora de flujo libre
+                horaFinFlujoLibre2 = 23;     % Hora de fin del segundo rango de hora de flujo libre
+
+
+                % Calcular horas de inicio y fin en formato decimal
+                horasInicio = hour(datetime([datosBuses.(fecha).(bus).tiempoRuta{k, 1}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) + ...
+                              (minute(datetime([datosBuses.(fecha).(bus).tiempoRuta{k, 1}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) / 60);
+                horasFin = hour(datetime([datosBuses.(fecha).(bus).tiempoRuta{k, 2}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) + ...
+                           (minute(datetime([datosBuses.(fecha).(bus).tiempoRuta{k, 2}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) / 60);
+                
+              % Crear un vector con intervalos de tiempo desde horasInicio hasta horasFin
+                intervalosTiempo = arrayfun(@(inicio, fin) linspace(inicio, fin, 100), horasInicio, horasFin, 'UniformOutput', false);
+                
+                % Inicializar índices
+                indicesPico = false(size(horasInicio));
+                indicesFlujoLibre = false(size(horasInicio));
+                
+                % Verificar si alguno de los puntos en los intervalos está en las horas pico o flujo libre
+                for i = 1:length(intervalosTiempo)
+                    intervalo = intervalosTiempo{i};
+                    % Verificar para los intervalos de hora pico
+                    if any((intervalo >= horaInicioPico1 & intervalo <= horaFinPico1)) || ...
+                       any((intervalo >= horaInicioPico2 & intervalo <= horaFinPico2))
+                        indicesPico(i) = true;
+                    % Verificar para los intervalos de hora de flujo libre
+                    elseif any((intervalo >= horaInicioFlujoLibre1 & intervalo <= horaFinFlujoLibre1)) || ...
+                           any((intervalo >= horaInicioFlujoLibre2 & intervalo <= horaFinFlujoLibre2))
+                        indicesFlujoLibre(i) = true;
+                    end
+                end
+
+                % Los índices restantes son hora valle
+                indicesValle = ~(indicesPico | indicesFlujoLibre);
+                
+                % Reorganizar los datos en las categorías correspondientes
+                % Si hay índices válidos para horaPico, agregar los datos correspondientes
+if any(indicesPico)
+    datosReorganizados.(ruta).ida.horaPico = [datosReorganizados.(ruta).ida.horaPico; datosReorganizados.(ruta).ida.(fecha)(k, :)];
+end
+
+if any(indicesFlujoLibre)
+    datosReorganizados.(ruta).ida.horaLibre = [datosReorganizados.(ruta).ida.horaLibre; datosReorganizados.(ruta).ida.(fecha)(k, :)];
+end
+
+if any(indicesValle)
+    datosReorganizados.(ruta).ida.horaValle = [datosReorganizados.(ruta).ida.horaValle; datosReorganizados.(ruta).ida.(fecha)(k, :)];
+end
+
+
+
+
+
+catch ME
+    % Manejo de errores con un mensaje descriptivo
+    fprintf('Error al crear y configurar la tabla: %s\n', ME.message);
+    fprintf('Error ID: %s\n', ME.identifier);
+    fprintf('Error Stack:\n');
+    for k = 1:length(ME.stack)
+        fprintf('    En %s (línea %d)\n', ME.stack(k).file, ME.stack(k).line);
+    end
+end
+
+
+
+
+try
+
+
+
+    % Reorganizar los datos para la ruta de vuelta
+                if ~isfield(datosReorganizados.(ruta), 'vuelta')
+                    datosReorganizados.(ruta).vuelta = struct();
+                end
+
+                if ~isfield(datosReorganizados.(ruta).vuelta, 'General')
+                    datosReorganizados.(ruta).vuelta.General = [];  % Asegura que el campo General esté inicializado.
+                end
+                % Inicializar campos de hora pico y hora valle si no existen
+                if ~isfield(datosReorganizados.(ruta).vuelta, 'horaPico')
+                    datosReorganizados.(ruta).vuelta.horaPico = [];  % Asegura que el campo horaPico esté inicializado.
+                end
+                if ~isfield(datosReorganizados.(ruta).vuelta, 'horaValle')
+                    datosReorganizados.(ruta).vuelta.horaValle = [];  % Asegura que el campo horaValle esté inicializado.
+                end
+                if ~isfield(datosReorganizados.(ruta).vuelta, 'horaLibre')
+                    datosReorganizados.(ruta).vuelta.horaLibre = [];  % Asegura que el campo horaValle esté inicializado.
+                end
+
+
+
+                tabla2 = table(...
+    datosBuses.(fecha).(bus).PromediosVuelta(k), ...
+    datosBuses.(fecha).(bus).PromediosConsumoVuelta(k), ...
+    datosBuses.(fecha).(bus).velocidadRuta(k, 2), ...
+    datosBuses.(fecha).(bus).tiempoRuta(k, 2), ...
+    datosBuses.(fecha).(bus).tiempoRuta(k, 3), ...
+    datosBuses.(fecha).(bus).codigoConductor(k, :).IDConductor, ...
+    datosBuses.(fecha).(bus).codigoConductor(k, :).Sexo, ...
+    datosBuses.(fecha).(bus).aceleracionRuta(k, 2), ...
+    datosBuses.(fecha).(bus).picosAceleracion(k, 2), ...
+    datosBuses.(fecha).(bus).segmentoEV1(k, 2), ...
+    datosBuses.(fecha).(bus).segmentoEV2(k, 2), ...
+    datosBuses.(fecha).(bus).segmentoEV8(k, 2), ...
+    datosBuses.(fecha).(bus).segmentoEV18(k, 2), ...
+    datosBuses.(fecha).(bus).segmentoEV19_1(k, 2), ...
+    datosBuses.(fecha).(bus).segmentoEV19_2(k, 2), ...
+    datosBuses.(fecha).(bus).segmentoEV19_3(k, 2), ...
+    datosBuses.(fecha).(bus).segmentoEV19_4(k, 2), ...
+    'VariableNames', {'PromedioVelocidad', 'PromedioConsumo', 'Velocidad', 'HoraInicio', 'HoraFin', ...
+                      'CodigoConductor', 'Sexo', 'Aceleracion', 'PicosAceleracion', 'EventoUno', 'EventoDos', ...
+                      'EventoOcho', 'EventoDieciocho', 'EventoMicrosueño', 'EventoFumando', 'EventoCelular', 'EventoDistraido'});
+
+
+
+                if ~isfield(datosReorganizados.(ruta).vuelta, fecha)
+                    datosReorganizados.(ruta).vuelta.(fecha) = tabla2;
+                else
+                    %ImportarDatos.compareTables(datosReorganizados.(ruta).ida.(fecha), tabla1)
+                    datosReorganizados.(ruta).vuelta.(fecha) = vertcat(datosReorganizados.(ruta).vuelta.(fecha), tabla2);
+
+                end
+                
+                datosReorganizados.(ruta).vuelta.General = [datosReorganizados.(ruta).vuelta.General; tabla2];
+
+
+
+
+
+                 % Calcular horas de inicio y fin en formato decimal
+                horasInicio = hour(datetime([datosBuses.(fecha).(bus).tiempoRuta{k, 2}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) + ...
+                              (minute(datetime([datosBuses.(fecha).(bus).tiempoRuta{k, 2}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) / 60);
+                horasFin = hour(datetime([datosBuses.(fecha).(bus).tiempoRuta{k, 3}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) + ...
+                           (minute(datetime([datosBuses.(fecha).(bus).tiempoRuta{k, 3}], 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) / 60);
+                
+              % Crear un vector con intervalos de tiempo desde horasInicio hasta horasFin
+                intervalosTiempo = arrayfun(@(inicio, fin) linspace(inicio, fin, 100), horasInicio, horasFin, 'UniformOutput', false);
+                
+                % Inicializar índices
+                indicesPico = false(size(horasInicio));
+                indicesFlujoLibre = false(size(horasInicio));
+                
+                % Verificar si alguno de los puntos en los intervalos está en las horas pico o flujo libre
+                for i = 1:length(intervalosTiempo)
+                    intervalo = intervalosTiempo{i};
+                    % Verificar para los intervalos de hora pico
+                    if any((intervalo >= horaInicioPico1 & intervalo <= horaFinPico1)) || ...
+                       any((intervalo >= horaInicioPico2 & intervalo <= horaFinPico2))
+                        indicesPico(i) = true;
+                    % Verificar para los intervalos de hora de flujo libre
+                    elseif any((intervalo >= horaInicioFlujoLibre1 & intervalo <= horaFinFlujoLibre1)) || ...
+                           any((intervalo >= horaInicioFlujoLibre2 & intervalo <= horaFinFlujoLibre2))
+                        indicesFlujoLibre(i) = true;
+                    end
+                end
+
+                % Los índices restantes son hora valle
+                indicesValle = ~(indicesPico | indicesFlujoLibre);
+                
+                % Reorganizar los datos en las categorías correspondientes
+                % Si hay índices válidos para horaPico, agregar los datos correspondientes
+if any(indicesPico)
+    if isempty(datosReorganizados.(ruta).vuelta.horaPico)
+        datosReorganizados.(ruta).vuelta.horaPico = datosReorganizados.(ruta).vuelta.(fecha)(indicesPico, k);
+    else
+        datosReorganizados.(ruta).vuelta.horaPico = [datosReorganizados.(ruta).vuelta.horaPico; datosReorganizados.(ruta).vuelta.(fecha)(indicesPico, :)];
+    end
+end
+
+% Si hay índices válidos para horaLibre, agregar los datos correspondientes
+if any(indicesFlujoLibre)
+    if isempty(datosReorganizados.(ruta).vuelta.horaLibre)
+        datosReorganizados.(ruta).vuelta.horaLibre = datosReorganizados.(ruta).vuelta.(fecha)(indicesFlujoLibre, k);
+    else
+        datosReorganizados.(ruta).vuelta.horaLibre = [datosReorganizados.(ruta).vuelta.horaLibre; datosReorganizados.(ruta).vuelta.(fecha)(indicesFlujoLibre, :)];
+    end
+end
+
+% Si hay índices válidos para horaValle, agregar los datos correspondientes
+if any(indicesValle)
+    if isempty(datosReorganizados.(ruta).vuelta.horaValle)
+        datosReorganizados.(ruta).vuelta.horaValle = datosReorganizados.(ruta).vuelta.(fecha)(indicesValle, k);
+    else
+        datosReorganizados.(ruta).vuelta.horaValle = [datosReorganizados.(ruta).vuelta.horaValle; datosReorganizados.(ruta).vuelta.(fecha)(indicesValle, :)];
+    end
+end
+
+
+
+catch ME
+    % Manejo de errores con un mensaje descriptivo
+    fprintf('Error al crear y configurar la tabla: %s\n', ME.message);
+end
+
+
+
+
+                end
+
+                end
+        end
+    end
+end
+
+function [indicesPico, indicesValle, indicesLibre] = clasificarHoras(datos)
+    % Define los rangos de horas pico y flujo libre
+    horaInicioPico1 = 5.5;   % Hora de inicio del primer rango de hora pico
+    horaFinPico1 = 6.5;      % Hora de fin del primer rango de hora pico
+    horaInicioPico2 = 17;    % Hora de inicio del segundo rango de hora pico (5 PM)
+    horaFinPico2 = 18;       % Hora de fin del segundo rango de hora pico (6 PM)
+    horaInicioFlujoLibre1 = 1;  % Hora de inicio del primer rango de hora de flujo libre
+    horaFinFlujoLibre1 = 5;     % Hora de fin del primer rango de hora de flujo libre
+    horaInicioFlujoLibre2 = 21;  % Hora de inicio del segundo rango de hora de flujo libre
+    horaFinFlujoLibre2 = 23;     % Hora de fin del segundo rango de hora de flujo libre
+
+    % Calcular horas de inicio y fin en formato decimal
+    horasInicio = hour(datetime(datos{:, 1}, 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) + ...
+                  (minute(datetime(datos{:, 1}, 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) / 60);
+    horasFin = hour(datetime(datos{:, 3}, 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) + ...
+               (minute(datetime(datos{:, 3}, 'InputFormat', 'dd-MMM-yyyy HH:mm:ss')) / 60);
+
+    % Crear un vector con intervalos de tiempo desde horasInicio hasta horasFin
+    intervalosTiempo = arrayfun(@(inicio, fin) linspace(inicio, fin, 100), horasInicio, horasFin, 'UniformOutput', false);
+
+    % Inicializar índices
+    indicesPico = false(size(horasInicio));
+    indicesValle = false(size(horasInicio));
+    indicesLibre = false(size(horasInicio));
+
+    % Verificar si alguno de los puntos en los intervalos está en las horas pico o flujo libre
+    for i = 1:length(intervalosTiempo)
+        intervalo = intervalosTiempo{i};
+        % Verificar para los intervalos de hora pico
+        if any((intervalo >= horaInicioPico1 & intervalo <= horaFinPico1)) || ...
+           any((intervalo >= horaInicioPico2 & intervalo <= horaFinPico2))
+            indicesPico(i) = true;
+        % Verificar para los intervalos de hora de flujo libre
+        elseif any((intervalo >= horaInicioFlujoLibre1 & intervalo <= horaFinFlujoLibre1)) || ...
+               any((intervalo >= horaInicioFlujoLibre2 & intervalo <= horaFinFlujoLibre2))
+            indicesLibre(i) = true;
+        else
+            indicesValle(i) = true;
+        end
+    end
+end
+
+function esIda = isIda(datos)
+    % Implementa la lógica para determinar si los datos corresponden a ida o vuelta
+    % Aquí puedes basarte en algún criterio específico, como la comparación de coordenadas.
+    % Por ejemplo:
+    % esIda = true si la ruta es de ida y false si es de vuelta.
+    % Puedes cambiar la lógica según tus necesidades.
+    esIda = true; % Placeholder, ajusta según tu lógica
+end
+
         
+% Función para comparar dos tablas y encontrar diferencias
+function compareTables(tabla1, tabla2)
+    % Verificar si tienen el mismo número de columnas
+    if width(tabla1) ~= width(tabla2)
+        fprintf('Diferente número de columnas: tabla1 tiene %d, tabla2 tiene %d.\n', width(tabla1), width(tabla2));
+        return;
+    end
+
+    % Verificar si tienen los mismos nombres de columnas
+    nombres1 = tabla1.Properties.VariableNames;
+    nombres2 = tabla2.Properties.VariableNames;
+    if ~isequal(nombres1, nombres2)
+        fprintf('Los nombres de las columnas son diferentes.\n');
+        disp('Nombres en tabla1:');
+        disp(nombres1);
+        disp('Nombres en tabla2:');
+        disp(nombres2);
+        return;
+    end
+
+    % Verificar si tienen el mismo tipo de datos en cada columna
+    for i = 1:width(tabla1)
+        tipo1 = class(tabla1{:, i});
+        tipo2 = class(tabla2{:, i});
+        if ~strcmp(tipo1, tipo2)
+            fprintf('Diferente tipo de datos en la columna %s: tabla1 tiene %s, tabla2 tiene %s.\n', nombres1{i}, tipo1, tipo2);
+        end
+    end
+
+    % Verificar diferencias en el contenido de las tablas
+    diferencia = find(~ismember(table2cell(tabla1), table2cell(tabla2)));
+    if isempty(diferencia)
+        disp('Las tablas son iguales en contenido.');
+    else
+        disp('Las tablas tienen diferencias en contenido.');
+        % Mostrar diferencias específicas
+        [fila, columna] = ind2sub(size(tabla1), diferencia);
+        for idx = 1:length(diferencia)
+            fprintf('Diferencia en fila %d, columna %s: tabla1 tiene %s, tabla2 tiene %s.\n', ...
+                fila(idx), nombres1{columna(idx)}, tabla1{fila(idx), columna(idx)}, tabla2{fila(idx), columna(idx)});
+        end
+    end
+end       
+
+
+
         
     end
 end
