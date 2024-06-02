@@ -16,23 +16,86 @@ Vuelta4020 = [4.6096941, -74.0738544];
 Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
+%% KNN
+
+% X es una matriz donde cada fila es una observación y cada columna una característica
+% Y es un vector de etiquetas de clase correspondientes a cada observación
+%se dividen los datos en xtrain ytrain, xtest ytest 
+
+%yo opino que como hay pocos hombres hacerlo con 80-20
+
+%la funcion para el knn es, "fitcknn"
+numNeighbors = 5;%vecinos  
+nuestroKnn=fitcknn((XTrain, YTrain, 'NumNeighbors', numNeighbors);
+%ahi ya esa vaina ya se entrena entonces ahora
+
+prediccion=predict(knnModel, XTest);
+
+%ya ahi predice pero ahora pa evaluar el modelo dice que hay algo que se
+%llama matriz de confusión
+confusionMat = confusionmat(YTest, YPred);
+
+%y pa la precision se usa como un promedio 
+accuracy = sum(diag(confusionMat)) / sum(confusionMat(:));
+%seria evaluar los accuracy de cada intento , es decir con horas ,sin horas
+%con sin pca 
+
+
+%ahora el pca es 
+[coeff, score, ~, ~, explained] = pca(XTrain);
+%coef devuelve los coeficientes de componentes principales, también conocidos como cargas
+%score puntuaciones de los componentes principales
+%el tercero es la desviaciones de los componentes principales en .scorelatent
+%el cuarto la estadística T cuadrada del Hotelling para cada observación en .X
+% explained el porcentaje de la varianza total explicado por cada componente principal y 
+% tambien puede devolver la media como quinto parametro
+
+
+% Elegir el número de componentes principales que explican al menos el 95% de la varianza
+explainedVariance = 0.95;%siempre se hace el 95, o 90 pero yo creo que mejor 95
+numComponents = find(cumsum(explained) >= explainedVariance * 100, 1);
+
+% Transformar los datos de entrenamiento y prueba usando los componentes principales
+XTrainPCA = score(:, 1:numComponents);
+XTestPCA = XTest * coeff(:, 1:numComponents);
+% en la documentacion de pc hay algp que se llama biplot, ahi se puede ver
+% como.... como la importancia que tiene cada caracteristica de forma mas
+% visible, yo diria usar scatter3 y quitar alguna variable, la que nos diga
+% el pca que tiene menos importancia
+
+
+
 %% importar solo un dato
-Sensor=ImportarDatos.Sensor('Datos\2024-04-22\4104');
+Sensor=ImportarDatos.Sensor('Datos\2024-04-18\4104');
 datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
+% fechaInicio="2024-04-23 6:39:00.434";
+%  fechaFin="2024-04-23 7:50:00.434";
+% r=Calculos.riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin);
+
 tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
 T=size(tiempoR);
-Ccurvas1=Calculos.Lcurvasida4020();
-Ccurvas2=Calculos.LcurvasVuelta4020();
-Ccurvas3=Calculos.Lcurvasida4104();
-Ccurvas=Calculos.LcurvasVuelta4104();
-for i=1:T(1)
-array2(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
-end
+
+% Ccurvas1=Calculos.Lcurvasida4020();
+% Ccurvas2=Calculos.LcurvasVuelta4020();
+% Ccurvas3=Calculos.Lcurvasida4104();
+% Ccurvas=Calculos.LcurvasVuelta4104();
+% for i=1:T(1)
+% array2(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
+% end
 % for i=1:T(1)
 %     m{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,1},tiempoR{i,2},'r','ida','ida');
 %     m2{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},'b','vuelta','vuelta');
 %     
 % end
+%%
+m=Map.Ruta(datosCordenadasSensor,tiempoR{1,1},tiempoR{1,2},'r','ida','ida');
+hold on
+marcador=Pcurvas.s4104_1.ida{1,1};
+marcador2=Pcurvas.s4104_1.ida{1,2};
+geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
+geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
+            
+%     
 
 %%
 nombres = fieldnames(datosBuses);
@@ -54,14 +117,15 @@ for i = 1:5
 end
 
 
+
 %%
 nombres = fieldnames(datosBuses);
 narray = 1;
-for i=1:5
+for i=6:10
     Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
-    data=datosBuses.(Na).bus_4104.EV19;
-    tiempos=datosBuses.(Na).bus_4104.tiempoRuta;
-    Ti = size(datosBuses.(Na).bus_4104.tiempoRuta);
+    data=datosBuses.(Na).bus_4020.EV1;
+    tiempos=datosBuses.(Na).bus_4020.tiempoRuta;
+    Ti = size(datosBuses.(Na).bus_4020.tiempoRuta);
     for j=1:Ti(1)
         fechaInicio= tiempos{j, 1};
         fechaFin=tiempos{j, 3};
@@ -73,24 +137,24 @@ for i=1:5
                 fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
             end
         Filtrados =data(data.fechaHoraLecturaDato >= fechaInicio & data.fechaHoraLecturaDato <= fechaFin, :);%se filtran por fecha
-        F1 = Filtrados(Filtrados.codigoComportamientoAnomalo == '1', :);
-F2 = Filtrados(Filtrados.codigoComportamientoAnomalo == '2', :);
-F3 = Filtrados(Filtrados.codigoComportamientoAnomalo == '3', :);
-F4 = Filtrados(Filtrados.codigoComportamientoAnomalo == '4', :);
+%         F1 = Filtrados(Filtrados.codigoComportamientoAnomalo == '1', :);
+% F2 = Filtrados(Filtrados.codigoComportamientoAnomalo == '2', :);
+% F3 = Filtrados(Filtrados.codigoComportamientoAnomalo == '3', :);
+% F4 = Filtrados(Filtrados.codigoComportamientoAnomalo == '4', :);
 
-        Evento18=size(F1);
+        Evento18=size(Filtrados);
             
-            E1(1,narray)=Evento18(1);
-            Evento18=size(F2);
-            
-            E2(1,narray)=Evento18(1);
-            
-            Evento18=size(F3);
-            
-            E3(1,narray)=Evento18(1);
-            Evento18=size(F4);
-            
-            E4(1,narray)=Evento18(1);
+             E1(1,narray)=Evento18(1);
+%             Evento18=size(F2);
+%             
+%             E2(1,narray)=Evento18(1);
+%             
+%             Evento18=size(F3);
+%             
+%             E3(1,narray)=Evento18(1);
+%             Evento18=size(F4);
+%             
+%             E4(1,narray)=Evento18(1);
             
 %             E(:,narray)=sum(Filtrados.estadoAperturaCierrePuertas);
             
@@ -588,6 +652,13 @@ HoraFinal  = '2024-04-23 6sae:40:00.434';
 %mis = Map.Ruta(datosCordenadasSensor, HoraInicio, HoraFinal, 'b-',"titulo","ruta");
 a=Calculos.riesgoCurva(datosCordenadasSensor, HoraInicio, HoraFinal);
 %mis = Map.Ruta(datosCordenadasSensor, HoraFinal, '2024-04-22 6:20:45.434','r-', mis)
+
+%%
+d=datosBuses.f_2024_04_22.bus_4104.datosSensor;
+t1=datosBuses.f_2024_04_22.bus_4104.tiempoRuta{1, 1};
+t2=datosBuses.f_2024_04_22.bus_4104.tiempoRuta{1, 2};
+map=Map.Ruta(d,t1,t2,'b-',"titulo4020 semana 1","ruta");
+
 
 %%
 
