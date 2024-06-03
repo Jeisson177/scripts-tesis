@@ -254,6 +254,11 @@ end
     return;
 end
 
+
+%%
+
+
+
 %%
 
 function datosBuses = calcularPromedioConsumoRutas(datosBuses)
@@ -792,6 +797,7 @@ end
 
 
 function datosBuses = calcularPorcentajeBateriaRutas(datosBuses)
+
     % Esta función calcula el porcentaje de batería para las rutas de cada bus en cada fecha
     % basándose en los tiempos de ruta y los datos del sensor.
     
@@ -834,6 +840,72 @@ function datosBuses = calcularPorcentajeBateriaRutas(datosBuses)
 
     return;
 end
+
+
+%%
+
+function datosBuses = calcularPromedioVelocidadRutas2(datosBuses)
+
+    % Definir segmentos para las rutas
+    Rutas.Ruta4104.Ida = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
+    Rutas.Ruta4104.Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
+    
+    Rutas.Ruta4020.Ida = [2.3, 8.1, 11.9, 12.9, 14.8, 19.25];
+    Rutas.Ruta4020.Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
+    
+    % Segments for week 2 to be added here
+    Rutas.RutaXXXX.Ida = [1 2];
+    Rutas.RutaXXXX.Vuelta = [1 2];
+
+    Rutas.RutaXXXX.Ida = [1 2];
+    Rutas.RutaXXXX.Vuelta = [1 2];
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
+
+                % Procesar cada ruta del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    fechaInicioIda = tiempoRuta{k, 1};
+                    fechaFinIda = tiempoRuta{k, 2};
+                    ruta = tiempoRuta{k, 4};  % Nombre de la ruta
+                    dataFiltradaIda = ImportarDatos.filtrarDatosPorFechas(datosSensor, fechaInicioIda, fechaFinIda);
+
+                    % Trayecto de vuelta
+                    fechaInicioVuelta = tiempoRuta{k, 2};
+                    fechaFinVuelta = tiempoRuta{k, 3};
+                    dataFiltradaVuelta = ImportarDatos.filtrarDatosPorFechas(datosSensor, fechaInicioVuelta, fechaFinVuelta);
+
+                    % Calcular y almacenar los promedios para ida y vuelta según la ruta
+                    if isfield(Rutas, ruta)
+                        PromediosIda = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltradaIda, Rutas.(ruta).Ida);
+                        PromediosVuelta = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltradaVuelta, Rutas.(ruta).Vuelta);
+
+                        % Almacenar los promedios en la estructura de datos
+                        datosBuses.(fecha).(bus).PromediosIda{k, 1} = PromediosIda;
+                        datosBuses.(fecha).(bus).PromediosVuelta{k, 1} = PromediosVuelta;
+                    else
+                        fprintf('Ruta %s no definida en la estructura de segmentos.\n', ruta);
+                    end
+                end
+            end
+        end
+    end
+    return;
+end
+
 
 %%
 

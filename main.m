@@ -26,7 +26,7 @@ Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %la funcion para el knn es, "fitcknn"
 numNeighbors = 5;%vecinos  
-nuestroKnn=fitcknn((XTrain, YTrain, 'NumNeighbors', numNeighbors);
+nuestroKnn=fitcknn(XTrain, YTrain, 'NumNeighbors', numNeighbors);
 %ahi ya esa vaina ya se entrena entonces ahora
 
 prediccion=predict(knnModel, XTest);
@@ -252,6 +252,10 @@ generarDatos(Buses.bus_4104.ida.horaValle.("Hora Inicio")(1), Buses.bus_4104.ida
 generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(3), Buses.bus_4020.ida.horaPico.("Hora Fin")(3), '4020', 'ida');
 %%
 generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(3), '4020', 'ida');
+
+%%
+
+
 
 
 
