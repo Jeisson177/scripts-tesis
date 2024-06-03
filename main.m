@@ -311,6 +311,44 @@ xlabel('Grupo');
 ylabel('Promedio velocidad');
 title('Boxplot de Promedio velocidad por Ruta');
 
+
+
+%%
+
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+
+        dhg = Rutas.(ruta).(trayecto).General;
+        dhg.("PromedioVelocidad")
+        m_dhg = (cell2mat(dhg.("PromedioVelocidad")')');
+        shg = dhg.Sexo;
+
+        tm = size(m_dhg);
+        for k = 1:tm(2)
+            sg = m_dhg(:, k);
+
+
+            min_val = min(sg)*0.9;
+            max_val = max(sg)*1.1;
+    
+            % Escalar los valores del segmento al rango [0, 1]
+            scaled_segment = (segmento - min_val) / (max_val - min_val);
+    
+            % Convertir los valores escalados a porcentajes
+            percentages(:, i) = scaled_segment * 100;
+
+
+        end
+
+    end
+
+end
+
 %% Graficar segmento
 
 % obtenemos los valores del segmento
@@ -325,12 +363,12 @@ for i = 1:numel(rutas)
         trayecto = trayectos{j};
 
         dhp = Rutas.(ruta).(trayecto).horaPico;
-        dhp.("PromedioVelocidad")
+        dhp.("PromedioConsumo")
         m_dhp = (cell2mat(dhp.("PromedioVelocidad")')');
         shp = dhp.Sexo;
 
         dhv = Rutas.(ruta).(trayecto).horaValle;
-        dhv.("PromedioVelocidad")
+        dhv.("PromedioConsumo")
         m_dhv = (cell2mat(dhv.("PromedioVelocidad")')');
         shv = dhv.Sexo;
 
@@ -414,6 +452,113 @@ for i = 1:numel(rutas)
         end
     end
 end
+
+
+%%
+
+
+% obtenemos los valores del segmento
+% hay que obtener una grafica para cada segmento la idea es recorrer cada
+% ruta, luego en todos los datos todos los segmento
+
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+        dhp = Rutas.(ruta).(trayecto).horaPico;
+        m_dhp = (cell2mat(dhp.("PromedioConsumo")')');
+        shp = dhp.Sexo;
+
+        dhv = Rutas.(ruta).(trayecto).horaValle;
+        m_dhv = (cell2mat(dhv.("PromedioConsumo")')');
+        shv = dhv.Sexo;
+
+        tm = size(m_dhv);
+        for k = 1:tm(2)
+            sv = m_dhv(:, k);
+            sp = m_dhp(:, k);
+
+            figure;
+
+            % Primer subplot para horaValle
+            subplot(2, 2, 1);
+            scatter(sv, zeros(1, length(sv)))
+            mu_sv = mean(sv);
+            sig_sv = var(sv);
+            y_sv = pdf('Normal', mu_sv-3*sig_sv:0.1:mu_sv+3*sig_sv, mu_sv, sig_sv);
+            hold on;
+            plot(mu_sv-3*sig_sv:0.1:mu_sv+3*sig_sv, y_sv)
+            title('Hora Valle');
+            xlabel('Promedio Consumo');
+            ylabel('Frecuencia');
+            hold off;
+
+            % Segundo subplot para horaPico
+            subplot(2, 2, 2);
+            scatter(sp, zeros(1, length(sp)))
+            mu_sp = mean(sp);
+            sig_sp = var(sp);
+            y_sp = pdf('Normal', mu_sp-3*sig_sp:0.1:mu_sp+3*sig_sp, mu_sp, sig_sp);
+            hold on;
+            plot(mu_sp-3*sig_sp:0.1:mu_sp+3*sig_sp, y_sp)
+            title('Hora Pico');
+            xlabel('Promedio Consumo');
+            ylabel('Frecuencia');
+            hold off;
+
+            % Subplot para hombres y mujeres en Hora Valle
+            subplot(2, 2, 3);
+            sv_hombres = sv(shv == 0);
+            sv_mujeres = sv(shv == 1);
+            scatter(sv_hombres, zeros(1, length(sv_hombres)), 'r', 'DisplayName', 'Hombres');
+            hold on;
+            scatter(sv_mujeres, zeros(1, length(sv_mujeres)), 'b', 'DisplayName', 'Mujeres');
+            mu_sv_hombres = mean(sv_hombres);
+            sig_sv_hombres = var(sv_hombres);
+            y_sv_hombres = pdf('Normal', mu_sv_hombres-3*sig_sv_hombres:0.1:mu_sv_hombres+3*sig_sv_hombres, mu_sv_hombres, sig_sv_hombres);
+            plot(mu_sv_hombres-3*sig_sv_hombres:0.1:mu_sv_hombres+3*sig_sv_hombres, y_sv_hombres, 'r')
+            mu_sv_mujeres = mean(sv_mujeres);
+            sig_sv_mujeres = var(sv_mujeres);
+            y_sv_mujeres = pdf('Normal', mu_sv_mujeres-3*sig_sv_mujeres:0.1:mu_sv_mujeres+3*sig_sv_mujeres, mu_sv_mujeres, sig_sv_mujeres);
+            plot(mu_sv_mujeres-3*sig_sv_mujeres:0.1:mu_sv_mujeres+3*sig_sv_mujeres, y_sv_mujeres, 'b')
+            title('Hora Valle - Hombres y Mujeres');
+            xlabel('Promedio Consumo');
+            ylabel('Frecuencia');
+            legend;
+            hold off;
+
+            % Subplot para hombres y mujeres en Hora Pico
+            subplot(2, 2, 4);
+            sp_hombres = sp(shp == 0);
+            sp_mujeres = sp(shp == 1);
+            scatter(sp_hombres, zeros(1, length(sp_hombres)), 'r', 'DisplayName', 'Hombres');
+            hold on;
+            scatter(sp_mujeres, zeros(1, length(sp_mujeres)), 'b', 'DisplayName', 'Mujeres');
+            mu_sp_hombres = mean(sp_hombres);
+            sig_sp_hombres = var(sp_hombres);
+            y_sp_hombres = pdf('Normal', mu_sp_hombres-3*sig_sp_hombres:0.1:mu_sp_hombres+3*sig_sp_hombres, mu_sp_hombres, sig_sp_hombres);
+            plot(mu_sp_hombres-3*sig_sp_hombres:0.1:mu_sp_hombres+3*sig_sp_hombres, y_sp_hombres, 'r')
+            mu_sp_mujeres = mean(sp_mujeres);
+            sig_sp_mujeres = var(sp_mujeres);
+            y_sp_mujeres = pdf('Normal', mu_sp_mujeres-3*sig_sp_mujeres:0.1:mu_sp_mujeres+3*sig_sp_mujeres, mu_sp_mujeres, sig_sp_mujeres);
+            plot(mu_sp_mujeres-3*sig_sp_mujeres:0.1:mu_sp_mujeres+3*sig_sp_mujeres, y_sp_mujeres, 'b')
+            title('Hora Pico - Hombres y Mujeres');
+            xlabel('Promedio Consumo');
+            ylabel('Frecuencia');
+            legend;
+            hold off;
+
+            % Añadir título general a la figura
+            sgtitle(sprintf('Ruta: %s, Segmento: %d', ruta, k));
+        end
+    end
+end
+
+
+
 
 %% Porcentaje
 
