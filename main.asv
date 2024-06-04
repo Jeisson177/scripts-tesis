@@ -205,6 +205,10 @@ datosBuses = Calculos.extraerP60(datosBuses);
 
 %%
 
+datosBuses = Calculos.extraerSegmentosDatos(datosBuses);
+
+%%
+
 datosBuses = Calculos.extraerEV1(datosBuses);
 
 %%
@@ -246,7 +250,7 @@ Rutas = ImportarDatos.reorganizarDatosRutas(datosBuses);
 
 %%
 
-generarDatos(Buses.bus_4104.ida.horaValle.("Hora Inicio")(1), Buses.bus_4104.ida.horaValle.("Hora Fin")(1), '4104', 'ida');
+generarDatos(Buses.bus_4104.ida.horaValle.("Hora Inicio")(1), Buses.bus_4104.ida.horaValle.("Hora Fin")(1), '4104', 'ida', Pcurvas);
 
 %%
 generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(3), Buses.bus_4020.ida.horaPico.("Hora Fin")(3), '4020', 'ida');
@@ -311,9 +315,11 @@ xlabel('Grupo');
 ylabel('Promedio velocidad');
 title('Boxplot de Promedio velocidad por Ruta');
 
-
-
 %%
+
+calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas);
+
+%% Calcula los porcentajes y los deja en la estructura
 
 rutas = fieldnames(Rutas);
 for i = 1:numel(rutas)
@@ -322,21 +328,417 @@ for i = 1:numel(rutas)
     for j = 1:numel(trayectos)
         trayecto = trayectos{j};
 
-
         dhg = Rutas.(ruta).(trayecto).General;
         dhg.("PromedioVelocidad")
-        m_dhg = (cell2mat(dhg.("PromedioVelocidad")')');
+        try
+            m_dhg = (cell2mat(dhg.("PromedioVelocidad")')');
+        catch ME
+            error = dhg;
+        end
         shg = dhg.Sexo;
 
         tm = size(m_dhg);
         for k = 1:tm(2)
             sg = m_dhg(:, k);
 
+            min_val = min(sg) * 0.9;
+            max_val = max(sg) * 1.1;
+
+            % Escalar los valores del segmento al rango [0, 1]
+            scaled_segment = (sg - min_val) / (max_val - min_val);
+
+            % Convertir los valores escalados a porcentajes
+            percentages = scaled_segment * 100;
+
+            % Inicializar la columna "PorcentajesVelocidad" si no existe
+            if ~ismember("PorcentajesVelocidad", Rutas.(ruta).(trayecto).General.Properties.VariableNames)
+                Rutas.(ruta).(trayecto).General.("PorcentajesVelocidad") = cell(height(Rutas.(ruta).(trayecto).General), 1);
+            end
+            
+            % Limpiar los datos existentes en la primera iteración del trayecto
+            if k == 1
+                for idx = 1:height(Rutas.(ruta).(trayecto).General)
+                    Rutas.(ruta).(trayecto).General.("PorcentajesVelocidad"){idx} = [];
+                end
+            end
+            
+            % Agregar el nuevo dato a cada cell array en la columna existente
+            for idx = 1:height(Rutas.(ruta).(trayecto).General)
+                Rutas.(ruta).(trayecto).General.("PorcentajesVelocidad"){idx} = [Rutas.(ruta).(trayecto).General.("PorcentajesVelocidad"){idx}, percentages(idx)];
+            end
         end
-
     end
-
 end
+%% Calcula los datos de riesgo curvas
+
+function Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas)
+    % Iterar sobre todas las rutas en la estructura
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        
+        % Iterar sobre todos los trayectos en la ruta actual
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+
+            % Obtener la tabla General del trayecto actual
+            generalTable = Rutas.(ruta).(trayecto).General;
+
+            % Obtener los datos relevantes del trayecto desde la tabla General
+            datosSensor = generalTable.DatosSensor;
+            fechaInicio = generalTable.HoraInicio;
+            fechaFinal = generalTable.HoraFin;
+            ida = Pcurvas.(ruta).(trayecto);
+
+            % Calcular el riesgo de curva para el trayecto actual
+            
+            % Recorrer los datos de DatosSensor y calcular el riesgo de curva para cada punto
+            for k = 1:size(datosSensor, 1)
+                % Calcular el riesgo de curva para el punto actual
+                riesgoCurva(k) = Calculos.riesgoCurva2(datosSensor{k}, fechaInicio, fechaFinal, ida);
+            end
+
+            % Almacenar el riesgo de curva en una nueva columna en la tabla General del trayecto
+            generalTable.riesgoCurva = riesgoCurva;
+
+            % Actualizar la tabla General en la estructura Rutas
+            Rutas.(ruta).(trayecto).General = generalTable;
+        end
+    end
+end
+
+%% Calcula los porcentajes del consumo
+
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+        dhg = Rutas.(ruta).(trayecto).General;
+        try
+            m_dhg = (cell2mat(dhg.("PromedioConsumo")')');
+        catch ME
+            error = dhg;
+        end
+        shg = dhg.Sexo;
+
+        tm = size(m_dhg);
+        for k = 1:tm(2)
+            sg = m_dhg(:, k);
+
+            min_val = min(sg) * 0.9;
+            max_val = max(sg) * 1.1;
+
+            % Escalar los valores del segmento al rango [0, 1]
+            scaled_segment = (sg - min_val) / (max_val - min_val);
+
+            % Convertir los valores escalados a porcentajes
+            percentages = scaled_segment * 100;
+
+            % Inicializar la columna "PorcentajesConsumo" si no existe
+            if ~ismember("PorcentajesConsumo", Rutas.(ruta).(trayecto).General.Properties.VariableNames)
+                Rutas.(ruta).(trayecto).General.("PorcentajesConsumo") = cell(height(Rutas.(ruta).(trayecto).General), 1);
+            end
+            
+            % Limpiar los datos existentes en la primera iteración del trayecto
+            if k == 1
+                for idx = 1:height(Rutas.(ruta).(trayecto).General)
+                    Rutas.(ruta).(trayecto).General.("PorcentajesConsumo"){idx} = [];
+                end
+            end
+            
+            % Agregar el nuevo dato a cada cell array en la columna existente
+            for idx = 1:height(Rutas.(ruta).(trayecto).General)
+                Rutas.(ruta).(trayecto).General.("PorcentajesConsumo"){idx} = [Rutas.(ruta).(trayecto).General.("PorcentajesConsumo"){idx}, percentages(idx)];
+            end
+        end
+    end
+end
+
+%% Grafica general de porcentajes
+
+promedioConductorH = [];
+promedioConductorM = [];
+
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+        dhg = Rutas.(ruta).(trayecto).General;
+        try
+            m_dhg = (cell2mat(dhg.("PorcentajesVelocidad"))');
+        catch ME
+            error = dhg;
+        end
+        shg = dhg.Sexo;
+
+        tm = size(m_dhg);
+        for k = 1:tm(2)
+            conductor = m_dhg(:, k);
+            
+            % Omitir datos NaN
+            conductor = conductor(~isnan(conductor));
+            
+            % Acumular los datos por sexo
+            if shg(k) == 0
+                promedioConductorH = [promedioConductorH; mean(conductor)];
+            else
+                promedioConductorM = [promedioConductorM; mean(conductor)];
+            end
+        end
+    end
+end
+
+% Omitir promedios NaN
+promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
+promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
+
+% Generar la gráfica acumulada
+figure;
+
+% Gráfica de promedios para hombres y mujeres en la misma figura
+scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
+hold on;
+scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
+
+% Calcular y graficar la distribución para hombres
+if ~isempty(promedioConductorH)
+    mu_h = mean(promedioConductorH);
+    sig_h = std(promedioConductorH);
+    x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+    y_h = pdf('Normal', x_h, mu_h, sig_h);
+    plot(x_h, y_h, 'r')
+end
+
+% Calcular y graficar la distribución para mujeres
+if ~isempty(promedioConductorM)
+    mu_m = mean(promedioConductorM);
+    sig_m = std(promedioConductorM);
+    x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
+    y_m = pdf('Normal', x_m, mu_m, sig_m);
+    plot(x_m, y_m, 'b')
+end
+
+title('Promedio Velocidad - Hombres y Mujeres');
+xlabel('Promedio de porcentajes por segmento de velocidad');
+ylabel('Frecuencia');
+legend;
+hold off;
+
+
+%% Debug hombres
+
+promedioConductorH = [];
+
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+        dhg = Rutas.(ruta).(trayecto).General;
+        try
+            m_dhg = (cell2mat(dhg.("PorcentajesVelocidad"))');
+        catch ME
+            error = dhg;
+        end
+        shg = dhg.Sexo;
+
+        tm = size(m_dhg);
+        for k = 1:tm(2)
+            conductor = m_dhg(:, k);
+            
+            % Acumular los datos por sexo, omitiendo NaN
+            if shg(k) == 0
+                promedioConductorH = [promedioConductorH; nanmean(conductor)];
+            end
+        end
+    end
+end
+
+% Generar la gráfica acumulada
+figure;
+
+% Calcular y graficar la distribución para hombres, omitiendo NaN
+if ~isempty(promedioConductorH)
+    mu_h = nanmean(promedioConductorH);
+    sig_h = nanstd(promedioConductorH);
+    x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+    y_h = pdf('Normal', x_h, mu_h, sig_h);
+    plot(x_h, y_h, 'r')
+end
+
+title('Distribución Normal - Hombres');
+xlabel('Promedio Velocidad');
+ylabel('Frecuencia');
+legend('Hombres');
+hold off;
+
+%% Grafica general consumo
+
+
+promedioConductorH = [];
+promedioConductorM = [];
+
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+        dhg = Rutas.(ruta).(trayecto).General;
+        try
+            m_dhg = (cell2mat(dhg.("PorcentajesConsumo"))');
+        catch ME
+            error = dhg;
+        end
+        shg = dhg.Sexo;
+
+        tm = size(m_dhg);
+        for k = 1:tm(2)
+            conductor = m_dhg(:, k);
+            
+            % Omitir datos NaN
+            conductor = conductor(~isnan(conductor));
+            
+            % Acumular los datos por sexo
+            if shg(k) == 0
+                promedioConductorH = [promedioConductorH; mean(conductor)];
+            else
+                promedioConductorM = [promedioConductorM; mean(conductor)];
+            end
+        end
+    end
+end
+
+% Omitir promedios NaN
+promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
+promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
+
+% Generar la gráfica acumulada
+figure;
+
+% Gráfica de promedios para hombres y mujeres en la misma figura
+scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
+hold on;
+scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
+
+% Calcular y graficar la distribución para hombres
+if ~isempty(promedioConductorH)
+    mu_h = mean(promedioConductorH);
+    sig_h = std(promedioConductorH);
+    x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+    y_h = pdf('Normal', x_h, mu_h, sig_h);
+    plot(x_h, y_h, 'r')
+end
+
+% Calcular y graficar la distribución para mujeres
+if ~isempty(promedioConductorM)
+    mu_m = mean(promedioConductorM);
+    sig_m = std(promedioConductorM);
+    x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
+    y_m = pdf('Normal', x_m, mu_m, sig_m);
+    plot(x_m, y_m, 'b')
+end
+
+title('Promedio Consumo - Hombres y Mujeres');
+xlabel('Promedio de porcentajes por segmento de consumo');
+ylabel('Frecuencia');
+legend;
+hold off;
+%%
+plotAceleracionPorSexo(Rutas)
+
+%% Grafica picos aceleracion
+
+function plotAceleracionPorSexo(Rutas)
+
+    % Definir colores para hombres y mujeres
+    colorHombres = 'r';
+    colorMujeres = 'b';
+    
+    % Inicializar arreglos para frecuencias y magnitudes
+    aceleracionHombres = [];
+    aceleracionMujeres = [];
+    frecuenciaHombres = [];
+    frecuenciaMujeres = [];
+    
+    % Definir los límites y el tamaño de los bins
+    binEdges = -5:0.1:5; % Por ejemplo, bins de 0.1 en el rango [-3, 3]
+    
+    % Iterar sobre todas las rutas y trayectos
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            
+            % Obtener la tabla General
+            dhg = Rutas.(ruta).(trayecto).General;
+            
+            % Verificar que existan las columnas necesarias
+            if ismember("Aceleracion", dhg.Properties.VariableNames) && ismember("Sexo", dhg.Properties.VariableNames)
+                aceleraciones = dhg.Aceleracion;
+                sexo = dhg.Sexo;
+                
+                % Calcular frecuencia y magnitud para cada aceleración
+                for k = 1:numel(aceleraciones)
+                    aceleracion = aceleraciones{k};
+                    if isempty(aceleracion)
+                        continue; % Omitir si no hay datos de aceleración
+                    end
+                    
+                    % Filtrar las aceleraciones en el rango -0.8 a 0.8
+                    aceleracion = aceleracion(aceleracion < -0.8 | aceleracion > 0.8);
+                    
+                    % Bin the accelerations
+                    [binCounts, binEdges] = histcounts(aceleracion, binEdges);
+                    binCenters = binEdges(1:end-1) + diff(binEdges)/2;
+                    
+                    for n = 1:numel(binCenters)
+                        if binCounts(n) > 0
+                            if sexo(k) == 0
+                                aceleracionHombres = [aceleracionHombres, binCenters(n)];
+                                frecuenciaHombres = [frecuenciaHombres, binCounts(n)];
+                            else
+                                aceleracionMujeres = [aceleracionMujeres, binCenters(n)];
+                                frecuenciaMujeres = [frecuenciaMujeres, binCounts(n)];
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    % Crear la figura
+    figure;
+    hold on;
+    
+    % Plotear puntos para hombres
+    scatter(frecuenciaHombres, aceleracionHombres, 'MarkerEdgeColor', colorHombres, 'DisplayName', 'Hombres');
+    
+    % Plotear puntos para mujeres
+    scatter(frecuenciaMujeres, aceleracionMujeres, 'MarkerEdgeColor', colorMujeres, 'DisplayName', 'Mujeres');
+    
+    % Configurar el título y etiquetas de los ejes
+    title('Frecuencia de Aceleraciones por Sexo');
+    xlabel('Frecuencia de Aceleración');
+    ylabel('Magnitud de Aceleración');
+    legend;
+    
+    hold off;
+end
+
 
 %% Graficar segmento
 
@@ -1017,7 +1419,7 @@ end
 
 %%
 
-function generarDatos(fechaInicio, fechaFinal, IDbus, Etiqueta)
+function generarDatos(fechaInicio, fechaFinal, IDbus, Etiqueta, Pcurvas)
 % Esta función organiza y visualiza datos de acuerdo con las especificaciones dadas.
 
 % Convertir las fechas de inicio y final a formato datetime
@@ -1127,13 +1529,13 @@ tituloGrafica = [Etiqueta sprintf(' Riesgo curvatura ') General];
 
 tituloGrafica = [Etiqueta sprintf(' Distancia vs velocidad y segmentos ') General];
 % Grafica de distancia vs velocidad
-Graficas.DistanciavsVelocidad3(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal,Ruta4020Ida,tituloGrafica);
+%Graficas.DistanciavsVelocidad3(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal,Ruta4020Ida,tituloGrafica);
 
 
 
-Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
+%Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
 
-
+curvao = Calculos.riesgoCurva2(datosCordenadasSensor, fechaInicio, fechaFinal, Pcurvas.s4104_1.ida);
 
 
 %Grafica de distancia vs energia

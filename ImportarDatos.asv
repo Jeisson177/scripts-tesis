@@ -847,9 +847,10 @@ function datosReorganizados = reorganizarDatosRutas(datosBuses)
     datosBuses.(fecha).(bus).segmentoEV19_2(k, 1), ...
     datosBuses.(fecha).(bus).segmentoEV19_3(k, 1), ...
     datosBuses.(fecha).(bus).segmentoEV19_4(k, 1), ...
+    datosBuses.(fecha).(bus).segmentosDatos(k, 1), ...
     'VariableNames', {'PromedioVelocidad', 'PromedioConsumo', 'Velocidad', 'HoraInicio', 'HoraFin', ...
                       'CodigoConductor', 'Sexo', 'Aceleracion', 'PicosAceleracion', 'EventoUno', 'EventoDos', ...
-                      'EventoOcho', 'EventoDieciocho', 'EventoMicrosueño', 'EventoFumando', 'EventoCelular', 'EventoDistraido'});
+                      'EventoOcho', 'EventoDieciocho', 'EventoMicrosueño', 'EventoFumando', 'EventoCelular', 'EventoDistraido', 'DatosSensor'});
 
 
                 % Asigna este cell array a la estructura
@@ -910,15 +911,15 @@ function datosReorganizados = reorganizarDatosRutas(datosBuses)
                 % Reorganizar los datos en las categorías correspondientes
                 % Si hay índices válidos para horaPico, agregar los datos correspondientes
 if any(indicesPico)
-    datosReorganizados.(ruta).ida.horaPico = [datosReorganizados.(ruta).ida.horaPico; datosReorganizados.(ruta).ida.(fecha)(k, :)];
+    datosReorganizados.(ruta).ida.horaPico = [datosReorganizados.(ruta).ida.horaPico; tabla1];
 end
 
 if any(indicesFlujoLibre)
-    datosReorganizados.(ruta).ida.horaLibre = [datosReorganizados.(ruta).ida.horaLibre; datosReorganizados.(ruta).ida.(fecha)(k, :)];
+    datosReorganizados.(ruta).ida.horaLibre = [datosReorganizados.(ruta).ida.horaLibre; tabla1];
 end
 
 if any(indicesValle)
-    datosReorganizados.(ruta).ida.horaValle = [datosReorganizados.(ruta).ida.horaValle; datosReorganizados.(ruta).ida.(fecha)(k, :)];
+    datosReorganizados.(ruta).ida.horaValle = [datosReorganizados.(ruta).ida.horaValle; tabla1];
 end
 
 
@@ -981,6 +982,7 @@ try
     datosBuses.(fecha).(bus).segmentoEV19_2(k, 2), ...
     datosBuses.(fecha).(bus).segmentoEV19_3(k, 2), ...
     datosBuses.(fecha).(bus).segmentoEV19_4(k, 2), ...
+    datosBuses.(fecha).(bus).segmentosDatos(k, 2), ...
     'VariableNames', {'PromedioVelocidad', 'PromedioConsumo', 'Velocidad', 'HoraInicio', 'HoraFin', ...
                       'CodigoConductor', 'Sexo', 'Aceleracion', 'PicosAceleracion', 'EventoUno', 'EventoDos', ...
                       'EventoOcho', 'EventoDieciocho', 'EventoMicrosueño', 'EventoFumando', 'EventoCelular', 'EventoDistraido'});
@@ -1034,30 +1036,17 @@ try
                 % Reorganizar los datos en las categorías correspondientes
                 % Si hay índices válidos para horaPico, agregar los datos correspondientes
 if any(indicesPico)
-    if isempty(datosReorganizados.(ruta).vuelta.horaPico)
-        datosReorganizados.(ruta).vuelta.horaPico = datosReorganizados.(ruta).vuelta.(fecha)(indicesPico, k);
-    else
-        datosReorganizados.(ruta).vuelta.horaPico = [datosReorganizados.(ruta).vuelta.horaPico; datosReorganizados.(ruta).vuelta.(fecha)(indicesPico, :)];
-    end
+    datosReorganizados.(ruta).vuelta.horaPico = [datosReorganizados.(ruta).vuelta.horaPico; tabla2];
 end
 
-% Si hay índices válidos para horaLibre, agregar los datos correspondientes
 if any(indicesFlujoLibre)
-    if isempty(datosReorganizados.(ruta).vuelta.horaLibre)
-        datosReorganizados.(ruta).vuelta.horaLibre = datosReorganizados.(ruta).vuelta.(fecha)(indicesFlujoLibre, k);
-    else
-        datosReorganizados.(ruta).vuelta.horaLibre = [datosReorganizados.(ruta).vuelta.horaLibre; datosReorganizados.(ruta).vuelta.(fecha)(indicesFlujoLibre, :)];
-    end
+    datosReorganizados.(ruta).vuelta.horaLibre = [datosReorganizados.(ruta).vuelta.horaLibre; tabla2];
 end
 
-% Si hay índices válidos para horaValle, agregar los datos correspondientes
 if any(indicesValle)
-    if isempty(datosReorganizados.(ruta).vuelta.horaValle)
-        datosReorganizados.(ruta).vuelta.horaValle = datosReorganizados.(ruta).vuelta.(fecha)(indicesValle, k);
-    else
-        datosReorganizados.(ruta).vuelta.horaValle = [datosReorganizados.(ruta).vuelta.horaValle; datosReorganizados.(ruta).vuelta.(fecha)(indicesValle, :)];
-    end
+    datosReorganizados.(ruta).vuelta.horaValle = [datosReorganizados.(ruta).vuelta.horaValle; tabla2];
 end
+
 
 
 

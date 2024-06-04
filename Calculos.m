@@ -1985,6 +1985,55 @@ function datosBuses = extraerP60(datosBuses)
     return;
 end
 
+
+%%
+
+function datosBuses = extraerSegmentosDatos(datosBuses)
+    % Esta función extrae segmentos de datosSensor para cada ruta de cada bus en cada fecha.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datosSensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
+                
+                % Calcular y almacenar los segmentos de datosSensor para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    segmentoDatosIda = ImportarDatos.filtrarDatosPorFechas(datosSensor, inicioIda, finIda);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    segmentoDatosVuelta = ImportarDatos.filtrarDatosPorFechas(datosSensor, inicioVuelta, finVuelta);
+                    
+                    % Almacenar los segmentos de datosSensor en la estructura de datos
+                    if ~isfield(datosBuses.(fecha).(bus), 'segmentosDatos')
+                        datosBuses.(fecha).(bus).segmentosDatos = cell(size(tiempoRuta, 1), 2);
+                    end
+                    datosBuses.(fecha).(bus).segmentosDatos{k, 1} = segmentoDatosIda;
+                    datosBuses.(fecha).(bus).segmentosDatos{k, 2} = segmentoDatosVuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+
+
 %%
 
 function datosBuses = extraerEV1(datosBuses)
