@@ -317,7 +317,7 @@ title('Boxplot de Promedio velocidad por Ruta');
 
 %%
 
-calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas);
+Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas);
 
 %% Calcula los porcentajes y los deja en la estructura
 
@@ -396,16 +396,17 @@ function Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas)
             % Recorrer los datos de DatosSensor y calcular el riesgo de curva para cada punto
             for k = 1:size(datosSensor, 1)
                 % Calcular el riesgo de curva para el punto actual
-                riesgoCurva(k) = Calculos.riesgoCurva2(datosSensor{k}, fechaInicio{k}, fechaFinal{k}, ida);
+                riesgoCurva = Calculos.riesgoCurva2(datosSensor{k}, fechaInicio{k}, fechaFinal{k}, ida);
+
+
+                % Actualizar la tabla General en la estructura Rutas
+                Rutas.(ruta).(trayecto).General.riesgoCurva(k) = {riesgoCurva};
             end
 
-            % Almacenar el riesgo de curva en una nueva columna en la tabla General del trayecto
-            generalTable.riesgoCurva = riesgoCurva;
 
-            % Actualizar la tabla General en la estructura Rutas
-            Rutas.(ruta).(trayecto).General = generalTable;
         end
     end
+    return;
 end
 
 %% Calcula los porcentajes del consumo
@@ -531,6 +532,78 @@ ylabel('Frecuencia');
 legend;
 hold off;
 
+%% Grafica general de riesgo curva
+
+promedioConductorH = [];
+promedioConductorM = [];
+
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+        dhg = Rutas.(ruta).(trayecto).General;
+        try
+            m_dhg = (cell2mat(dhg.("riesgoCurva")')');
+        catch ME
+            error = dhg;
+        end
+        shg = dhg.Sexo;
+
+        tm = size(m_dhg);
+        for k = 1:tm(1)
+            conductor = m_dhg(k, :);
+            
+            % Omitir datos NaN
+            conductor = conductor(~isnan(conductor));
+            
+            % Acumular los datos por sexo
+            if shg(k) == 0
+                promedioConductorH = [promedioConductorH; mean(conductor)];
+            else
+                promedioConductorM = [promedioConductorM; mean(conductor)];
+            end
+        end
+    end
+end
+
+% Omitir promedios NaN
+promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
+promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
+
+% Generar la gráfica acumulada
+figure;
+
+% Gráfica de promedios para hombres y mujeres en la misma figura
+scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
+hold on;
+scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
+
+% Calcular y graficar la distribución para hombres
+if ~isempty(promedioConductorH)
+    mu_h = mean(promedioConductorH);
+    sig_h = std(promedioConductorH);
+    x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+    y_h = pdf('Normal', x_h, mu_h, sig_h);
+    plot(x_h, y_h, 'b')
+end
+
+% Calcular y graficar la distribución para mujeres
+if ~isempty(promedioConductorM)
+    mu_m = mean(promedioConductorM);
+    sig_m = std(promedioConductorM);
+    x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
+    y_m = pdf('Normal', x_m, mu_m, sig_m);
+    plot(x_m, y_m, 'r')
+end
+
+title('Indice riesgo - Hombres y Mujeres');
+xlabel('Indice riesgo por conductor');
+ylabel('Frecuencia');
+legend;
+hold off;
 
 %% Debug hombres
 

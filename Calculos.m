@@ -1508,33 +1508,35 @@ end
         
         % Recorrer los datos de sensor para encontrar los puntos en la curva
         for i = 1:size(datosCordenadasSensor, 1)
-            distanciaInicio = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), inicioCurva(1), inicioCurva(2));
-            distanciaFin = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), finCurva(1), finCurva(2));
-            
-            if distanciaInicio < 10 % Si estamos cerca del inicio de la curva
-                % Guardar los datos de velocidad, radio y relación velocidad/radio
-                
-                
-                
-                datosCurva(j, 1) = velocidad(i);
+    if i <= numel(radio) % Verificar que el índice sea válido para radio
+        distanciaInicio = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), inicioCurva(1), inicioCurva(2));
+        distanciaFin = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), finCurva(1), finCurva(2));
+
+        if distanciaInicio < 10 % Si estamos cerca del inicio de la curva
+            % Guardar los datos de velocidad, radio y relación velocidad/radio
+            if ~isnan(radio(i)) && radio(i) ~= -1 % Verificar que radio sea un valor válido
                 datosCurva(j, 2) = radio(i);
+                datosCurva(j, 1) = velocidad(i);
                 datosCurva(j, 3) = velocidad(i) / radio(i);
-                
-                if velocidad(i)<1.5
-                    radio(i)=1;
+
+                if velocidad(i) < 1.5
+                    radio(i) = 1;
                 end
+
                 if isnan(datosCurva(j, 3))
-                    datosCurva(j, 3)=0;
+                    datosCurva(j, 3) = 0;
                 end
-                if radio(i)==-1
-                     datosCurva(j, 3)=0;
-                end
+
                 j = j + 1;
-            elseif distanciaFin < 10 % Si estamos cerca del final de la curva
-                break; % Salir del bucle
             end
+        elseif distanciaFin < 10 % Si estamos cerca del final de la curva
+            break; % Salir del bucle
         end
-        
+    else
+        break; % Si el índice es mayor que el tamaño de radio, salir del bucle
+    end
+end
+
         % Almacenar los datos de esta curva en datosn
         datosn{Ncurva} = datosCurva;
         
