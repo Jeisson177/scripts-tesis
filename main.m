@@ -16,6 +16,1004 @@ Vuelta4020 = [4.6096941, -74.0738544];
 Ida4104 = [4.587917000000000, -74.149976900000000];
 Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
+
+%% KNN
+
+function clasificarSexoYGraficar(Rutas)
+    % Inicializar una lista para almacenar las filas de la matriz de datos
+    datos = [];
+    labels = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).General;
+
+            % Recorrer cada fila de la tabla General
+            for k = 1:height(generalTable)
+                % Calcular el promedio de riesgoCurva
+                riesgo_curva = generalTable.riesgoCurva{k};
+                if iscell(riesgo_curva)
+                    promedio_riesgo_curva = mean(cell2mat(riesgo_curva));
+                else
+                    promedio_riesgo_curva = mean(riesgo_curva);
+                end
+
+                % Calcular el promedio de PorcentajesConsumo
+                porcentajes_consumo = generalTable.PorcentajesConsumo{k};
+                if iscell(porcentajes_consumo)
+                    promedio_consumo = mean(cell2mat(porcentajes_consumo));
+                else
+                    promedio_consumo = mean(porcentajes_consumo);
+                end
+
+                % Calcular el promedio de PorcentajesVelocidad
+                porcentajes_velocidad = generalTable.PorcentajesVelocidad{k};
+                if iscell(porcentajes_velocidad)
+                    promedio_velocidad = mean(cell2mat(porcentajes_velocidad));
+                else
+                    promedio_velocidad = mean(porcentajes_velocidad);
+                end
+
+                % Extraer datos de aceleración calculados previamente
+                num_aceleraciones_por_km = generalTable.NumAceleracionesPorKm(k);
+                num_desaceleraciones_por_km = generalTable.NumDesaceleracionesPorKm(k);
+                aceleracion_promedio = generalTable.AceleracionPromedio(k);
+                desaceleracion_promedio = generalTable.DesaceleracionPromedio(k);
+
+                % Crear una fila con todas las características
+                fila = [
+                    promedio_consumo, ...
+                    promedio_velocidad, ...
+                    num_aceleraciones_por_km, ...
+                    num_desaceleraciones_por_km, ...
+                    aceleracion_promedio, ...
+                    desaceleracion_promedio, ...
+                    promedio_riesgo_curva
+                ];
+
+                % Añadir la fila a la lista de datos
+                datos = [datos; fila];
+
+                % Añadir la etiqueta (sexo)
+                labels = [labels; generalTable.Sexo(k)];
+            end
+        end
+    end
+
+    % Verificar y limpiar datos para asegurarse de que no haya NaN o inf
+    datos(any(isnan(datos), 2), :) = [];
+    datos(any(isinf(datos), 2), :) = [];
+    labels(any(isnan(labels), 2)) = [];
+    labels(any(isinf(labels), 2)) = [];
+
+    % Normalizar los datos
+    datos_normalizados = zscore(datos);
+
+    % Aplicar PCA
+    [coeff, score, latent, ~, explained] = pca(datos_normalizados);
+
+    % Determinar cuántos componentes principales retener (por ejemplo, 90% de varianza explicada)
+    cumulative_variance = cumsum(explained);
+    num_components = find(cumulative_variance >= 90, 1);
+
+    % Proyectar los datos en el espacio de los componentes principales retenidos
+    if isempty(num_components)
+        error('No se pueden retener componentes principales. Verifique los datos de entrada.');
+    end
+    datos_pca_reducidos = score(:, 1:num_components);
+
+    % Dividir en 70% entrenamiento y 30% prueba
+    cv = cvpartition(size(datos_pca_reducidos, 1), 'HoldOut', 0.3);
+    idx = cv.test;
+
+    % Crear conjuntos de entrenamiento y prueba
+    X_train = datos_pca_reducidos(~idx, :);
+    X_test = datos_pca_reducidos(idx, :);
+    y_train = labels(~idx);
+    y_test = labels(idx);
+
+    % Entrenar el modelo KNN
+    Mdl = fitcknn(X_train, y_train, 'NumNeighbors', 5);
+
+    % Hacer predicciones en el conjunto de prueba
+    y_pred = predict(Mdl, X_test);
+
+    % Evaluar el rendimiento del modelo
+    accuracy = sum(y_pred == y_test) / numel(y_test);
+    disp(['Precisión del modelo KNN: ', num2str(accuracy * 100), '%']);
+
+    % Visualización de los resultados
+    figure;
+    gscatter(X_test(:, 1), X_test(:, 2), y_pred, 'rb', 'xo');
+    title('Clasificación KNN en el Espacio de los Componentes Principales');
+    xlabel('Componente Principal 1');
+    ylabel('Componente Principal 2');
+    legend('Hombre', 'Mujer');
+
+    % Gráfico de Varianza Explicada por los Componentes Principales
+    figure;
+    plot(cumulative_variance, 'o-');
+    title('Varianza Acumulada Explicada por los Componentes Principales');
+    xlabel('Número de Componentes Principales');
+    ylabel('Varianza Explicada Acumulada (%)');
+    grid on;
+
+    % Gráfico de Dispersión 3D (si se retienen tres componentes principales)
+    if num_components >= 3
+        % Convertir las etiquetas a colores para el conjunto de prueba
+        colores_test = zeros(length(y_test), 3);
+        colores_test(y_test == 0, :) = repmat([1, 0, 0], sum(y_test == 0), 1); % Rojo para hombres
+        colores_test(y_test == 1, :) = repmat([0, 0, 1], sum(y_test == 1), 1); % Azul para mujeres
+
+        figure;
+        scatter3(X_test(:, 1), X_test(:, 2), X_test(:, 3), 10, colores_test, 'filled');
+        title('Datos en el Espacio de los Tres Primeros Componentes Principales');
+        xlabel('Componente Principal 1');
+        ylabel('Componente Principal 2');
+        zlabel('Componente Principal 3');
+        legend('Hombre', 'Mujer');
+    end
+
+    % Matriz de Confusión
+    figure;
+    cm = confusionchart(y_test, y_pred);
+    cm.Title = 'Matriz de Confusión para la Clasificación KNN';
+    cm.RowSummary = 'row-normalized';
+    cm.ColumnSummary = 'column-normalized';
+
+    % Gráfico de Barras para Promedio de Características por Clúster
+    figure;
+    cluster_means = [];
+    for c = 0:1 % Asumiendo dos clusters: hombres (0) y mujeres (1)
+        cluster_means = [cluster_means; mean(X_train(y_train == c, :))];
+    end
+    bar(cluster_means');
+    title('Promedio de Características por Clúster');
+    xlabel('Características');
+    ylabel('Valor Promedio');
+    legend('Hombre', 'Mujer');
+    grid on;
+end
+
+
+clasificarSexoYGraficar(Rutas)
+
+
+%% KNN sin pca
+
+function clasificarSexoSinPCA(Rutas)
+    % Inicializar una lista para almacenar las filas de la matriz de datos
+    datos = [];
+    labels = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).General;
+
+            % Recorrer cada fila de la tabla General
+            for k = 1:height(generalTable)
+                % Calcular el promedio de riesgoCurva
+                riesgo_curva = generalTable.riesgoCurva{k};
+                if iscell(riesgo_curva)
+                    promedio_riesgo_curva = mean(cell2mat(riesgo_curva));
+                else
+                    promedio_riesgo_curva = mean(riesgo_curva);
+                end
+
+                % Calcular el promedio de PorcentajesConsumo
+                porcentajes_consumo = generalTable.PorcentajesConsumo{k};
+                if iscell(porcentajes_consumo)
+                    promedio_consumo = mean(cell2mat(porcentajes_consumo));
+                else
+                    promedio_consumo = mean(porcentajes_consumo);
+                end
+
+                % Calcular el promedio de PorcentajesVelocidad
+                porcentajes_velocidad = generalTable.PorcentajesVelocidad{k};
+                if iscell(porcentajes_velocidad)
+                    promedio_velocidad = mean(cell2mat(porcentajes_velocidad));
+                else
+                    promedio_velocidad = mean(porcentajes_velocidad);
+                end
+
+                % Extraer datos de aceleración calculados previamente
+                num_aceleraciones_por_km = generalTable.NumAceleracionesPorKm(k);
+                num_desaceleraciones_por_km = generalTable.NumDesaceleracionesPorKm(k);
+                aceleracion_promedio = generalTable.AceleracionPromedio(k);
+                desaceleracion_promedio = generalTable.DesaceleracionPromedio(k);
+
+                % Crear una fila con todas las características
+                fila = [
+                    promedio_consumo, ...
+                    promedio_velocidad, ...
+                    num_aceleraciones_por_km, ...
+                    num_desaceleraciones_por_km, ...
+                    aceleracion_promedio, ...
+                    desaceleracion_promedio, ...
+                    promedio_riesgo_curva
+                ];
+
+                % Añadir la fila a la lista de datos
+                datos = [datos; fila];
+
+                % Añadir la etiqueta (sexo)
+                labels = [labels; generalTable.Sexo(k)];
+            end
+        end
+    end
+
+    % Verificar y limpiar datos para asegurarse de que no haya NaN o inf
+    datos(any(isnan(datos), 2), :) = [];
+    datos(any(isinf(datos), 2), :) = [];
+    labels(any(isnan(labels), 2)) = [];
+    labels(any(isinf(labels), 2)) = [];
+
+    % Normalizar los datos
+    datos_normalizados = zscore(datos);
+
+    % Dividir en 70% entrenamiento y 30% prueba
+    cv = cvpartition(size(datos_normalizados, 1), 'HoldOut', 0.3);
+    idx = cv.test;
+
+    % Crear conjuntos de entrenamiento y prueba
+    X_train = datos_normalizados(~idx, :);
+    X_test = datos_normalizados(idx, :);
+    y_train = labels(~idx);
+    y_test = labels(idx);
+
+    % Entrenar el modelo KNN
+    Mdl = fitcknn(X_train, y_train, 'NumNeighbors', 5);
+
+    % Hacer predicciones en el conjunto de prueba
+    y_pred = predict(Mdl, X_test);
+
+    % Evaluar el rendimiento del modelo
+    accuracy = sum(y_pred == y_test) / numel(y_test);
+    disp(['Precisión del modelo KNN: ', num2str(accuracy * 100), '%']);
+
+    % Visualización de los resultados
+    figure;
+    gscatter(X_test(:, 1), X_test(:, 2), y_pred, 'rb', 'xo');
+    title('Clasificación KNN sin PCA');
+    xlabel('Característica 1');
+    ylabel('Característica 2');
+    legend('Hombre', 'Mujer');
+
+    % Matriz de Confusión
+    figure;
+    cm = confusionchart(y_test, y_pred);
+    cm.Title = 'Matriz de Confusión para la Clasificación KNN sin PCA';
+    cm.RowSummary = 'row-normalized';
+    cm.ColumnSummary = 'column-normalized';
+
+    % Gráfico de Barras para Promedio de Características por Clúster
+    figure;
+    cluster_means = [];
+    for c = 0:1 % Asumiendo dos clusters: hombres (0) y mujeres (1)
+        cluster_means = [cluster_means; mean(X_train(y_train == c, :))];
+    end
+    bar(cluster_means');
+    title('Promedio de Características por Clúster sin PCA');
+    xlabel('Características');
+    ylabel('Valor Promedio');
+    legend('Hombre', 'Mujer');
+    grid on;
+end
+
+clasificarSexoSinPCA(Rutas);
+
+%% Grafica general de aceleraciones
+
+function graficarAceleracionesPorConductor(Rutas)
+    % Inicializar listas para almacenar los datos
+    aceleracion_promedio_positiva = [];
+    aceleracion_promedio_negativa = [];
+    num_aceleraciones_por_km = [];
+    num_desaceleraciones_por_km = [];
+    sexos = [];
+
+    % Recorrer todas las rutas y trayectos
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).General;
+
+            % Verificar si la tabla general está vacía, si es así, continuar
+            if isempty(generalTable)
+                continue;
+            end
+
+            % Recoger los datos de cada conductor
+            for k = 1:height(generalTable)
+                aceleracion_promedio_positiva = [aceleracion_promedio_positiva; generalTable.AceleracionPromedio(k)];
+                aceleracion_promedio_negativa = [aceleracion_promedio_negativa; generalTable.DesaceleracionPromedio(k)];
+                num_aceleraciones_por_km = [num_aceleraciones_por_km; generalTable.NumAceleracionesPorKm(k)];
+                num_desaceleraciones_por_km = [num_desaceleraciones_por_km; generalTable.NumDesaceleracionesPorKm(k)];
+                sexos = [sexos; generalTable.Sexo(k)];
+            end
+        end
+    end
+
+    % Graficar los datos
+    figure;
+
+    % Graficar aceleraciones positivas y negativas en la misma gráfica
+    hold on;
+    scatter(num_aceleraciones_por_km(sexos == 0), aceleracion_promedio_positiva(sexos == 0), 'r', 'DisplayName', 'Aceleraciones Hombres');
+    scatter(num_aceleraciones_por_km(sexos == 1), aceleracion_promedio_positiva(sexos == 1), 'b', 'DisplayName', 'Aceleraciones Mujeres');
+    scatter(num_desaceleraciones_por_km(sexos == 0), aceleracion_promedio_negativa(sexos == 0), 'ro', 'DisplayName', 'Desaceleraciones Hombres');
+    scatter(num_desaceleraciones_por_km(sexos == 1), aceleracion_promedio_negativa(sexos == 1), 'bo', 'DisplayName', 'Desaceleraciones Mujeres');
+    title('Aceleraciones y Desaceleraciones por Kilómetro');
+    xlabel('Número de Aceleraciones/Desaceleraciones por Km');
+    ylabel('Aceleración/Desaceleración Promedio');
+    legend;
+    hold off;
+
+    % Calcular los promedios para cada grupo
+    promedio_aceleracion_hombres = mean(aceleracion_promedio_positiva(sexos == 0));
+    promedio_aceleracion_mujeres = mean(aceleracion_promedio_positiva(sexos == 1));
+    promedio_desaceleracion_hombres = mean(aceleracion_promedio_negativa(sexos == 0));
+    promedio_desaceleracion_mujeres = mean(aceleracion_promedio_negativa(sexos == 1));
+    promedio_num_aceleraciones_hombres = mean(num_aceleraciones_por_km(sexos == 0));
+    promedio_num_aceleraciones_mujeres = mean(num_aceleraciones_por_km(sexos == 1));
+    promedio_num_desaceleraciones_hombres = mean(num_desaceleraciones_por_km(sexos == 0));
+    promedio_num_desaceleraciones_mujeres = mean(num_desaceleraciones_por_km(sexos == 1));
+
+    % Mostrar los promedios
+    fprintf('Promedio Aceleración Hombres: %.2f\n', promedio_aceleracion_hombres);
+    fprintf('Promedio Aceleración Mujeres: %.2f\n', promedio_aceleracion_mujeres);
+    fprintf('Promedio Desaceleración Hombres: %.2f\n', promedio_desaceleracion_hombres);
+    fprintf('Promedio Desaceleración Mujeres: %.2f\n', promedio_desaceleracion_mujeres);
+    fprintf('Promedio Número de Aceleraciones por Km Hombres: %.2f\n', promedio_num_aceleraciones_hombres);
+    fprintf('Promedio Número de Aceleraciones por Km Mujeres: %.2f\n', promedio_num_aceleraciones_mujeres);
+    fprintf('Promedio Número de Desaceleraciones por Km Hombres: %.2f\n', promedio_num_desaceleraciones_hombres);
+    fprintf('Promedio Número de Desaceleraciones por Km Mujeres: %.2f\n', promedio_num_desaceleraciones_mujeres);
+end
+
+% Llamar a la función con la estructura Rutas
+graficarAceleracionesPorConductor(Rutas);
+
+
+
+
+%% Kmeans
+
+datos_pca = prepararDatosPCA(Rutas);
+
+
+% Verificar y limpiar datos para asegurarse de que no haya NaN o inf
+datos_pca(any(isnan(datos_pca), 2), :) = [];
+datos_pca(any(isinf(datos_pca), 2), :) = [];
+
+
+
+% Normalizar los datos si es necesario
+datos_normalizados = zscore(datos_pca);
+
+% Aplicar PCA
+[coeff, score, latent, ~, explained] = pca(datos_normalizados);
+
+% Determinar cuántos componentes principales retener (por ejemplo, 90% de varianza explicada)
+cumulative_variance = cumsum(explained);
+num_components = find(cumulative_variance >= 50, 1);
+
+% Proyectar los datos en el espacio de los componentes principales retenidos
+datos_pca_reducidos = score(:, 1:num_components);
+
+
+% Definir el número de clusters deseado
+num_clusters = 3;
+
+% Aplicar K-means clustering
+[idx, centroids] = kmeans(datos_pca_reducidos, num_clusters);
+
+% Visualización de los clusters en el espacio de los dos primeros componentes principales
+figure;
+scatter(datos_pca_reducidos(:, 1), datos_pca_reducidos(:, 2), 10, idx, 'filled');
+title('Clustering después de PCA');
+xlabel('Componente Principal 1');
+ylabel('Componente Principal 2');
+legend(num2str((1:num_clusters)'));
+
+
+%%
+
+function clasificarKMeansSinPCA(Rutas)
+    % Inicializar una lista para almacenar las filas de la matriz de datos
+    datos = [];
+    labels = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).General;
+
+            % Recorrer cada fila de la tabla General
+            for k = 1:height(generalTable)
+                % Calcular el promedio de riesgoCurva
+                riesgo_curva = generalTable.riesgoCurva{k};
+                if iscell(riesgo_curva)
+                    promedio_riesgo_curva = mean(cell2mat(riesgo_curva));
+                else
+                    promedio_riesgo_curva = mean(riesgo_curva);
+                end
+
+                % Calcular el promedio de PorcentajesConsumo
+                porcentajes_consumo = generalTable.PorcentajesConsumo{k};
+                if iscell(porcentajes_consumo)
+                    promedio_consumo = mean(cell2mat(porcentajes_consumo));
+                else
+                    promedio_consumo = mean(porcentajes_consumo);
+                end
+
+                % Calcular el promedio de PorcentajesVelocidad
+                porcentajes_velocidad = generalTable.PorcentajesVelocidad{k};
+                if iscell(porcentajes_velocidad)
+                    promedio_velocidad = mean(cell2mat(porcentajes_velocidad));
+                else
+                    promedio_velocidad = mean(porcentajes_velocidad);
+                end
+
+                % Extraer datos de aceleración calculados previamente
+                num_aceleraciones_por_km = generalTable.NumAceleracionesPorKm(k);
+                num_desaceleraciones_por_km = generalTable.NumDesaceleracionesPorKm(k);
+                aceleracion_promedio = generalTable.AceleracionPromedio(k);
+                desaceleracion_promedio = generalTable.DesaceleracionPromedio(k);
+
+                % Crear una fila con todas las características
+                fila = [
+                    promedio_consumo, ...
+                    promedio_velocidad, ...
+                    num_aceleraciones_por_km, ...
+                    num_desaceleraciones_por_km, ...
+                    aceleracion_promedio, ...
+                    desaceleracion_promedio, ...
+                    promedio_riesgo_curva
+                ];
+
+                % Añadir la fila a la lista de datos
+                datos = [datos; fila];
+
+                % Añadir la etiqueta (sexo)
+                labels = [labels; generalTable.Sexo(k)];
+            end
+        end
+    end
+
+    % Verificar y limpiar datos para asegurarse de que no haya NaN o inf
+    datos(any(isnan(datos), 2), :) = [];
+    datos(any(isinf(datos), 2), :) = [];
+
+    % Normalizar los datos si es necesario
+    datos_normalizados = zscore(datos);
+
+    % Definir el número de clusters deseado
+    num_clusters = 2;
+
+    % Aplicar K-means clustering
+    [idx, centroids] = kmeans(datos_normalizados, num_clusters);
+
+    % Visualización de los clusters en el espacio de los dos primeros componentes principales
+    figure;
+    scatter(datos_normalizados(:, 1), datos_normalizados(:, 2), 10, idx, 'filled');
+    title('Clustering con K-means sin PCA');
+    xlabel('Característica 1');
+    ylabel('Característica 2');
+    legend(num2str((1:num_clusters)'));
+
+    % Visualización 3D de los clusters si hay al menos 3 componentes
+    if size(datos_normalizados, 2) >= 3
+        figure;
+        scatter3(datos_normalizados(:, 1), datos_normalizados(:, 2), datos_normalizados(:, 3), 10, idx, 'filled');
+        title('Clustering con K-means sin PCA (3D)');
+        xlabel('Característica 1');
+        ylabel('Característica 2');
+        zlabel('Característica 3');
+        legend(num2str((1:num_clusters)'));
+    end
+
+    % Gráfico de Barras para Promedio de Características por Clúster
+    figure;
+    cluster_means = [];
+    for c = 1:num_clusters
+        cluster_means = [cluster_means; mean(datos_normalizados(idx == c, :))];
+    end
+    bar(cluster_means');
+    title('Promedio de Características por Clúster sin PCA');
+    xlabel('Características');
+    ylabel('Valor Promedio');
+    legend(num2str((1:num_clusters)'));
+    grid on;
+end
+
+
+clasificarKMeansSinPCA(Rutas);
+
+
+%% PCA preparacion
+
+function datos_pca = prepararDatosPCA(Rutas)
+    % Inicializar una lista para almacenar las filas de la matriz de datos
+    datos = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).General;
+
+            % Recorrer cada fila de la tabla General
+            for k = 1:height(generalTable)
+                % Calcular el promedio de riesgoCurva
+                riesgo_curva = generalTable.riesgoCurva{k};
+                if iscell(riesgo_curva)
+                    promedio_riesgo_curva = mean(cell2mat(riesgo_curva));
+                else
+                    promedio_riesgo_curva = mean(riesgo_curva);
+                end
+
+                % Calcular el promedio de PorcentajesConsumo
+                porcentajes_consumo = generalTable.PorcentajesConsumo{k};
+                if iscell(porcentajes_consumo)
+                    promedio_consumo = mean(cell2mat(porcentajes_consumo));
+                else
+                    promedio_consumo = mean(porcentajes_consumo);
+                end
+
+                % Calcular el promedio de PorcentajesVelocidad
+                porcentajes_velocidad = generalTable.PorcentajesVelocidad{k};
+                if iscell(porcentajes_velocidad)
+                    promedio_velocidad = mean(cell2mat(porcentajes_velocidad));
+                else
+                    promedio_velocidad = mean(porcentajes_velocidad);
+                end
+
+                % Extraer datos de aceleración calculados previamente
+                num_aceleraciones_por_km = generalTable.NumAceleracionesPorKm(k);
+                num_desaceleraciones_por_km = generalTable.NumDesaceleracionesPorKm(k);
+                aceleracion_promedio = generalTable.AceleracionPromedio(k);
+                desaceleracion_promedio = generalTable.DesaceleracionPromedio(k);
+
+                % Crear una fila con todas las características
+                fila = [
+                    promedio_consumo, ...
+                    promedio_velocidad, ...
+                    num_aceleraciones_por_km, ...
+                    num_desaceleraciones_por_km, ...
+                    aceleracion_promedio, ...
+                    desaceleracion_promedio, ...
+                    promedio_riesgo_curva
+                ];
+
+                % Añadir la fila a la lista de datos
+                datos = [datos; fila];
+            end
+        end
+    end
+
+    % Convertir la lista de datos en una matriz
+    datos_pca = (datos);
+end
+
+
+%%
+
+function clasificarKMeansSinPCAComparar(Rutas)
+    % Inicializar una lista para almacenar las filas de la matriz de datos
+    datos = [];
+    labels = [];
+    
+    % Definir nombres de características
+    nombres_caracteristicas = {
+        'Promedio Consumo', ...
+        'Promedio Velocidad', ...
+        'Aceleraciones por Km', ...
+        'Desaceleraciones por Km', ...
+        'Aceleración Promedio', ...
+        'Desaceleración Promedio', ...
+        'Riesgo Curva Promedio'
+    };
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).General;
+
+            % Recorrer cada fila de la tabla General
+            for k = 1:height(generalTable)
+                % Calcular el promedio de riesgoCurva
+                riesgo_curva = generalTable.riesgoCurva{k};
+                if iscell(riesgo_curva)
+                    promedio_riesgo_curva = mean(cell2mat(riesgo_curva));
+                else
+                    promedio_riesgo_curva = mean(riesgo_curva);
+                end
+
+                % Calcular el promedio de PorcentajesConsumo
+                porcentajes_consumo = generalTable.PorcentajesConsumo{k};
+                if iscell(porcentajes_consumo)
+                    promedio_consumo = mean(cell2mat(porcentajes_consumo));
+                else
+                    promedio_consumo = mean(porcentajes_consumo);
+                end
+
+                % Calcular el promedio de PorcentajesVelocidad
+                porcentajes_velocidad = generalTable.PorcentajesVelocidad{k};
+                if iscell(porcentajes_velocidad)
+                    promedio_velocidad = mean(cell2mat(porcentajes_velocidad));
+                else
+                    promedio_velocidad = mean(porcentajes_velocidad);
+                end
+
+                % Extraer datos de aceleración calculados previamente
+                num_aceleraciones_por_km = generalTable.NumAceleracionesPorKm(k);
+                num_desaceleraciones_por_km = generalTable.NumDesaceleracionesPorKm(k);
+                aceleracion_promedio = generalTable.AceleracionPromedio(k);
+                desaceleracion_promedio = generalTable.DesaceleracionPromedio(k);
+
+                % Crear una fila con todas las características
+                fila = [
+                    promedio_consumo, ...
+                    promedio_velocidad, ...
+                    num_aceleraciones_por_km, ...
+                    num_desaceleraciones_por_km, ...
+                    aceleracion_promedio, ...
+                    desaceleracion_promedio, ...
+                    promedio_riesgo_curva
+                ];
+
+                % Añadir la fila a la lista de datos
+                datos = [datos; fila];
+
+                % Añadir la etiqueta (sexo)
+                labels = [labels; generalTable.Sexo(k)];
+            end
+        end
+    end
+
+    % Verificar y limpiar datos para asegurarse de que no haya NaN o inf
+    datos(any(isnan(datos), 2), :) = [];
+    datos(any(isinf(datos), 2), :) = [];
+    labels(any(isnan(labels), 2)) = [];
+    labels(any(isinf(labels), 2)) = [];
+
+    % Normalizar los datos si es necesario
+    datos_normalizados = zscore(datos);
+
+    % Definir el número de clusters deseado
+    num_clusters = 2; % Asumimos dos clusters para hombres y mujeres
+
+    % Aplicar K-means clustering
+    [idx, centroids] = kmeans(datos_normalizados, num_clusters);
+
+    % Comparar con las etiquetas verdaderas
+    % Etiquetas predichas (idx) pueden no coincidir directamente con 0 y 1, así que debemos mapearlas
+    % Suponemos que los clusters pueden ser 0/1 o 1/0 para hombres/mujeres
+
+    % Inicializar las etiquetas predichas
+    pred_labels = zeros(size(labels));
+
+    % Calcular el mapeo correcto de los clusters a las etiquetas
+    if mean(labels(idx == 1)) < 0.5
+        % Cluster 1 corresponde a hombres (0), Cluster 2 corresponde a mujeres (1)
+        pred_labels(idx == 1) = 0;
+        pred_labels(idx == 2) = 1;
+    else
+        % Cluster 1 corresponde a mujeres (1), Cluster 2 corresponde a hombres (0)
+        pred_labels(idx == 1) = 1;
+        pred_labels(idx == 2) = 0;
+    end
+
+    % Matriz de Confusión
+    figure;
+    cm = confusionchart(labels, pred_labels);
+    cm.Title = 'Matriz de Confusión para la Clasificación K-means';
+    cm.RowSummary = 'row-normalized';
+    cm.ColumnSummary = 'column-normalized';
+
+    % Calcular precisión, sensibilidad y especificidad
+    TP = sum((pred_labels == 1) & (labels == 1));
+    TN = sum((pred_labels == 0) & (labels == 0));
+    FP = sum((pred_labels == 1) & (labels == 0));
+    FN = sum((pred_labels == 0) & (labels == 1));
+
+    precision = TP / (TP + FP);
+    sensibilidad = TP / (TP + FN); % También conocida como recall
+    especificidad = TN / (TN + FP);
+
+    % Mostrar las métricas
+    fprintf('Precisión: %.2f%%\n', precision * 100);
+    fprintf('Sensibilidad: %.2f%%\n', sensibilidad * 100);
+    fprintf('Especificidad: %.2f%%\n', especificidad * 100);
+
+    % Visualización de los clusters en el espacio de las dos primeras características
+    figure;
+    gscatter(datos_normalizados(:, 1), datos_normalizados(:, 2), idx, 'br', 'xo');
+    title('Clustering con K-means sin PCA');
+    xlabel(nombres_caracteristicas{1});
+    ylabel(nombres_caracteristicas{2});
+    legend('Cluster 1', 'Cluster 2');
+
+    % Visualización 3D de los clusters si hay al menos 3 características
+    if size(datos_normalizados, 2) >= 3
+        figure;
+        scatter3(datos_normalizados(:, 1), datos_normalizados(:, 2), datos_normalizados(:, 3), 10, idx, 'filled');
+        title('Clustering con K-means sin PCA (3D)');
+        xlabel(nombres_caracteristicas{1});
+        ylabel(nombres_caracteristicas{2});
+        zlabel(nombres_caracteristicas{3});
+        legend('Cluster 1', 'Cluster 2');
+    end
+
+    % Gráfico de Barras para Promedio de Características por Clúster
+    figure;
+    cluster_means = [];
+    for c = 1:num_clusters
+        if sum(idx == c) > 0 % Asegurarse de que el cluster no esté vacío
+            cluster_means = [cluster_means; mean(datos_normalizados(idx == c, :), 1)];
+        else
+            cluster_means = [cluster_means; zeros(1, size(datos_normalizados, 2))]; % Añadir fila de ceros si el cluster está vacío
+        end
+    end
+    bar(cluster_means');
+    title('Promedio de Características por Clúster sin PCA');
+    xlabel('Características');
+    ylabel('Valor Promedio');
+    xticklabels(nombres_caracteristicas);
+    legend('Cluster 1', 'Cluster 2');
+    grid on;
+end
+
+% Llamar a la función con la estructura Rutas
+clasificarKMeansSinPCAComparar(Rutas);
+
+%%
+
+function clasificarKMeansHoraPico(Rutas)
+    % Inicializar una lista para almacenar las filas de la matriz de datos
+    datos = [];
+    labels = [];
+    
+    % Definir nombres de características
+    nombres_caracteristicas = {
+        'Promedio Consumo', ...
+        'Promedio Velocidad', ...
+        'Aceleraciones por Km', ...
+        'Desaceleraciones por Km', ...
+        'Aceleración Promedio', ...
+        'Desaceleración Promedio', ...
+        'Riesgo Curva Promedio'
+    };
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            horaPicoTable = Rutas.(ruta).(trayecto).horaPico;
+
+            % Recorrer cada fila de la tabla horaPico
+            for k = 1:height(horaPicoTable)
+                % Calcular el promedio de riesgoCurva
+                riesgo_curva = horaPicoTable.riesgoCurva{k};
+                if iscell(riesgo_curva)
+                    promedio_riesgo_curva = mean(cell2mat(riesgo_curva));
+                else
+                    promedio_riesgo_curva = mean(riesgo_curva);
+                end
+
+                % Calcular el promedio de PorcentajesConsumo
+                porcentajes_consumo = horaPicoTable.PorcentajesConsumo{k};
+                if iscell(porcentajes_consumo)
+                    promedio_consumo = mean(cell2mat(porcentajes_consumo));
+                else
+                    promedio_consumo = mean(porcentajes_consumo);
+                end
+
+                % Calcular el promedio de PorcentajesVelocidad
+                porcentajes_velocidad = horaPicoTable.PorcentajesVelocidad{k};
+                if iscell(porcentajes_velocidad)
+                    promedio_velocidad = mean(cell2mat(porcentajes_velocidad));
+                else
+                    promedio_velocidad = mean(porcentajes_velocidad);
+                end
+
+                % Extraer datos de aceleración calculados previamente
+                num_aceleraciones_por_km = horaPicoTable.NumAceleracionesPorKm(k);
+                num_desaceleraciones_por_km = horaPicoTable.NumDesaceleracionesPorKm(k);
+                aceleracion_promedio = horaPicoTable.AceleracionPromedio(k);
+                desaceleracion_promedio = horaPicoTable.DesaceleracionPromedio(k);
+
+                % Crear una fila con todas las características
+                fila = [
+                    promedio_consumo, ...
+                    promedio_velocidad, ...
+                    num_aceleraciones_por_km, ...
+                    num_desaceleraciones_por_km, ...
+                    aceleracion_promedio, ...
+                    desaceleracion_promedio, ...
+                    promedio_riesgo_curva
+                ];
+
+                % Añadir la fila a la lista de datos
+                datos = [datos; fila];
+
+                % Añadir la etiqueta (sexo)
+                labels = [labels; horaPicoTable.Sexo(k)];
+            end
+        end
+    end
+
+    % Verificar y limpiar datos para asegurarse de que no haya NaN o inf
+    datos(any(isnan(datos), 2), :) = [];
+    datos(any(isinf(datos), 2), :) = [];
+    labels(any(isnan(labels), 2)) = [];
+    labels(any(isinf(labels), 2)) = [];
+
+    % Normalizar los datos si es necesario
+    datos_normalizados = zscore(datos);
+
+    % Definir el número de clusters deseado
+    num_clusters = 2; % Asumimos dos clusters para hombres y mujeres
+
+    % Aplicar K-means clustering
+    [idx, centroids] = kmeans(datos_normalizados, num_clusters);
+
+    % Comparar con las etiquetas verdaderas
+    % Etiquetas predichas (idx) pueden no coincidir directamente con 0 y 1, así que debemos mapearlas
+    % Suponemos que los clusters pueden ser 0/1 o 1/0 para hombres/mujeres
+
+    % Inicializar las etiquetas predichas
+    pred_labels = zeros(size(labels));
+
+    % Calcular el mapeo correcto de los clusters a las etiquetas
+    if mean(labels(idx == 1)) < 0.5
+        % Cluster 1 corresponde a hombres (0), Cluster 2 corresponde a mujeres (1)
+        pred_labels(idx == 1) = 0;
+        pred_labels(idx == 2) = 1;
+    else
+        % Cluster 1 corresponde a mujeres (1), Cluster 2 corresponde a hombres (0)
+        pred_labels(idx == 1) = 1;
+        pred_labels(idx == 2) = 0;
+    end
+
+    % Matriz de Confusión
+    figure;
+    cm = confusionchart(labels, pred_labels);
+    cm.Title = 'Matriz de Confusión para la Clasificación K-means (Hora Pico)';
+    cm.RowSummary = 'row-normalized';
+    cm.ColumnSummary = 'column-normalized';
+
+    % Calcular precisión, sensibilidad y especificidad
+    TP = sum((pred_labels == 1) & (labels == 1));
+    TN = sum((pred_labels == 0) & (labels == 0));
+    FP = sum((pred_labels == 1) & (labels == 0));
+    FN = sum((pred_labels == 0) & (labels == 1));
+
+    precision = TP / (TP + FP);
+    sensibilidad = TP / (TP + FN); % También conocida como recall
+    especificidad = TN / (TN + FP);
+
+    % Mostrar las métricas
+    fprintf('Precisión: %.2f%%\n', precision * 100);
+    fprintf('Sensibilidad: %.2f%%\n', sensibilidad * 100);
+    fprintf('Especificidad: %.2f%%\n', especificidad * 100);
+
+    % Visualización de los clusters en el espacio de las dos primeras características
+    figure;
+    gscatter(datos_normalizados(:, 1), datos_normalizados(:, 2), idx, 'br', 'xo');
+    title('Clustering con K-means sin PCA (Hora Pico)');
+    xlabel(nombres_caracteristicas{1});
+    ylabel(nombres_caracteristicas{2});
+    legend('Cluster 1', 'Cluster 2');
+
+    % Visualización 3D de los clusters si hay al menos 3 características
+    if size(datos_normalizados, 2) >= 3
+        figure;
+        scatter3(datos_normalizados(:, 1), datos_normalizados(:, 2), datos_normalizados(:, 3), 10, idx, 'filled');
+        title('Clustering con K-means sin PCA (Hora Pico, 3D)');
+        xlabel(nombres_caracteristicas{1});
+        ylabel(nombres_caracteristicas{2});
+        zlabel(nombres_caracteristicas{3});
+        legend('Cluster 1', 'Cluster 2');
+    end
+
+    % Gráfico de Barras para Promedio de Características por Clúster
+    figure;
+    cluster_means = [];
+    for c = 1:num_clusters
+        if sum(idx == c) > 0 % Asegurarse de que el cluster no esté vacío
+            cluster_means = [cluster_means; mean(datos_normalizados(idx == c, :), 1)];
+        else
+            cluster_means = [cluster_means; zeros(1, size(datos_normalizados, 2))]; % Añadir fila de ceros si el cluster está vacío
+        end
+    end
+    bar(cluster_means');
+    title('Promedio de Características por Clúster sin PCA (Hora Pico)');
+    xlabel('Características');
+    ylabel('Valor Promedio');
+    xticklabels(nombres_caracteristicas);
+    legend('Cluster 1', 'Cluster 2');
+    grid on;
+end
+
+% Llamar a la función con la estructura Rutas
+clasificarKMeansHoraPico(Rutas);
+
+
+%% pruebas knn
+
+
+% Picos de aceleración y su frecuencia (datos de ejemplo)
+picos_aceleracion = [2.5, 3; 2.0, 4; 3.0, 2; 2.8, 5; 2.2, 3];
+
+% Vectores de velocidad para cada conductor (datos de ejemplo)
+velocidades_conductores = {
+    [60, 65, 70, 75, 80];
+    [55, 60, 63, 65];
+    [70, 72, 75, 78, 80, 82];
+    [65, 68, 70, 72, 75];
+    [58, 60, 62, 64, 66]
+};
+
+% Calcular estadísticas resumen para cada conductor
+num_conductores = numel(velocidades_conductores);
+estadisticas_velocidad = zeros(num_conductores, 4); % matriz para almacenar [media, std, max, min]
+
+for i = 1:num_conductores
+    velocidades = velocidades_conductores{i};
+    estadisticas_velocidad(i, 1) = mean(velocidades);
+    estadisticas_velocidad(i, 2) = std(velocidades);
+    estadisticas_velocidad(i, 3) = max(velocidades);
+    estadisticas_velocidad(i, 4) = min(velocidades);
+end
+
+% Combinar datos en una sola matriz
+datos = [picos_aceleracion, estadisticas_velocidad];
+
+
+% Normalizar los datos si es necesario
+datos_normalizados = zscore(datos);
+
+% Aplicar PCA
+[coeff, score, latent, ~, explained] = pca(datos_normalizados);
+
+% Coeficientes de carga (vectores propios)
+coeficientes_carga = coeff;
+
+% Puntajes (nuevas coordenadas)
+nuevas_coordenadas = score;
+
+% Varianza explicada por cada componente principal
+varianza_explicada = explained;
+
+% Mostrar los resultados
+disp('Varianza explicada por cada componente principal:');
+disp(varianza_explicada);
+disp('Componentes principales:');
+disp(nuevas_coordenadas);
+
+
 %% KNN
 
 % X es una matriz donde cada fila es una observación y cada columna una característica
@@ -328,7 +1326,12 @@ for i = 1:numel(rutas)
     for j = 1:numel(trayectos)
         trayecto = trayectos{j};
 
-        dhg = Rutas.(ruta).(trayecto).General;
+        dhg = Rutas.(ruta).(trayecto).horaValle;
+
+        if isempty(dhg)
+                continue;
+            end
+
         dhg.("PromedioVelocidad")
         try
             m_dhg = (cell2mat(dhg.("PromedioVelocidad")')');
@@ -351,24 +1354,103 @@ for i = 1:numel(rutas)
             percentages = scaled_segment * 100;
 
             % Inicializar la columna "PorcentajesVelocidad" si no existe
-            if ~ismember("PorcentajesVelocidad", Rutas.(ruta).(trayecto).General.Properties.VariableNames)
-                Rutas.(ruta).(trayecto).General.("PorcentajesVelocidad") = cell(height(Rutas.(ruta).(trayecto).General), 1);
+            if ~ismember("PorcentajesVelocidad", Rutas.(ruta).(trayecto).horaValle.Properties.VariableNames)
+                Rutas.(ruta).(trayecto).horaValle.("PorcentajesVelocidad") = cell(height(Rutas.(ruta).(trayecto).horaValle), 1);
             end
             
             % Limpiar los datos existentes en la primera iteración del trayecto
             if k == 1
-                for idx = 1:height(Rutas.(ruta).(trayecto).General)
-                    Rutas.(ruta).(trayecto).General.("PorcentajesVelocidad"){idx} = [];
+                for idx = 1:height(Rutas.(ruta).(trayecto).horaValle)
+                    Rutas.(ruta).(trayecto).horaValle.("PorcentajesVelocidad"){idx} = [];
                 end
             end
             
             % Agregar el nuevo dato a cada cell array en la columna existente
-            for idx = 1:height(Rutas.(ruta).(trayecto).General)
-                Rutas.(ruta).(trayecto).General.("PorcentajesVelocidad"){idx} = [Rutas.(ruta).(trayecto).General.("PorcentajesVelocidad"){idx}, percentages(idx)];
+            for idx = 1:height(Rutas.(ruta).(trayecto).horaValle)
+                Rutas.(ruta).(trayecto).horaValle.("PorcentajesVelocidad"){idx} = [Rutas.(ruta).(trayecto).horaValle.("PorcentajesVelocidad"){idx}, percentages(idx)];
             end
         end
     end
 end
+%%
+
+Rutas = calcularAceleraciones(Rutas);
+
+
+%% Calcular las aceleraciones
+
+function Rutas = calcularAceleraciones(Rutas)
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).horaValle;
+
+             % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
+            if isempty(generalTable)
+                continue;
+            end
+            
+            % Inicializar las columnas si no existen
+            if ~ismember('NumAceleracionesPorKm', generalTable.Properties.VariableNames)
+                generalTable.NumAceleracionesPorKm = zeros(height(generalTable), 1);
+            end
+            if ~ismember('NumDesaceleracionesPorKm', generalTable.Properties.VariableNames)
+                generalTable.NumDesaceleracionesPorKm = zeros(height(generalTable), 1);
+            end
+            if ~ismember('AceleracionPromedio', generalTable.Properties.VariableNames)
+                generalTable.AceleracionPromedio = zeros(height(generalTable), 1);
+            end
+            if ~ismember('DesaceleracionPromedio', generalTable.Properties.VariableNames)
+                generalTable.DesaceleracionPromedio = zeros(height(generalTable), 1);
+            end
+
+            % Recorrer cada fila de la tabla General
+            for k = 1:height(generalTable)
+                datosSensor = generalTable.DatosSensor{k};
+                
+                % Calcular la distancia total para cada conductor
+                total_distancia = sum(Calculos.CalcularDistancia(datosSensor));  % Asumiendo que la función acepta los datos de cada conductor
+                
+                % Filtrar las aceleraciones y desaceleraciones mayores a 0.8 m/s²
+                aceleraciones = generalTable.Aceleracion{k};
+                aceleraciones_mayores_08 = aceleraciones(aceleraciones > 0.8);
+                desaceleraciones_mayores_08 = aceleraciones(aceleraciones < -0.8);
+
+                % Calcular el número de aceleraciones y desaceleraciones por kilómetro
+                num_aceleraciones_por_km = numel(aceleraciones_mayores_08) / (total_distancia / 1000);
+                num_desaceleraciones_por_km = numel(desaceleraciones_mayores_08) / (total_distancia / 1000);
+
+                % Calcular las aceleraciones y desaceleraciones promedio mayores a 0.8 m/s²
+                if isempty(aceleraciones_mayores_08)
+                    aceleracion_promedio = 0;
+                else
+                    aceleracion_promedio = mean(aceleraciones_mayores_08);
+                end
+
+                if isempty(desaceleraciones_mayores_08)
+                    desaceleracion_promedio = 0;
+                else
+                    desaceleracion_promedio = mean(desaceleraciones_mayores_08);
+                end
+
+                % Almacenar los resultados en la tabla General para cada conductor
+                generalTable.NumAceleracionesPorKm(k) = num_aceleraciones_por_km;
+                generalTable.NumDesaceleracionesPorKm(k) = num_desaceleraciones_por_km;
+                generalTable.AceleracionPromedio(k) = aceleracion_promedio;
+                generalTable.DesaceleracionPromedio(k) = desaceleracion_promedio;
+            end
+            
+            % Actualizar la tabla General en la estructura Rutas
+            Rutas.(ruta).(trayecto).horaValle = generalTable;
+        end
+    end
+    return;
+end
+
+
 %% Calcula los datos de riesgo curvas
 
 function Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas)
@@ -383,7 +1465,14 @@ function Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas)
             trayecto = trayectos{j};
 
             % Obtener la tabla General del trayecto actual
-            generalTable = Rutas.(ruta).(trayecto).General;
+            generalTable = Rutas.(ruta).(trayecto).horaValle;
+
+
+             % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
+            if isempty(generalTable)
+                continue;
+            end
+
 
             % Obtener los datos relevantes del trayecto desde la tabla General
             datosSensor = generalTable.DatosSensor;
@@ -400,7 +1489,7 @@ function Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas)
 
 
                 % Actualizar la tabla General en la estructura Rutas
-                Rutas.(ruta).(trayecto).General.riesgoCurva(k) = {riesgoCurva};
+                Rutas.(ruta).(trayecto).horaValle.riesgoCurva(k) = {riesgoCurva};
             end
 
 
@@ -418,13 +1507,19 @@ for i = 1:numel(rutas)
     for j = 1:numel(trayectos)
         trayecto = trayectos{j};
 
-        dhg = Rutas.(ruta).(trayecto).General;
+        dhg = Rutas.(ruta).(trayecto).horaValle;
         try
             m_dhg = (cell2mat(dhg.("PromedioConsumo")')');
         catch ME
             error = dhg;
         end
+        % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
+            if isempty(dhg)
+                continue;
+            end
         shg = dhg.Sexo;
+
+        
 
         tm = size(m_dhg);
         for k = 1:tm(2)
@@ -440,21 +1535,25 @@ for i = 1:numel(rutas)
             percentages = scaled_segment * 100;
 
             % Inicializar la columna "PorcentajesConsumo" si no existe
-            if ~ismember("PorcentajesConsumo", Rutas.(ruta).(trayecto).General.Properties.VariableNames)
-                Rutas.(ruta).(trayecto).General.("PorcentajesConsumo") = cell(height(Rutas.(ruta).(trayecto).General), 1);
+            if ~ismember("PorcentajesConsumo", Rutas.(ruta).(trayecto).horaValle.Properties.VariableNames)
+                Rutas.(ruta).(trayecto).horaValle.("PorcentajesConsumo") = cell(height(Rutas.(ruta).(trayecto).horaValle), 1);
             end
             
             % Limpiar los datos existentes en la primera iteración del trayecto
             if k == 1
-                for idx = 1:height(Rutas.(ruta).(trayecto).General)
-                    Rutas.(ruta).(trayecto).General.("PorcentajesConsumo"){idx} = [];
+                for idx = 1:height(Rutas.(ruta).(trayecto).horaValle)
+                    Rutas.(ruta).(trayecto).horaValle.("PorcentajesConsumo"){idx} = [];
                 end
             end
             
             % Agregar el nuevo dato a cada cell array en la columna existente
-            for idx = 1:height(Rutas.(ruta).(trayecto).General)
-                Rutas.(ruta).(trayecto).General.("PorcentajesConsumo"){idx} = [Rutas.(ruta).(trayecto).General.("PorcentajesConsumo"){idx}, percentages(idx)];
-            end
+            for idx = 1:height(Rutas.(ruta).(trayecto).horaValle)
+                try
+                Rutas.(ruta).(trayecto).horaValle.("PorcentajesConsumo"){idx} = [Rutas.(ruta).(trayecto).horaValle.("PorcentajesConsumo"){idx}, percentages(idx)];
+                catch ME
+                    ME
+                end
+                end
         end
     end
 end
