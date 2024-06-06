@@ -26,7 +26,7 @@ Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %la funcion para el knn es, "fitcknn"
 numNeighbors = 5;%vecinos  
-nuestroKnn=fitcknn((XTrain, YTrain, 'NumNeighbors', numNeighbors);
+%nuestroKnn=fitcknn((XTrain, YTrain, 'NumNeighbors', numNeighbors);
 %ahi ya esa vaina ya se entrena entonces ahora
 
 prediccion=predict(knnModel, XTest);
@@ -96,6 +96,8 @@ geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeC
 geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
             
 %     
+%%
+obtenerFirmaMetodos('ImportarDatos');
 
 %%
 nombres = fieldnames(datosBuses);
@@ -859,4 +861,62 @@ function procesarRutas(datosReorganizados)
     end
 end
 
+%%
+
+function obtenerFirmaMetodos(claseNombre)
+    % Verifica que el nombre de la clase se pase como una cadena de texto
+    if ~ischar(claseNombre) && ~isstring(claseNombre)
+        error('El nombre de la clase debe ser una cadena de texto.');
+    end
+    
+    % Convierte el nombre de la clase a una cadena de texto si es necesario
+    claseNombre = char(claseNombre);
+    
+    % Obtiene la metainformación de la clase
+    metaClase = meta.class.fromName(claseNombre);
+    
+    % Verifica si la clase existe
+    if isempty(metaClase)
+        error('La clase %s no existe.', claseNombre);
+    end
+    
+    % Obtiene la lista de métodos de la clase
+    metodos = metaClase.Methods;
+    
+    % Inicializa las celdas para almacenar los datos
+    datos = cell(length(metodos) + 1, 5);
+    datos(1, :) = {'Método', '', 'Clase', 'Entradas', 'Salidas'};
+    
+    % Itera sobre cada método y almacena su información en las celdas
+    for k = 1:length(metodos)
+        metodo = metodos{k};
+        
+        % Nombre del método
+        datos{k + 1, 1} = metodo.Name;
+        
+        % Nombre de la clase
+        datos{k + 1, 3} = claseNombre;
+        
+        % Argumentos de entrada
+        if ~isempty(metodo.InputNames)
+            datos{k + 1, 4} = strjoin(metodo.InputNames, ', ');
+        else
+            datos{k + 1, 4} = '';
+        end
+        
+        % Argumentos de salida
+        if ~isempty(metodo.OutputNames)
+            datos{k + 1, 5} = strjoin(metodo.OutputNames, ', ');
+        else
+            datos{k + 1, 5} = '';
+        end
+    end
+    
+    % Escribe los datos en un archivo Excel
+    nombreArchivo = [claseNombre '_metodos.xlsx'];
+    writecell(datos, nombreArchivo);
+    
+    % Muestra un mensaje de confirmación
+    fprintf('Los datos de los métodos se han escrito en el archivo %s\n', nombreArchivo);
+end
 
