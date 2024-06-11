@@ -1,3 +1,4 @@
+
 classdef ImportarDatos
     methods (Static)
         function datos = Sensor(nombreCarpeta)
@@ -1035,17 +1036,17 @@ classdef ImportarDatos
                                 % Asignar los valores específicos al campo "Horario"
                                 if any(indicesPico)
                                     tabla2.Horario = 0; % Hora Pico
-                                    datosReorganizados.(ruta).ida.horaPico = [datosReorganizados.(ruta).ida.horaPico; tabla2];
+                                    datosReorganizados.(ruta).vuelta.horaPico = [datosReorganizados.(ruta).vuelta.horaPico; tabla2];
                                 end
 
                                 if any(indicesFlujoLibre)
                                     tabla2.Horario = 2; % Hora Libre
-                                    datosReorganizados.(ruta).ida.horaLibre = [datosReorganizados.(ruta).ida.horaLibre; tabla2];
+                                    datosReorganizados.(ruta).vuelta.horaLibre = [datosReorganizados.(ruta).vuelta.horaLibre; tabla2];
                                 end
 
                                 if any(indicesValle)
                                     tabla2.Horario = 1; % Hora Valle
-                                    datosReorganizados.(ruta).ida.horaValle = [datosReorganizados.(ruta).ida.horaValle; tabla2];
+                                    datosReorganizados.(ruta).vuelta.horaValle = [datosReorganizados.(ruta).vuelta.horaValle; tabla2];
                                 end
 
                                  if ~isfield(datosReorganizados.(ruta).vuelta, fecha)
