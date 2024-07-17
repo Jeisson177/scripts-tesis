@@ -1,3 +1,7 @@
+
+datos1b1=ImportarDatos.Sensor("2024-07-04/Z374012");
+
+
 %% Segmentación de las rutas
 Ruta4104Ida = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
 Ruta4104Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
@@ -195,7 +199,7 @@ function clasificarKNNGeneral(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-clasificarKNNGeneral(Rutas);
+%clasificarKNNGeneral(Rutas);
 
 
 %% KNN
@@ -360,7 +364,7 @@ function clasificarSexoYGraficar(Rutas)
     grid on;
 end
 
-clasificarSexoYGraficar(Rutas)
+%clasificarSexoYGraficar(Rutas)
 
 %% KNN sin pca
 
@@ -487,7 +491,7 @@ legend('Hombre', 'Mujer');
 grid on;
 end
 
-clasificarSexoSinPCA(Rutas);
+%clasificarSexoSinPCA(Rutas);
 
 %% Grafica general de aceleraciones
 
@@ -561,7 +565,7 @@ fprintf('Promedio Número de Desaceleraciones por Km Mujeres: %.2f\n', promedio_
 end
 
 % Llamar a la función con la estructura Rutas
-graficarAceleracionesPorConductor(Rutas);
+%graficarAceleracionesPorConductor(Rutas);
 
 
 
@@ -572,12 +576,13 @@ datos_pca = prepararDatosPCA(Rutas);
 
 
 % Verificar y limpiar datos para asegurarse de que no haya NaN o inf
-datos_pca(any(isnan(datos_pca), 2), :) = [];
+%datos_pca(any(isnan(datos_pca), 2), :) = [];
 datos_pca(any(isinf(datos_pca), 2), :) = [];
 
 
 
 % Normalizar los datos si es necesario
+
 datos_normalizados = zscore(datos_pca);
 
 % Aplicar PCA
@@ -720,7 +725,7 @@ grid on;
 end
 
 
-clasificarKMeansSinPCA(Rutas);
+%clasificarKMeansSinPCA(Rutas);
 
 
 %% PCA preparacion
@@ -974,7 +979,7 @@ grid on;
 end
 
 % Llamar a la función con la estructura Rutas
-clasificarKMeansSinPCAComparar(Rutas);
+%clasificarKMeansSinPCAComparar(Rutas);
 %%
 
 function clasificarKMeansCompararSexoYHorario(Rutas)
@@ -1183,7 +1188,7 @@ function clasificarKMeansCompararSexoYHorario(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-clasificarKMeansCompararSexoYHorario(Rutas);
+%clasificarKMeansCompararSexoYHorario(Rutas);
 
 %% Hora valle sin pca 2 clusters comparacion con horario y sexo
 
@@ -1575,7 +1580,7 @@ function kmeansPCAHoraValle(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-kmeansPCAHoraValle(Rutas);
+%kmeansPCAHoraValle(Rutas);
 
 %%
 
@@ -1704,7 +1709,7 @@ function kmeansHoraPico3Clusters(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-kmeansHoraPico3Clusters(Rutas);
+%kmeansHoraPico3Clusters(Rutas);
 
 
 %%
@@ -1925,7 +1930,7 @@ function clasificarKMeansConPCAComparar(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-clasificarKMeansConPCAComparar(Rutas);
+%clasificarKMeansConPCAComparar(Rutas);
 
 
 %%
@@ -2050,7 +2055,7 @@ function analizarContribucionesPCA(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-analizarContribucionesPCA(Rutas);
+%analizarContribucionesPCA(Rutas);
 
 
 %%
@@ -2167,7 +2172,7 @@ function analizarContribucionesPCAHoraPico(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-analizarContribucionesPCAHoraPico(Rutas);
+%analizarContribucionesPCAHoraPico(Rutas);
 
 %%
 
@@ -2337,7 +2342,7 @@ function clasificarKMeansCompararSexo(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-clasificarKMeansCompararSexo(Rutas);
+%clasificarKMeansCompararSexo(Rutas);
 
 
 
@@ -2480,7 +2485,7 @@ function clasificarKMeansConPCA(Rutas)
 end
 
 % Llamar a la función con la estructura Rutas
-clasificarKMeansConPCA(Rutas);
+%clasificarKMeansConPCA(Rutas);
 
 
 
@@ -2596,7 +2601,7 @@ function datos = prepararDatosParaClustering(Rutas)
 end
 
 % Ejemplo de uso:
-determinarNumeroOptimoClustersSinPCA(Rutas);
+%determinarNumeroOptimoClustersSinPCA(Rutas);
 
 
 %% Siluette con PCA
@@ -2655,7 +2660,7 @@ function determinarNumeroOptimoClusters(Rutas)
 end
 
 % Ejemplo de uso:
-determinarNumeroOptimoClusters(Rutas);
+%determinarNumeroOptimoClusters(Rutas);
 
 
 %%
@@ -2830,7 +2835,7 @@ grid on;
 end
 
 % Llamar a la función con la estructura Rutas
-clasificarKMeansHoraPico(Rutas);
+%clasificarKMeansHoraPico(Rutas);
 
 
 %% pruebas knn
