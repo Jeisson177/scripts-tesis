@@ -255,8 +255,6 @@ end
 end
 
 
-%%
-
 
 
 %%
@@ -329,9 +327,9 @@ end
             end
             
             % Asumiendo que las columnas son: tiempo, latitud, longitud
-            tiempo = datos{:, 1};
-            lat = datos{:, 2};
-            lon = datos{:, 3};
+            tiempo = datos.time;
+            lat = datos.lat;
+            lon = datos.lon;
             
             % Calcular la diferencia de tiempo en segundos
             diferenciaTiempo = seconds(diff(tiempo));
@@ -514,7 +512,7 @@ end
         
         
         function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
-            tiempo = datos{:, 1};
+            tiempo = datos.time;
             velocidad = Calculos.calcularVelocidadMS(datos);
             n = length(velocidad);
             velocidadCorregida = velocidad;
@@ -525,8 +523,8 @@ end
                 dt = seconds(tiempo(i+1) - tiempo(i));
                 
                 % Calcular la pendiente entre dos puntos consecutivos
-                pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
-                
+                %%pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
+                pendiente = (velocidad(i+1) - velocidad(i)) / dt;
                 % Si la pendiente supera el umbral, encontrar un punto donde no lo haga
                 if abs(pendiente) > umbral
                     j = i + 2; % Iniciar con el siguiente punto
@@ -1815,6 +1813,10 @@ end
         for j = 1:numel(buses)
             bus = buses{j};
             datosSensor = datosBuses.(fecha).(bus).datosSensor;
+
+            if isempty(datosSensor)
+                continue;
+            end
             
             % Inicializar el campo tiempoRuta como una celda vacía
             datosBuses.(fecha).(bus).tiempoRuta = {};
@@ -1924,11 +1926,8 @@ function datosBuses = calcularAceleracionRutas(datosBuses)
                     inicioIda = tiempoRuta{k, 1};
                     finIda = tiempoRuta{k, 2};
 
-                    datosIda = datosSensor(datosSensor{:, 1} >= inicioIda & datosSensor{:, 1} <= finIda, :);
-                    
                     % Calcular aceleración de ida
-                    diffv = diff(velocidadIda);
-                    aceleracionIda =  diffv;
+                    aceleracionIda = diff(velocidadIda);
                     
                     % Calcular aceleración de vuelta
                     aceleracionVuelta = diff(velocidadVuelta);

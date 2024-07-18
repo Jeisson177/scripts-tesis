@@ -12,7 +12,8 @@ classdef Graficas
     end
 
     % Filtrar los datos por el rango de fechas
-    datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
+    datosFiltrados = datos(datos.time >= fechaInicio & datos.time <= fechaFin, :);
+
 
     % Elegir la función de cálculo de velocidad basada en el parámetro 'metodoVelocidad'
     switch metodoVelocidad
@@ -73,7 +74,7 @@ end
     datosFiltrados = datos(datos{:, 1} >= fechaInicio & datos{:, 1} <= fechaFin, :);
 
     % Calcular la velocidad como paso preliminar para calcular la aceleración
-    velocidad = Calculos.calcularVelocidadKH(datosFiltrados);
+    velocidad = Calculos.corregirVelocidadPendiente(datosFiltrados, 3);
     velocidad = velocidad .* 0.277778;  % Convertir de km/h a m/s si es necesario
 
     % Elegir la función de cálculo de aceleración basada en el parámetro 'metodoAceleracion'
@@ -84,6 +85,10 @@ end
             aceleracion = Calculos.calcularAceleracion2(velocidad, datosFiltrados);
         case 'filtrar'
             aceleracion = Calculos.calcularAceleracionFiltrada(datosFiltrados, 3);
+        case 'diff'
+            % Calcular la aceleración usando diff
+            tiempoDiferencias = seconds(diff(datosFiltrados{:, 'time'}));
+            aceleracion = diff(velocidad) ./ tiempoDiferencias(2:end);
         otherwise
             error('Método de cálculo de aceleración no reconocido');
     end

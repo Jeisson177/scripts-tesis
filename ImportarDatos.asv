@@ -34,6 +34,7 @@ classdef ImportarDatos
                 folder = pwd; % Directorio actual por defecto
             end
             filePath = fullfile(folder, fileName);
+            disp(class(variableNames));
             opts = ImportarDatos.createImportOptions(numVariables, variableNames, variableTypes, dateVars, decimalVars);
             data = readtable(filePath, opts);
         end
@@ -52,9 +53,6 @@ classdef ImportarDatos
                     ["datetime", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double"], ...
                     ["time"], ["ax", "ay", "az", "mx", "my", "mz", "gx", "gy", "gz", "orx", "oy", "or", "lat", "lon"]);
             end
-
-            datos = vertcat(datos{:}); % Concatenar todas las tablas en una sola
-
         end
 
 
@@ -480,15 +478,8 @@ classdef ImportarDatos
                     end
 
                     % Importar los datos del sensor
-                    try
-                        % Importar los datos del sensor
-                        datosSensor = ImportarDatos.Sensor(busPath);
-                        datosCordenadasSensor = datosSensor(:, {'time', 'lat', 'lon'});
-                    catch
-                        % Si ocurre un error, datosCordenadasSensor será una tabla vacía
-                        warning('No se encontraron datos de sensor para el bus en %s.', busPath);
-                        datosCordenadasSensor = table([], [], [], 'VariableNames', {'time', 'lat', 'lon'});
-                    end
+                    datosSensor = ImportarDatos.Sensor(busPath);
+                    datosCordenadasSensor = datosSensor(:, {'time', 'lat', 'lon'});
 
                     % Guardar los datos en una estructura organizada por fecha y bus
                     if ~isfield(busesDatos, fechaFieldName)

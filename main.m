@@ -3120,16 +3120,17 @@ Rutas = ImportarDatos.reorganizarDatosRutas(datosBuses);
 
 %%
 
-generarDatos(Buses.bus_4104.ida.horaValle.("Hora Inicio")(1), Buses.bus_4104.ida.horaValle.("Hora Fin")(1), '4104', 'ida', Pcurvas);
+generarDatos(Buses.bus_4104.ida.horaValle.("Hora Inicio")(2), Buses.bus_4104.vuelta.horaValle.("Hora Fin")(2), '4104', 'ida', Pcurvas);
 
 %%
-generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(3), Buses.bus_4020.ida.horaPico.("Hora Fin")(3), '4020', 'ida');
+generarDatos(Buses.bus_4020.ida.horaPico.("Hora Inicio")(3), Buses.bus_4020.vuelta.horaPico.("Hora Fin")(3), '4020', 'ida');
 %%
 generarDatos(Buses.bus_4020.ida.f_2024_04_15.("Hora Inicio")(3), Buses.bus_4020.ida.f_2024_04_15.("Hora Fin")(3), '4020', 'ida');
 
 %%
 
 
+generarDatos(Rutas.Ruta4104S2.ida.General.HoraInicio{2}, Rutas.Ruta4104S2.vuelta.General.HoraFin{2}, '4104', 'ida', Pcurvas);
 
 
 
@@ -4987,7 +4988,6 @@ rutalogs = fullfile('Datos', fechaArchivo, strrep(IDbus, 'bus_', ''), 'log');
 
 % Importar datos del sensor y del P20
 datosSensor = ImportarDatos.Sensor(rutaSensor);
-datosCordenadasSensor = ImportarDatos.SensorCordenadas(datosSensor);
 
 datosP20 = ImportarDatos.P20(rutalogs);
 %datosCordenadasP20 = ImportarDatos.P20Cordenadas(datosP20);
@@ -5007,7 +5007,7 @@ General = sprintf(' - Fecha: %s, Bus ID: %s, Hora: %s-%s', fechaArchivo, IDbus, 
 % Preparar el título con la palabra 'velocidad', la fecha, el ID del bus y las horas de inicio y final
 tituloGrafica = [Etiqueta sprintf(' Ruta -celular y sts ') General];
 % ruta celular
-MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', tituloGrafica, 'Celular');
+%MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', tituloGrafica, 'Celular');
 % ruta sts
 %Map.Ruta(datosCordenadasP20, fechaInicio, fechaFinal, 'r--', tituloGrafica, 'STS', MapaRuta);
 
@@ -5029,8 +5029,8 @@ MapaRuta = Map.Ruta(datosCordenadasSensor, fechaInicio, fechaFinal, 'r-', titulo
 
 tituloGrafica = [Etiqueta sprintf(' Velocidad filtrada y sin filtar ') General];
 % grafica Velocidad celular sin correccion y con correccion
-graficaVelocidad = Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-' , 'sin filtrar' );
-Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada', graficaVelocidad);
+graficaVelocidad = Graficas.velocidadTiempo(datosSensor, fechaInicio, fechaFinal, 'MS', tituloGrafica, 'b-' , 'sin filtrar' );
+Graficas.velocidadTiempo(datosSensor, fechaInicio, fechaFinal,'filtrar', tituloGrafica, 'y-','filtrada', graficaVelocidad);
 
 % tituloGrafica = [Etiqueta sprintf(' Velocidad coordenadas p20 ') General];
 % Grafica sts velocidad
@@ -5042,8 +5042,8 @@ Graficas.velocidadTiempo(datosCordenadasSensor, fechaInicio, fechaFinal,'filtrar
 
 tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
 %Grafica aceleracion celular
-graficaAce = Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'normal', tituloGrafica, 'b-', 'sin filtrar');
-Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', graficaAce);
+Graficas.aceleracionTiempo(datosSensor, fechaInicio, fechaFinal, 'diff', tituloGrafica, 'b-', 'filtrar');
+%Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filtrar', tituloGrafica, 'r-', 'filtrada', graficaAce);
 
 
 %tituloGrafica = [Etiqueta sprintf(' Aceleracion STS coordenadas ') General];
@@ -5054,7 +5054,7 @@ Graficas.aceleracionTiempo(datosCordenadasSensor, fechaInicio, fechaFinal, 'filt
 % Grafica aceleracion trama
 %Graficas.graficarAceleracionSts(datosP20, fechaInicio, fechaFinal, tituloGrafica, 'b-', 'STS');
 
-%tituloGrafica = [Etiqueta sprintf(' Curvatura ') General];
+tituloGrafica = [Etiqueta sprintf(' Curvatura ') General];
 % Mapa giros
 %Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFinal, tituloGrafica)
 
@@ -5069,8 +5069,8 @@ Ruta4020Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
 
 hold off;
 tituloGrafica = [Etiqueta sprintf(' Aceleracion Celular ') General];
-dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaInicio, fechaFinal);
-Map.graficarSegmentosEnMapa(dataFiltrada, Ruta4020Ida, tituloGrafica);
+%dataFiltrada = ImportarDatos.filtrarDatosPorFechas(datosCordenadasSensor, fechaInicio, fechaFinal);
+%Map.graficarSegmentosEnMapa(dataFiltrada, Ruta4104Ida, tituloGrafica);
 
 % Grafica giros
 tituloGrafica = [Etiqueta sprintf(' Riesgo curvatura ') General];
@@ -5078,24 +5078,24 @@ tituloGrafica = [Etiqueta sprintf(' Riesgo curvatura ') General];
 
 tituloGrafica = [Etiqueta sprintf(' Distancia vs velocidad y segmentos ') General];
 % Grafica de distancia vs velocidad
-Graficas.DistanciavsVelocidad3(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal,Ruta4104Ida,tituloGrafica);
+%Graficas.DistanciavsVelocidad3(datosCordenadasSensor,datosP60, fechaInicio, fechaFinal,Ruta4104Ida,tituloGrafica);
 
 
 
 %Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
 
-curvao = Calculos.riesgoCurva2(datosCordenadasSensor, fechaInicio, fechaFinal, Pcurvas.Ruta4104.ida);
+%curvao = Calculos.riesgoCurva2(datosCordenadasSensor, fechaInicio, fechaFinal, Pcurvas.Ruta4104.ida);
 
 
 %Grafica de distancia vs energia
-Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
+%Graficas.DistanciavsEnergia(datosP60, fechaInicio, fechaFinal, '1', '2');
 
 % Grafica de aceleraciones histograma
 %Graficas.analizarAceleraciones(datosCordenadasSensor, fechaInicio, fechaFinal);
 
 % Grafica tiempo vs energia
-Velocidad = Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
-Graficas.TiempovsEnergiaCorregida(datosP60, fechaInicio, fechaFinal, Velocidad);
+%Velocidad = Graficas.TiempovsEnergia(datosP60, fechaInicio, fechaFinal);
+%Graficas.TiempovsEnergiaCorregida(datosP60, fechaInicio, fechaFinal, Velocidad);
 
 % Graficas ocupacion vs tiempo
 %Graficas.OcupacionVsTiempo(evento1, fechaInicio, fechaFinal);
