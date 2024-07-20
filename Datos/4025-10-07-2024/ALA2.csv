@@ -1,0 +1,2 @@
+versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoAlarma,nivelAlarma,aceleracionVehiculo
+E.1.0.0,1035200,PB,Z374025,A601,No Disponible,2024-07-10 16:34:06.026,2024-07-10 16:34:06.076,T,4.587319,-74.170269,3,3,False,2,ALA2,NIV2,-5.34

@@ -1,0 +1,5 @@
+versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoAlarma,nivelAlarma,estadoDesgasteFrenos
+E.1.0.0,1044786,PB,Z374025,L613,No Disponible,2024-07-12 05:37:00.066,2024-07-12 05:37:00.197,T,4.592375,-74.181992,3,3,False,2,ALA10,NIV5,18.0
+E.1.0.0,1046947,PB,Z374025,H613,No Disponible,2024-07-12 11:37:00.075,2024-07-12 11:37:00.866,T,4.592619,-74.180969,3,3,False,2,ALA10,NIV5,18.0
+E.1.0.0,1047104,PB,Z374025,No Disponible,No Disponible,2024-07-12 14:37:00.107,2024-07-12 14:37:02.367,T,4.592644,-74.181078,3,3,False,2,ALA10,NIV5,18.0
+E.1.0.0,1049178,PB,Z374025,T04,No Disponible,2024-07-12 20:37:00.125,2024-07-12 20:37:01.426,T,4.570500,-74.168767,3,3,False,2,ALA10,NIV5,18.0

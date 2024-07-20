@@ -1,0 +1,4 @@
+versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoAlarma,nivelAlarma,estadoCinturonSeguridad
+E.1.0.0,1068153,PB,Z374025,H613,No Disponible,2024-07-16 06:05:44.185,2024-07-16 06:05:44.286,T,4.592511,-74.181150,3,3,False,2,ALA8,N/A,False
+E.1.0.0,1068154,PB,Z374025,H613,No Disponible,2024-07-16 06:05:45.186,2024-07-16 06:05:45.436,T,4.592511,-74.181150,3,3,False,2,ALA8,N/A,False
+E.1.0.0,1068155,PB,Z374025,H613,No Disponible,2024-07-16 06:05:46.185,2024-07-16 06:05:46.396,T,4.592511,-74.181150,3,3,False,2,ALA8,N/A,False
