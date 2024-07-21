@@ -24,74 +24,6 @@ Vuelta4104 = [4.562243400000000, -74.083503800000000];
 
 %% Grafica general de aceleraciones
 
-function graficarAceleracionesPorConductor(Rutas)
-% Inicializar listas para almacenar los datos
-aceleracion_promedio_positiva = [];
-aceleracion_promedio_negativa = [];
-num_aceleraciones_por_km = [];
-num_desaceleraciones_por_km = [];
-sexos = [];
-
-% Recorrer todas las rutas y trayectos
-rutas = fieldnames(Rutas);
-for i = 1:numel(rutas)
-    ruta = rutas{i};
-    trayectos = fieldnames(Rutas.(ruta));
-    for j = 1:numel(trayectos)
-        trayecto = trayectos{j};
-        generalTable = Rutas.(ruta).(trayecto).General;
-
-        % Verificar si la tabla general está vacía, si es así, continuar
-        if isempty(generalTable)
-            continue;
-        end
-
-        % Recoger los datos de cada conductor
-        for k = 1:height(generalTable)
-            aceleracion_promedio_positiva = [aceleracion_promedio_positiva; generalTable.AceleracionPromedio(k)];
-            aceleracion_promedio_negativa = [aceleracion_promedio_negativa; generalTable.DesaceleracionPromedio(k)];
-            num_aceleraciones_por_km = [num_aceleraciones_por_km; generalTable.NumAceleracionesPorKm(k)];
-            num_desaceleraciones_por_km = [num_desaceleraciones_por_km; generalTable.NumDesaceleracionesPorKm(k)];
-            sexos = [sexos; generalTable.Sexo(k)];
-        end
-    end
-end
-
-% Graficar los datos
-figure;
-
-% Graficar aceleraciones positivas y negativas en la misma gráfica
-hold on;
-scatter(num_aceleraciones_por_km(sexos == 0), aceleracion_promedio_positiva(sexos == 0), 'r', 'DisplayName', 'Aceleraciones Hombres');
-scatter(num_aceleraciones_por_km(sexos == 1), aceleracion_promedio_positiva(sexos == 1), 'b', 'DisplayName', 'Aceleraciones Mujeres');
-scatter(num_desaceleraciones_por_km(sexos == 0), aceleracion_promedio_negativa(sexos == 0), 'ro', 'DisplayName', 'Desaceleraciones Hombres');
-scatter(num_desaceleraciones_por_km(sexos == 1), aceleracion_promedio_negativa(sexos == 1), 'bo', 'DisplayName', 'Desaceleraciones Mujeres');
-title('Aceleraciones y Desaceleraciones por Kilómetro');
-xlabel('Número de Aceleraciones/Desaceleraciones por Km');
-ylabel('Aceleración/Desaceleración Promedio');
-legend;
-hold off;
-
-% Calcular los promedios para cada grupo
-promedio_aceleracion_hombres = mean(aceleracion_promedio_positiva(sexos == 0));
-promedio_aceleracion_mujeres = mean(aceleracion_promedio_positiva(sexos == 1));
-promedio_desaceleracion_hombres = mean(aceleracion_promedio_negativa(sexos == 0));
-promedio_desaceleracion_mujeres = mean(aceleracion_promedio_negativa(sexos == 1));
-promedio_num_aceleraciones_hombres = mean(num_aceleraciones_por_km(sexos == 0));
-promedio_num_aceleraciones_mujeres = mean(num_aceleraciones_por_km(sexos == 1));
-promedio_num_desaceleraciones_hombres = mean(num_desaceleraciones_por_km(sexos == 0));
-promedio_num_desaceleraciones_mujeres = mean(num_desaceleraciones_por_km(sexos == 1));
-
-% Mostrar los promedios
-fprintf('Promedio Aceleración Hombres: %.2f\n', promedio_aceleracion_hombres);
-fprintf('Promedio Aceleración Mujeres: %.2f\n', promedio_aceleracion_mujeres);
-fprintf('Promedio Desaceleración Hombres: %.2f\n', promedio_desaceleracion_hombres);
-fprintf('Promedio Desaceleración Mujeres: %.2f\n', promedio_desaceleracion_mujeres);
-fprintf('Promedio Número de Aceleraciones por Km Hombres: %.2f\n', promedio_num_aceleraciones_hombres);
-fprintf('Promedio Número de Aceleraciones por Km Mujeres: %.2f\n', promedio_num_aceleraciones_mujeres);
-fprintf('Promedio Número de Desaceleraciones por Km Hombres: %.2f\n', promedio_num_desaceleraciones_hombres);
-fprintf('Promedio Número de Desaceleraciones por Km Mujeres: %.2f\n', promedio_num_desaceleraciones_mujeres);
-end
 
 % Llamar a la función con la estructura Rutas
 %graficarAceleracionesPorConductor(Rutas);
@@ -331,57 +263,6 @@ xlabel('Distancia');
 ylabel('Porcentaje de energía');
 %% Graficas de barras
 
-function graficarCampoDeTablaConPromedios(tabla, nombreCampo, transponer)
-    % Validar la entrada
-    if ~ismember(nombreCampo, tabla.Properties.VariableNames)
-        error('El campo especificado no existe en la tabla.');
-    end
-    
-    % Extraer los datos del campo especificado
-    datos = cell2mat(tabla.(nombreCampo)')';
-
-    % Transponer la matriz si es necesario
-    if transponer
-        datos = datos';
-    end
-
-    % Calcular los promedios de cada subgrupo
-    promedios = mean(datos);
-
-    % Crear gráficas
-    figure;
-    b = bar(datos');
-    hold on;
-    
-    % Añadir los promedios a las gráficas
-    xData = 1:length(promedios);
-    for i = 1:length(xData)
-        yPosition = max(datos(:)) + 0.5;
-        % Ajustar la posición para que no quede muy arriba
-        if yPosition > 3
-            yPosition = yPosition - 0.3;
-        end
-        text(xData(i), yPosition, sprintf('%.2f', promedios(i)), 'HorizontalAlignment', 'center', 'FontSize', 12, 'Color', 'k');
-    end
-    xlabel('Grupo');
-    ylabel(nombreCampo);
-    title(['Diagrama de barras de ', nombreCampo, ' por Ruta']);
-    legend(arrayfun(@(x) ['Conductor ', num2str(x)], 1:size(datos, 2), 'UniformOutput', false));
-    hold off;
-    
-    figure;
-    boxplot(datos);
-    hold on;
-    % Añadir los promedios a las gráficas
-    for i = 1:size(datos, 2)
-        plot(i, promedios(i), 'r*', 'MarkerSize', 10);
-        text(i, median(datos(:, i)), sprintf('%.2f', promedios(i)), 'HorizontalAlignment', 'center', 'FontSize', 12, 'Color', 'k');
-    end
-    xlabel('Grupo');
-    ylabel(nombreCampo);
-    title(['Boxplot de ', nombreCampo, ' por Ruta']);
-    hold off;
-end
 
 % Ejemplo de uso:
 % graficarCampoDeTablaConPromedios(Buses.bus_4020.ida.horaValle, 'PromedioVelocidad', true);
@@ -398,72 +279,6 @@ Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas);
 
 %% Calcula los porcentajes y los deja en la estructura
 
-function Rutas = calcularPorcentajesVelocidad(Rutas, tipoHorario)
-    % Valida el tipoHorario
-    if ~ismember(tipoHorario, {'horaValle', 'horaPico', 'General'})
-        error('El tipo de horario debe ser "horaValle", "horaPico" o "General".');
-    end
-
-    % Recorrer todas las rutas y trayectos
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-
-            % Obtener la tabla correspondiente al tipo de horario
-            dhg = Rutas.(ruta).(trayecto).(tipoHorario);
-
-            % Verificar si la tabla está vacía, si es así, continuar
-            if isempty(dhg)
-                continue;
-            end
-
-            % Convertir los datos y calcular los porcentajes
-            try
-                m_dhg = (cell2mat(dhg.("PromedioVelocidad")')');
-            catch ME
-                error = dhg;
-            end
-            shg = dhg.Sexo;
-
-            tm = size(m_dhg);
-            for k = 1:tm(2)
-                sg = m_dhg(:, k);
-
-                min_val = min(sg) * 0.9;
-                max_val = max(sg) * 1.1;
-
-                % Escalar los valores del segmento al rango [0, 1]
-                scaled_segment = (sg - min_val) / (max_val - min_val);
-
-                % Convertir los valores escalados a porcentajes
-                percentages = scaled_segment * 100;
-
-                % Inicializar la columna "PorcentajesVelocidad" si no existe
-                if ~ismember("PorcentajesVelocidad", dhg.Properties.VariableNames)
-                    dhg.("PorcentajesVelocidad") = cell(height(dhg), 1);
-                end
-
-                % Limpiar los datos existentes en la primera iteración del trayecto
-                if k == 1
-                    for idx = 1:height(dhg)
-                        dhg.("PorcentajesVelocidad"){idx} = [];
-                    end
-                end
-
-                % Agregar el nuevo dato a cada cell array en la columna existente
-                for idx = 1:height(dhg)
-                    dhg.("PorcentajesVelocidad"){idx} = [dhg.("PorcentajesVelocidad"){idx}, percentages(idx)];
-                end
-            end
-
-            % Actualizar la tabla correspondiente en Rutas
-            Rutas.(ruta).(trayecto).(tipoHorario) = dhg;
-        end
-    end
-end
 
 % Ejemplo de llamada a la función:
 Rutas = calcularPorcentajesVelocidad(Rutas, 'horaValle');
@@ -477,82 +292,6 @@ Rutas = calcularAceleraciones(Rutas);
 
 %% Calcular las aceleraciones
 
-function Rutas = calcularAceleraciones(Rutas, tipoHorario)
-    % Valida el tipoHorario
-    if ~ismember(tipoHorario, {'horaValle', 'horaPico', 'General'})
-        error('El tipo de horario debe ser "horaValle", "horaPico" o "General".');
-    end
-
-    % Recorrer todas las rutas y trayectos
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-            generalTable = Rutas.(ruta).(trayecto).(tipoHorario);
-
-            % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
-            if isempty(generalTable)
-                continue;
-            end
-
-            % Inicializar las columnas si no existen
-            if ~ismember('NumAceleracionesPorKm', generalTable.Properties.VariableNames)
-                generalTable.NumAceleracionesPorKm = zeros(height(generalTable), 1);
-            end
-            if ~ismember('NumDesaceleracionesPorKm', generalTable.Properties.VariableNames)
-                generalTable.NumDesaceleracionesPorKm = zeros(height(generalTable), 1);
-            end
-            if ~ismember('AceleracionPromedio', generalTable.Properties.VariableNames)
-                generalTable.AceleracionPromedio = zeros(height(generalTable), 1);
-            end
-            if ~ismember('DesaceleracionPromedio', generalTable.Properties.VariableNames)
-                generalTable.DesaceleracionPromedio = zeros(height(generalTable), 1);
-            end
-
-            % Recorrer cada fila de la tabla General
-            for k = 1:height(generalTable)
-                datosSensor = generalTable.DatosSensor{k};
-
-                % Calcular la distancia total para cada conductor
-                total_distancia = sum(Calculos.CalcularDistancia(datosSensor));  % Asumiendo que la función acepta los datos de cada conductor
-
-                % Filtrar las aceleraciones y desaceleraciones mayores a 0.8 m/s²
-                aceleraciones = generalTable.Aceleracion{k};
-                aceleraciones_mayores_08 = aceleraciones(aceleraciones > 0.8);
-                desaceleraciones_mayores_08 = aceleraciones(aceleraciones < -0.8);
-
-                % Calcular el número de aceleraciones y desaceleraciones por kilómetro
-                num_aceleraciones_por_km = numel(aceleraciones_mayores_08) / (total_distancia / 1000);
-                num_desaceleraciones_por_km = numel(desaceleraciones_mayores_08) / (total_distancia / 1000);
-
-                % Calcular las aceleraciones y desaceleraciones promedio mayores a 0.8 m/s²
-                if isempty(aceleraciones_mayores_08)
-                    aceleracion_promedio = 0;
-                else
-                    aceleracion_promedio = mean(aceleraciones_mayores_08);
-                end
-
-                if isempty(desaceleraciones_mayores_08)
-                    desaceleracion_promedio = 0;
-                else
-                    desaceleracion_promedio = mean(desaceleraciones_mayores_08);
-                end
-
-                % Almacenar los resultados en la tabla General para cada conductor
-                generalTable.NumAceleracionesPorKm(k) = num_aceleraciones_por_km;
-                generalTable.NumDesaceleracionesPorKm(k) = num_desaceleraciones_por_km;
-                generalTable.AceleracionPromedio(k) = aceleracion_promedio;
-                generalTable.DesaceleracionPromedio(k) = desaceleracion_promedio;
-            end
-
-            % Actualizar la tabla General en la estructura Rutas
-            Rutas.(ruta).(trayecto).(tipoHorario) = generalTable;
-        end
-    end
-    return;
-end
 
 % Ejemplo de llamada a la función:
 Rutas = calcularAceleraciones(Rutas, 'horaValle');
@@ -562,58 +301,6 @@ Rutas = calcularAceleraciones(Rutas, 'General');
 
 %% Calcula los datos de riesgo curvas
 
-function Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas, tipoHorario)
-    % Valida el tipoHorario
-    if ~ismember(tipoHorario, {'horaValle', 'horaPico', 'General'})
-        error('El tipo de horario debe ser "horaValle", "horaPico" o "General".');
-    end
-
-    % Iterar sobre todas las rutas en la estructura
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-
-        % Iterar sobre todos los trayectos en la ruta actual
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-
-            % Obtener la tabla correspondiente al tipo de horario
-            generalTable = Rutas.(ruta).(trayecto).(tipoHorario);
-
-            % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
-            if isempty(generalTable)
-                continue;
-            end
-
-            % Obtener los datos relevantes del trayecto desde la tabla General
-            datosSensor = generalTable.DatosSensor;
-            fechaInicio = generalTable.HoraInicio;
-            fechaFinal = generalTable.HoraFin;
-            ida = Pcurvas.(ruta).(trayecto);
-
-            % Calcular el riesgo de curva para el trayecto actual
-
-            % Recorrer los datos de DatosSensor y calcular el riesgo de curva para cada punto
-            for k = 1:size(datosSensor, 1)
-                % Calcular el riesgo de curva para el punto actual
-                riesgoCurva = Calculos.riesgoCurva2(datosSensor{k}, fechaInicio{k}, fechaFinal{k}, ida);
-
-                % Inicializar la columna "riesgoCurva" si no existe
-                if ~ismember('riesgoCurva', generalTable.Properties.VariableNames)
-                    generalTable.riesgoCurva = cell(height(generalTable), 1);
-                end
-
-                % Actualizar la tabla General en la estructura Rutas
-                generalTable.riesgoCurva{k} = riesgoCurva;
-            end
-
-            % Actualizar la tabla correspondiente en la estructura Rutas
-            Rutas.(ruta).(trayecto).(tipoHorario) = generalTable;
-        end
-    end
-    return;
-end
 
 % Ejemplo de llamada a la función:
 Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas, 'horaValle');
@@ -622,75 +309,6 @@ Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas, 'General');
 
 %% Calcula los porcentajes del consumo
 
-function Rutas = calcularPorcentajesConsumo(Rutas, tipoHorario)
-    % Valida el tipoHorario
-    if ~ismember(tipoHorario, {'horaValle', 'horaPico', 'General'})
-        error('El tipo de horario debe ser "horaValle", "horaPico" o "General".');
-    end
-
-    % Recorrer todas las rutas y trayectos
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-            generalTable = Rutas.(ruta).(trayecto).(tipoHorario);
-
-            % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
-            if isempty(generalTable)
-                continue;
-            end
-
-            % Extraer la matriz de PromedioConsumo
-            try
-                m_dhg = (cell2mat(generalTable.("PromedioConsumo")')');
-            catch
-                continue;  % Si hay un error al extraer, pasar al siguiente trayecto
-            end
-
-            shg = generalTable.Sexo;
-
-            tm = size(m_dhg);
-            for k = 1:tm(2)
-                sg = m_dhg(:, k);
-
-                min_val = min(sg) * 0.9;
-                max_val = max(sg) * 1.1;
-
-                % Escalar los valores del segmento al rango [0, 1]
-                scaled_segment = (sg - min_val) / (max_val - min_val);
-
-                % Convertir los valores escalados a porcentajes
-                percentages = scaled_segment * 100;
-
-                % Inicializar la columna "PorcentajesConsumo" si no existe
-                if ~ismember("PorcentajesConsumo", generalTable.Properties.VariableNames)
-                    generalTable.("PorcentajesConsumo") = cell(height(generalTable), 1);
-                end
-
-                % Limpiar los datos existentes en la primera iteración del trayecto
-                if k == 1
-                    for idx = 1:height(generalTable)
-                        generalTable.("PorcentajesConsumo"){idx} = [];
-                    end
-                end
-
-                % Agregar el nuevo dato a cada cell array en la columna existente
-                for idx = 1:height(generalTable)
-                    try
-                        generalTable.("PorcentajesConsumo"){idx} = [generalTable.("PorcentajesConsumo"){idx}, percentages(idx)];
-                    catch
-                        continue;  % Si hay un error, continuar con el siguiente índice
-                    end
-                end
-            end
-
-            % Actualizar la tabla en la estructura Rutas
-            Rutas.(ruta).(trayecto).(tipoHorario) = generalTable;
-        end
-    end
-end
 
 % Ejemplo de llamada a la función:
 Rutas = calcularPorcentajesConsumo(Rutas, 'horaValle');
@@ -701,121 +319,6 @@ Rutas = calcularPorcentajesConsumo(Rutas, 'General');
 %% Grafica general de porcentajes velocidad
 
 
-function graficarPromediosYVarianzaPorSexoVelocidad(Rutas, tipoTabla)
-    promedioConductorH = [];
-    promedioConductorM = [];
-    varianzaConductorH = [];
-    varianzaConductorM = [];
-
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-
-            switch tipoTabla
-                case 'horaPico'
-                    dhg = Rutas.(ruta).(trayecto).horaPico;
-                case 'horaValle'
-                    dhg = Rutas.(ruta).(trayecto).horaValle;
-                case 'General'
-                    dhg = Rutas.(ruta).(trayecto).General;
-                otherwise
-                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
-            end
-            
-            if isempty(dhg)
-                continue;
-            end
-            
-            try
-                m_dhg = (cell2mat(dhg.("PorcentajesVelocidad"))');
-            catch ME
-                error('Error al convertir los porcentajes de velocidad. Verifique los datos.');
-            end
-            
-            shg = dhg.Sexo;
-
-            tm = size(m_dhg);
-            for k = 1:tm(2)
-                conductor = m_dhg(:, k);
-
-                % Omitir datos NaN
-                conductor = conductor(~isnan(conductor));
-
-                % Acumular los datos por sexo
-                if shg(k) == 0
-                    promedioConductorH = [promedioConductorH; mean(conductor)];
-                    varianzaConductorH = [varianzaConductorH; var(conductor)];
-                else
-                    promedioConductorM = [promedioConductorM; mean(conductor)];
-                    varianzaConductorM = [varianzaConductorM; var(conductor)];
-                end
-            end
-        end
-    end
-
-    % Omitir promedios y varianzas NaN
-    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
-    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
-    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
-    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
-
-    % Generar la gráfica acumulada
-    figure;
-
-    % Gráfica de promedios para hombres y mujeres en la misma figura
-    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
-    hold on;
-    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
-
-    % Calcular y graficar la distribución para hombres
-    if ~isempty(promedioConductorH)
-        mu_h = mean(promedioConductorH);
-        sig_h = std(promedioConductorH);
-        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
-        y_h = pdf('Normal', x_h, mu_h, sig_h);
-        plot(x_h, y_h, 'r')
-    else
-        mu_h = NaN;
-    end
-
-    % Calcular y graficar la distribución para mujeres
-    if ~isempty(promedioConductorM)
-        mu_m = mean(promedioConductorM);
-        sig_m = std(promedioConductorM);
-        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
-        y_m = pdf('Normal', x_m, mu_m, sig_m);
-        plot(x_m, y_m, 'b')
-    else
-        mu_m = NaN;
-    end
-
-    title(['Promedio Velocidad - Hombres y Mujeres (', tipoTabla, ')']);
-    xlabel('Promedio de porcentajes por segmento de velocidad');
-    ylabel('Frecuencia');
-    legend;
-
-    % Mostrar los promedios y varianzas en la esquina superior izquierda
-    y_lims = ylim;
-    x_lims = xlim;
-    offset_y = 0.05 * (y_lims(2) - y_lims(1));
-    offset_x = 0.05 * (x_lims(2) - x_lims(1));
-    
-    if ~isnan(mu_h)
-        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
-            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
-            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    if ~isnan(mu_m)
-        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
-            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
-            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    
-    hold off;
-end
 
 % Ejemplo de uso:
 % graficarPromediosYVarianzaPorSexoVelocidad(Rutas, 'horaPico');
@@ -827,121 +330,6 @@ graficarPromediosYVarianzaPorSexoVelocidad(Rutas, 'horaValle');
 
 %% Grafica general de riesgo curva
 
-function graficarPromediosYVarianzaPorSexo(Rutas, tipoTabla)
-    promedioConductorH = [];
-    promedioConductorM = [];
-    varianzaConductorH = [];
-    varianzaConductorM = [];
-
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-
-            switch tipoTabla
-                case 'horaPico'
-                    dhg = Rutas.(ruta).(trayecto).horaPico;
-                case 'horaValle'
-                    dhg = Rutas.(ruta).(trayecto).horaValle;
-                case 'General'
-                    dhg = Rutas.(ruta).(trayecto).General;
-                otherwise
-                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
-            end
-            
-            if isempty(dhg)
-                continue;
-            end
-            
-            try
-                m_dhg = (cell2mat(dhg.("riesgoCurva")')');
-            catch ME
-                error('Error al convertir los porcentajes de velocidad. Verifique los datos.');
-            end
-            
-            shg = dhg.Sexo;
-
-            tm = size(m_dhg);
-            for k = 1:tm(1)
-                conductor = m_dhg(k, :);
-
-                % Omitir datos NaN
-                conductor = conductor(~isnan(conductor));
-
-                % Acumular los datos por sexo
-                if shg(k) == 0
-                    promedioConductorH = [promedioConductorH; mean(conductor)];
-                    varianzaConductorH = [varianzaConductorH; var(conductor)];
-                else
-                    promedioConductorM = [promedioConductorM; mean(conductor)];
-                    varianzaConductorM = [varianzaConductorM; var(conductor)];
-                end
-            end
-        end
-    end
-
-    % Omitir promedios y varianzas NaN
-    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
-    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
-    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
-    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
-
-    % Generar la gráfica acumulada
-    figure;
-
-    % Gráfica de promedios para hombres y mujeres en la misma figura
-    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
-    hold on;
-    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
-
-    % Calcular y graficar la distribución para hombres
-    if ~isempty(promedioConductorH)
-        mu_h = mean(promedioConductorH);
-        sig_h = std(promedioConductorH);
-        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
-        y_h = pdf('Normal', x_h, mu_h, sig_h);
-        plot(x_h, y_h, 'r')
-    else
-        mu_h = NaN;
-    end
-
-    % Calcular y graficar la distribución para mujeres
-    if ~isempty(promedioConductorM)
-        mu_m = mean(promedioConductorM);
-        sig_m = std(promedioConductorM);
-        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
-        y_m = pdf('Normal', x_m, mu_m, sig_m);
-        plot(x_m, y_m, 'b')
-    else
-        mu_m = NaN;
-    end
-
-    title(['Indice riesgo - Hombres y Mujeres (', tipoTabla, ')']);
-    xlabel('Indice riesgo por conductor');
-    ylabel('Frecuencia');
-    legend;
-
-    % Mostrar los promedios y varianzas en la esquina superior izquierda
-    y_lims = ylim;
-    x_lims = xlim;
-    offset_y = 0.05 * (y_lims(2) - y_lims(1));
-    offset_x = 0.05 * (x_lims(2) - x_lims(1));
-    
-    if ~isnan(mu_h)
-        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
-            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
-            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    if ~isnan(mu_m)
-        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
-            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
-            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    
-    hold off;
-end
 
 % Ejemplo de uso:
 % graficarPromediosYVarianzaPorSexo(Rutas, 'horaPico');
@@ -951,121 +339,6 @@ graficarPromediosYVarianzaPorSexo(Rutas, 'horaValle');
 
 %% Grafica promedio velocidad
 
-function graficarPromedios(Rutas, tipoTabla)
-    promedioConductorH = [];
-    promedioConductorM = [];
-    varianzaConductorH = [];
-    varianzaConductorM = [];
-
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-
-            switch tipoTabla
-                case 'horaPico'
-                    dhg = Rutas.(ruta).(trayecto).horaPico;
-                case 'horaValle'
-                    dhg = Rutas.(ruta).(trayecto).horaValle;
-                case 'General'
-                    dhg = Rutas.(ruta).(trayecto).General;
-                otherwise
-                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
-            end
-            
-            if isempty(dhg)
-                continue;
-            end
-            
-            try
-                m_dhg = (cell2mat(dhg.("PromedioVelocidad")')');
-            catch ME
-                error('Error al convertir los promedios de velocidad. Verifique los datos.');
-            end
-            
-            shg = dhg.Sexo;
-
-            tm = size(m_dhg);
-            for k = 1:tm(1)
-                conductor = m_dhg(k, :);
-
-                % Omitir datos NaN
-                conductor = conductor(~isnan(conductor));
-
-                % Acumular los datos por sexo
-                if shg(k) == 0
-                    promedioConductorH = [promedioConductorH; mean(conductor)];
-                    varianzaConductorH = [varianzaConductorH; var(conductor)];
-                else
-                    promedioConductorM = [promedioConductorM; mean(conductor)];
-                    varianzaConductorM = [varianzaConductorM; var(conductor)];
-                end
-            end
-        end
-    end
-
-    % Omitir promedios y varianzas NaN
-    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
-    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
-    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
-    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
-
-    % Generar la gráfica acumulada
-    figure;
-
-    % Gráfica de promedios para hombres y mujeres en la misma figura
-    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
-    hold on;
-    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
-
-    % Calcular y graficar la distribución para hombres
-    if ~isempty(promedioConductorH)
-        mu_h = mean(promedioConductorH);
-        sig_h = std(promedioConductorH);
-        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
-        y_h = pdf('Normal', x_h, mu_h, sig_h);
-        plot(x_h, y_h, 'r')
-    else
-        mu_h = NaN;
-    end
-
-    % Calcular y graficar la distribución para mujeres
-    if ~isempty(promedioConductorM)
-        mu_m = mean(promedioConductorM);
-        sig_m = std(promedioConductorM);
-        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
-        y_m = pdf('Normal', x_m, mu_m, sig_m);
-        plot(x_m, y_m, 'b')
-    else
-        mu_m = NaN;
-    end
-
-    title(['Promedio Velocidad - Hombres y Mujeres (', tipoTabla, ')']);
-    xlabel('Promedio de porcentajes por segmento de velocidad');
-    ylabel('Frecuencia');
-    legend;
-
-    % Mostrar los promedios y varianzas en la esquina superior izquierda
-    y_lims = ylim;
-    x_lims = xlim;
-    offset_y = 0.05 * (y_lims(2) - y_lims(1));
-    offset_x = 0.05 * (x_lims(2) - x_lims(1));
-    
-    if ~isnan(mu_h)
-        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
-            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
-            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    if ~isnan(mu_m)
-        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
-            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
-            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    
-    hold off;
-end
 
 % Ejemplo de uso:
 % graficarPromediosYVarianzaPorSexoVelocidad(Rutas, 'horaPico');
@@ -1073,121 +346,6 @@ end
 graficarPromedios(Rutas, 'horaValle');
 %% Promedio consumo general
 
-function promedioConsumoGeneral(Rutas, tipoTabla)
-    promedioConductorH = [];
-    promedioConductorM = [];
-    varianzaConductorH = [];
-    varianzaConductorM = [];
-
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-
-            switch tipoTabla
-                case 'horaPico'
-                    dhg = Rutas.(ruta).(trayecto).horaPico;
-                case 'horaValle'
-                    dhg = Rutas.(ruta).(trayecto).horaValle;
-                case 'General'
-                    dhg = Rutas.(ruta).(trayecto).General;
-                otherwise
-                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
-            end
-            
-            if isempty(dhg)
-                continue;
-            end
-            
-            try
-                m_dhg = (cell2mat(dhg.("PromedioConsumo")')');
-            catch ME
-                error('Error al convertir los promedios de consumo. Verifique los datos.');
-            end
-            
-            shg = dhg.Sexo;
-
-            tm = size(m_dhg);
-            for k = 1:tm(1)
-                conductor = m_dhg(k, :);
-
-                % Omitir datos NaN
-                conductor = conductor(~isnan(conductor));
-
-                % Acumular los datos por sexo
-                if shg(k) == 0
-                    promedioConductorH = [promedioConductorH; mean(conductor)];
-                    varianzaConductorH = [varianzaConductorH; var(conductor)];
-                else
-                    promedioConductorM = [promedioConductorM; mean(conductor)];
-                    varianzaConductorM = [varianzaConductorM; var(conductor)];
-                end
-            end
-        end
-    end
-
-    % Omitir promedios y varianzas NaN
-    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
-    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
-    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
-    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
-
-    % Generar la gráfica acumulada
-    figure;
-
-    % Gráfica de promedios para hombres y mujeres en la misma figura
-    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
-    hold on;
-    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
-
-    % Calcular y graficar la distribución para hombres
-    if ~isempty(promedioConductorH)
-        mu_h = mean(promedioConductorH);
-        sig_h = std(promedioConductorH);
-        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
-        y_h = pdf('Normal', x_h, mu_h, sig_h);
-        plot(x_h, y_h, 'r')
-    else
-        mu_h = NaN;
-    end
-
-    % Calcular y graficar la distribución para mujeres
-    if ~isempty(promedioConductorM)
-        mu_m = mean(promedioConductorM);
-        sig_m = std(promedioConductorM);
-        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
-        y_m = pdf('Normal', x_m, mu_m, sig_m);
-        plot(x_m, y_m, 'b')
-    else
-        mu_m = NaN;
-    end
-
-    title(['Promedio Consumo - Hombres y Mujeres (', tipoTabla, ')']);
-    xlabel('Promedio de consumo por conductor');
-    ylabel('Frecuencia');
-    legend;
-
-    % Mostrar los promedios y varianzas en la esquina superior izquierda
-    y_lims = ylim;
-    x_lims = xlim;
-    offset_y = 0.05 * (y_lims(2) - y_lims(1));
-    offset_x = 0.05 * (x_lims(2) - x_lims(1));
-    
-    if ~isnan(mu_h)
-        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
-            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
-            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    if ~isnan(mu_m)
-        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
-            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
-            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    
-    hold off;
-end
 
 % Ejemplo de uso:
 % graficarPromediosYVarianzaPorSexoConsumo(Rutas, 'horaPico');
@@ -1246,121 +404,6 @@ hold off;
 
 %% Grafica general consumo
 
-function graficarPromediosYVarianzaConsumo(Rutas, tipoTabla)
-    promedioConductorH = [];
-    promedioConductorM = [];
-    varianzaConductorH = [];
-    varianzaConductorM = [];
-
-    rutas = fieldnames(Rutas);
-    for i = 1:numel(rutas)
-        ruta = rutas{i};
-        trayectos = fieldnames(Rutas.(ruta));
-        for j = 1:numel(trayectos)
-            trayecto = trayectos{j};
-
-            switch tipoTabla
-                case 'horaPico'
-                    dhg = Rutas.(ruta).(trayecto).horaPico;
-                case 'horaValle'
-                    dhg = Rutas.(ruta).(trayecto).horaValle;
-                case 'General'
-                    dhg = Rutas.(ruta).(trayecto).General;
-                otherwise
-                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
-            end
-            
-            if isempty(dhg)
-                continue;
-            end
-            
-            try
-                m_dhg = (cell2mat(dhg.("PorcentajesConsumo"))');
-            catch ME
-                error('Error al convertir los porcentajes de consumo. Verifique los datos.');
-            end
-            
-            shg = dhg.Sexo;
-
-            tm = size(m_dhg);
-            for k = 1:tm(2)
-                conductor = m_dhg(:, k);
-
-                % Omitir datos NaN
-                conductor = conductor(~isnan(conductor));
-
-                % Acumular los datos por sexo
-                if shg(k) == 0
-                    promedioConductorH = [promedioConductorH; mean(conductor)];
-                    varianzaConductorH = [varianzaConductorH; var(conductor)];
-                else
-                    promedioConductorM = [promedioConductorM; mean(conductor)];
-                    varianzaConductorM = [varianzaConductorM; var(conductor)];
-                end
-            end
-        end
-    end
-
-    % Omitir promedios y varianzas NaN
-    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
-    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
-    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
-    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
-
-    % Generar la gráfica acumulada
-    figure;
-
-    % Gráfica de promedios para hombres y mujeres en la misma figura
-    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
-    hold on;
-    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
-
-    % Calcular y graficar la distribución para hombres
-    if ~isempty(promedioConductorH)
-        mu_h = mean(promedioConductorH);
-        sig_h = std(promedioConductorH);
-        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
-        y_h = pdf('Normal', x_h, mu_h, sig_h);
-        plot(x_h, y_h, 'r')
-    else
-        mu_h = NaN;
-    end
-
-    % Calcular y graficar la distribución para mujeres
-    if ~isempty(promedioConductorM)
-        mu_m = mean(promedioConductorM);
-        sig_m = std(promedioConductorM);
-        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
-        y_m = pdf('Normal', x_m, mu_m, sig_m);
-        plot(x_m, y_m, 'b')
-    else
-        mu_m = NaN;
-    end
-
-    title(['Promedio Consumo - Hombres y Mujeres (', tipoTabla, ')']);
-    xlabel('Promedio de porcentajes por segmento de consumo');
-    ylabel('Frecuencia');
-    legend;
-
-    % Mostrar los promedios y varianzas en la esquina superior izquierda
-    y_lims = ylim;
-    x_lims = xlim;
-    offset_y = 0.05 * (y_lims(2) - y_lims(1));
-    offset_x = 0.05 * (x_lims(2) - x_lims(1));
-    
-    if ~isnan(mu_h)
-        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
-            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
-            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    if ~isnan(mu_m)
-        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
-            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
-            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
-    end
-    
-    hold off;
-end
 
 % Ejemplo de uso:
 % graficarPromediosYVarianzaPorSexoConsumo(Rutas, 'horaPico');
@@ -1373,85 +416,6 @@ plotAceleracionPorSexo(Rutas)
 
 %% Grafica picos aceleracion
 
-function plotAceleracionPorSexo(Rutas)
-
-% Definir colores para hombres y mujeres
-colorHombres = 'r';
-colorMujeres = 'b';
-
-% Inicializar arreglos para frecuencias y magnitudes
-aceleracionHombres = [];
-aceleracionMujeres = [];
-frecuenciaHombres = [];
-frecuenciaMujeres = [];
-
-% Definir los límites y el tamaño de los bins
-binEdges = -5:0.1:5; % Por ejemplo, bins de 0.1 en el rango [-3, 3]
-
-% Iterar sobre todas las rutas y trayectos
-rutas = fieldnames(Rutas);
-for i = 1:numel(rutas)
-    ruta = rutas{i};
-    trayectos = fieldnames(Rutas.(ruta));
-    for j = 1:numel(trayectos)
-        trayecto = trayectos{j};
-
-        % Obtener la tabla General
-        dhg = Rutas.(ruta).(trayecto).General;
-
-        % Verificar que existan las columnas necesarias
-        if ismember("Aceleracion", dhg.Properties.VariableNames) && ismember("Sexo", dhg.Properties.VariableNames)
-            aceleraciones = dhg.Aceleracion;
-            sexo = dhg.Sexo;
-
-            % Calcular frecuencia y magnitud para cada aceleración
-            for k = 1:numel(aceleraciones)
-                aceleracion = aceleraciones{k};
-                if isempty(aceleracion)
-                    continue; % Omitir si no hay datos de aceleración
-                end
-
-                % Filtrar las aceleraciones en el rango -0.8 a 0.8
-                aceleracion = aceleracion(aceleracion < -0.8 | aceleracion > 0.8);
-
-                % Bin the accelerations
-                [binCounts, binEdges] = histcounts(aceleracion, binEdges);
-                binCenters = binEdges(1:end-1) + diff(binEdges)/2;
-
-                for n = 1:numel(binCenters)
-                    if binCounts(n) > 0
-                        if sexo(k) == 0
-                            aceleracionHombres = [aceleracionHombres, binCenters(n)];
-                            frecuenciaHombres = [frecuenciaHombres, binCounts(n)];
-                        else
-                            aceleracionMujeres = [aceleracionMujeres, binCenters(n)];
-                            frecuenciaMujeres = [frecuenciaMujeres, binCounts(n)];
-                        end
-                    end
-                end
-            end
-        end
-    end
-end
-
-% Crear la figura
-figure;
-hold on;
-
-% Plotear puntos para hombres
-scatter(frecuenciaHombres, aceleracionHombres, 'MarkerEdgeColor', colorHombres, 'DisplayName', 'Hombres');
-
-% Plotear puntos para mujeres
-scatter(frecuenciaMujeres, aceleracionMujeres, 'MarkerEdgeColor', colorMujeres, 'DisplayName', 'Mujeres');
-
-% Configurar el título y etiquetas de los ejes
-title('Frecuencia de Aceleraciones por Sexo');
-xlabel('Frecuencia de Aceleración');
-ylabel('Magnitud de Aceleración');
-legend;
-
-hold off;
-end
 
 
 %% Graficar segmento
@@ -2305,3 +1269,1039 @@ end
 end
 
 
+function graficarAceleracionesPorConductor(Rutas)
+% Inicializar listas para almacenar los datos
+aceleracion_promedio_positiva = [];
+aceleracion_promedio_negativa = [];
+num_aceleraciones_por_km = [];
+num_desaceleraciones_por_km = [];
+sexos = [];
+
+% Recorrer todas las rutas y trayectos
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+        generalTable = Rutas.(ruta).(trayecto).General;
+
+        % Verificar si la tabla general está vacía, si es así, continuar
+        if isempty(generalTable)
+            continue;
+        end
+
+        % Recoger los datos de cada conductor
+        for k = 1:height(generalTable)
+            aceleracion_promedio_positiva = [aceleracion_promedio_positiva; generalTable.AceleracionPromedio(k)];
+            aceleracion_promedio_negativa = [aceleracion_promedio_negativa; generalTable.DesaceleracionPromedio(k)];
+            num_aceleraciones_por_km = [num_aceleraciones_por_km; generalTable.NumAceleracionesPorKm(k)];
+            num_desaceleraciones_por_km = [num_desaceleraciones_por_km; generalTable.NumDesaceleracionesPorKm(k)];
+            sexos = [sexos; generalTable.Sexo(k)];
+        end
+    end
+end
+
+% Graficar los datos
+figure;
+
+% Graficar aceleraciones positivas y negativas en la misma gráfica
+hold on;
+scatter(num_aceleraciones_por_km(sexos == 0), aceleracion_promedio_positiva(sexos == 0), 'r', 'DisplayName', 'Aceleraciones Hombres');
+scatter(num_aceleraciones_por_km(sexos == 1), aceleracion_promedio_positiva(sexos == 1), 'b', 'DisplayName', 'Aceleraciones Mujeres');
+scatter(num_desaceleraciones_por_km(sexos == 0), aceleracion_promedio_negativa(sexos == 0), 'ro', 'DisplayName', 'Desaceleraciones Hombres');
+scatter(num_desaceleraciones_por_km(sexos == 1), aceleracion_promedio_negativa(sexos == 1), 'bo', 'DisplayName', 'Desaceleraciones Mujeres');
+title('Aceleraciones y Desaceleraciones por Kilómetro');
+xlabel('Número de Aceleraciones/Desaceleraciones por Km');
+ylabel('Aceleración/Desaceleración Promedio');
+legend;
+hold off;
+
+% Calcular los promedios para cada grupo
+promedio_aceleracion_hombres = mean(aceleracion_promedio_positiva(sexos == 0));
+promedio_aceleracion_mujeres = mean(aceleracion_promedio_positiva(sexos == 1));
+promedio_desaceleracion_hombres = mean(aceleracion_promedio_negativa(sexos == 0));
+promedio_desaceleracion_mujeres = mean(aceleracion_promedio_negativa(sexos == 1));
+promedio_num_aceleraciones_hombres = mean(num_aceleraciones_por_km(sexos == 0));
+promedio_num_aceleraciones_mujeres = mean(num_aceleraciones_por_km(sexos == 1));
+promedio_num_desaceleraciones_hombres = mean(num_desaceleraciones_por_km(sexos == 0));
+promedio_num_desaceleraciones_mujeres = mean(num_desaceleraciones_por_km(sexos == 1));
+
+% Mostrar los promedios
+fprintf('Promedio Aceleración Hombres: %.2f\n', promedio_aceleracion_hombres);
+fprintf('Promedio Aceleración Mujeres: %.2f\n', promedio_aceleracion_mujeres);
+fprintf('Promedio Desaceleración Hombres: %.2f\n', promedio_desaceleracion_hombres);
+fprintf('Promedio Desaceleración Mujeres: %.2f\n', promedio_desaceleracion_mujeres);
+fprintf('Promedio Número de Aceleraciones por Km Hombres: %.2f\n', promedio_num_aceleraciones_hombres);
+fprintf('Promedio Número de Aceleraciones por Km Mujeres: %.2f\n', promedio_num_aceleraciones_mujeres);
+fprintf('Promedio Número de Desaceleraciones por Km Hombres: %.2f\n', promedio_num_desaceleraciones_hombres);
+fprintf('Promedio Número de Desaceleraciones por Km Mujeres: %.2f\n', promedio_num_desaceleraciones_mujeres);
+end
+function graficarCampoDeTablaConPromedios(tabla, nombreCampo, transponer)
+    % Validar la entrada
+    if ~ismember(nombreCampo, tabla.Properties.VariableNames)
+        error('El campo especificado no existe en la tabla.');
+    end
+    
+    % Extraer los datos del campo especificado
+    datos = cell2mat(tabla.(nombreCampo)')';
+
+    % Transponer la matriz si es necesario
+    if transponer
+        datos = datos';
+    end
+
+    % Calcular los promedios de cada subgrupo
+    promedios = mean(datos);
+
+    % Crear gráficas
+    figure;
+    b = bar(datos');
+    hold on;
+    
+    % Añadir los promedios a las gráficas
+    xData = 1:length(promedios);
+    for i = 1:length(xData)
+        yPosition = max(datos(:)) + 0.5;
+        % Ajustar la posición para que no quede muy arriba
+        if yPosition > 3
+            yPosition = yPosition - 0.3;
+        end
+        text(xData(i), yPosition, sprintf('%.2f', promedios(i)), 'HorizontalAlignment', 'center', 'FontSize', 12, 'Color', 'k');
+    end
+    xlabel('Grupo');
+    ylabel(nombreCampo);
+    title(['Diagrama de barras de ', nombreCampo, ' por Ruta']);
+    legend(arrayfun(@(x) ['Conductor ', num2str(x)], 1:size(datos, 2), 'UniformOutput', false));
+    hold off;
+    
+    figure;
+    boxplot(datos);
+    hold on;
+    % Añadir los promedios a las gráficas
+    for i = 1:size(datos, 2)
+        plot(i, promedios(i), 'r*', 'MarkerSize', 10);
+        text(i, median(datos(:, i)), sprintf('%.2f', promedios(i)), 'HorizontalAlignment', 'center', 'FontSize', 12, 'Color', 'k');
+    end
+    xlabel('Grupo');
+    ylabel(nombreCampo);
+    title(['Boxplot de ', nombreCampo, ' por Ruta']);
+    hold off;
+end
+function Rutas = calcularPorcentajesVelocidad(Rutas, tipoHorario)
+    % Valida el tipoHorario
+    if ~ismember(tipoHorario, {'horaValle', 'horaPico', 'General'})
+        error('El tipo de horario debe ser "horaValle", "horaPico" o "General".');
+    end
+
+    % Recorrer todas las rutas y trayectos
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+
+            % Obtener la tabla correspondiente al tipo de horario
+            dhg = Rutas.(ruta).(trayecto).(tipoHorario);
+
+            % Verificar si la tabla está vacía, si es así, continuar
+            if isempty(dhg)
+                continue;
+            end
+
+            % Convertir los datos y calcular los porcentajes
+            try
+                m_dhg = (cell2mat(dhg.("PromedioVelocidad")')');
+            catch ME
+                error = dhg;
+            end
+            shg = dhg.Sexo;
+
+            tm = size(m_dhg);
+            for k = 1:tm(2)
+                sg = m_dhg(:, k);
+
+                min_val = min(sg) * 0.9;
+                max_val = max(sg) * 1.1;
+
+                % Escalar los valores del segmento al rango [0, 1]
+                scaled_segment = (sg - min_val) / (max_val - min_val);
+
+                % Convertir los valores escalados a porcentajes
+                percentages = scaled_segment * 100;
+
+                % Inicializar la columna "PorcentajesVelocidad" si no existe
+                if ~ismember("PorcentajesVelocidad", dhg.Properties.VariableNames)
+                    dhg.("PorcentajesVelocidad") = cell(height(dhg), 1);
+                end
+
+                % Limpiar los datos existentes en la primera iteración del trayecto
+                if k == 1
+                    for idx = 1:height(dhg)
+                        dhg.("PorcentajesVelocidad"){idx} = [];
+                    end
+                end
+
+                % Agregar el nuevo dato a cada cell array en la columna existente
+                for idx = 1:height(dhg)
+                    dhg.("PorcentajesVelocidad"){idx} = [dhg.("PorcentajesVelocidad"){idx}, percentages(idx)];
+                end
+            end
+
+            % Actualizar la tabla correspondiente en Rutas
+            Rutas.(ruta).(trayecto).(tipoHorario) = dhg;
+        end
+    end
+end
+function Rutas = calcularAceleraciones(Rutas, tipoHorario)
+    % Valida el tipoHorario
+    if ~ismember(tipoHorario, {'horaValle', 'horaPico', 'General'})
+        error('El tipo de horario debe ser "horaValle", "horaPico" o "General".');
+    end
+
+    % Recorrer todas las rutas y trayectos
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).(tipoHorario);
+
+            % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
+            if isempty(generalTable)
+                continue;
+            end
+
+            % Inicializar las columnas si no existen
+            if ~ismember('NumAceleracionesPorKm', generalTable.Properties.VariableNames)
+                generalTable.NumAceleracionesPorKm = zeros(height(generalTable), 1);
+            end
+            if ~ismember('NumDesaceleracionesPorKm', generalTable.Properties.VariableNames)
+                generalTable.NumDesaceleracionesPorKm = zeros(height(generalTable), 1);
+            end
+            if ~ismember('AceleracionPromedio', generalTable.Properties.VariableNames)
+                generalTable.AceleracionPromedio = zeros(height(generalTable), 1);
+            end
+            if ~ismember('DesaceleracionPromedio', generalTable.Properties.VariableNames)
+                generalTable.DesaceleracionPromedio = zeros(height(generalTable), 1);
+            end
+
+            % Recorrer cada fila de la tabla General
+            for k = 1:height(generalTable)
+                datosSensor = generalTable.DatosSensor{k};
+
+                % Calcular la distancia total para cada conductor
+                total_distancia = sum(Calculos.CalcularDistancia(datosSensor));  % Asumiendo que la función acepta los datos de cada conductor
+
+                % Filtrar las aceleraciones y desaceleraciones mayores a 0.8 m/s²
+                aceleraciones = generalTable.Aceleracion{k};
+                aceleraciones_mayores_08 = aceleraciones(aceleraciones > 0.8);
+                desaceleraciones_mayores_08 = aceleraciones(aceleraciones < -0.8);
+
+                % Calcular el número de aceleraciones y desaceleraciones por kilómetro
+                num_aceleraciones_por_km = numel(aceleraciones_mayores_08) / (total_distancia / 1000);
+                num_desaceleraciones_por_km = numel(desaceleraciones_mayores_08) / (total_distancia / 1000);
+
+                % Calcular las aceleraciones y desaceleraciones promedio mayores a 0.8 m/s²
+                if isempty(aceleraciones_mayores_08)
+                    aceleracion_promedio = 0;
+                else
+                    aceleracion_promedio = mean(aceleraciones_mayores_08);
+                end
+
+                if isempty(desaceleraciones_mayores_08)
+                    desaceleracion_promedio = 0;
+                else
+                    desaceleracion_promedio = mean(desaceleraciones_mayores_08);
+                end
+
+                % Almacenar los resultados en la tabla General para cada conductor
+                generalTable.NumAceleracionesPorKm(k) = num_aceleraciones_por_km;
+                generalTable.NumDesaceleracionesPorKm(k) = num_desaceleraciones_por_km;
+                generalTable.AceleracionPromedio(k) = aceleracion_promedio;
+                generalTable.DesaceleracionPromedio(k) = desaceleracion_promedio;
+            end
+
+            % Actualizar la tabla General en la estructura Rutas
+            Rutas.(ruta).(trayecto).(tipoHorario) = generalTable;
+        end
+    end
+    return;
+end
+function Rutas = calcularRiesgoCurvaPorEstructura(Rutas, Pcurvas, tipoHorario)
+    % Valida el tipoHorario
+    if ~ismember(tipoHorario, {'horaValle', 'horaPico', 'General'})
+        error('El tipo de horario debe ser "horaValle", "horaPico" o "General".');
+    end
+
+    % Iterar sobre todas las rutas en la estructura
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+
+        % Iterar sobre todos los trayectos en la ruta actual
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+
+            % Obtener la tabla correspondiente al tipo de horario
+            generalTable = Rutas.(ruta).(trayecto).(tipoHorario);
+
+            % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
+            if isempty(generalTable)
+                continue;
+            end
+
+            % Obtener los datos relevantes del trayecto desde la tabla General
+            datosSensor = generalTable.DatosSensor;
+            fechaInicio = generalTable.HoraInicio;
+            fechaFinal = generalTable.HoraFin;
+            ida = Pcurvas.(ruta).(trayecto);
+
+            % Calcular el riesgo de curva para el trayecto actual
+
+            % Recorrer los datos de DatosSensor y calcular el riesgo de curva para cada punto
+            for k = 1:size(datosSensor, 1)
+                % Calcular el riesgo de curva para el punto actual
+                riesgoCurva = Calculos.riesgoCurva2(datosSensor{k}, fechaInicio{k}, fechaFinal{k}, ida);
+
+                % Inicializar la columna "riesgoCurva" si no existe
+                if ~ismember('riesgoCurva', generalTable.Properties.VariableNames)
+                    generalTable.riesgoCurva = cell(height(generalTable), 1);
+                end
+
+                % Actualizar la tabla General en la estructura Rutas
+                generalTable.riesgoCurva{k} = riesgoCurva;
+            end
+
+            % Actualizar la tabla correspondiente en la estructura Rutas
+            Rutas.(ruta).(trayecto).(tipoHorario) = generalTable;
+        end
+    end
+    return;
+end
+function Rutas = calcularPorcentajesConsumo(Rutas, tipoHorario)
+    % Valida el tipoHorario
+    if ~ismember(tipoHorario, {'horaValle', 'horaPico', 'General'})
+        error('El tipo de horario debe ser "horaValle", "horaPico" o "General".');
+    end
+
+    % Recorrer todas las rutas y trayectos
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+            generalTable = Rutas.(ruta).(trayecto).(tipoHorario);
+
+            % Verificar si generalTable está vacío, si es así, continuar con el siguiente trayecto
+            if isempty(generalTable)
+                continue;
+            end
+
+            % Extraer la matriz de PromedioConsumo
+            try
+                m_dhg = (cell2mat(generalTable.("PromedioConsumo")')');
+            catch
+                continue;  % Si hay un error al extraer, pasar al siguiente trayecto
+            end
+
+            shg = generalTable.Sexo;
+
+            tm = size(m_dhg);
+            for k = 1:tm(2)
+                sg = m_dhg(:, k);
+
+                min_val = min(sg) * 0.9;
+                max_val = max(sg) * 1.1;
+
+                % Escalar los valores del segmento al rango [0, 1]
+                scaled_segment = (sg - min_val) / (max_val - min_val);
+
+                % Convertir los valores escalados a porcentajes
+                percentages = scaled_segment * 100;
+
+                % Inicializar la columna "PorcentajesConsumo" si no existe
+                if ~ismember("PorcentajesConsumo", generalTable.Properties.VariableNames)
+                    generalTable.("PorcentajesConsumo") = cell(height(generalTable), 1);
+                end
+
+                % Limpiar los datos existentes en la primera iteración del trayecto
+                if k == 1
+                    for idx = 1:height(generalTable)
+                        generalTable.("PorcentajesConsumo"){idx} = [];
+                    end
+                end
+
+                % Agregar el nuevo dato a cada cell array en la columna existente
+                for idx = 1:height(generalTable)
+                    try
+                        generalTable.("PorcentajesConsumo"){idx} = [generalTable.("PorcentajesConsumo"){idx}, percentages(idx)];
+                    catch
+                        continue;  % Si hay un error, continuar con el siguiente índice
+                    end
+                end
+            end
+
+            % Actualizar la tabla en la estructura Rutas
+            Rutas.(ruta).(trayecto).(tipoHorario) = generalTable;
+        end
+    end
+end
+function graficarPromediosYVarianzaPorSexoVelocidad(Rutas, tipoTabla)
+    promedioConductorH = [];
+    promedioConductorM = [];
+    varianzaConductorH = [];
+    varianzaConductorM = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+
+            switch tipoTabla
+                case 'horaPico'
+                    dhg = Rutas.(ruta).(trayecto).horaPico;
+                case 'horaValle'
+                    dhg = Rutas.(ruta).(trayecto).horaValle;
+                case 'General'
+                    dhg = Rutas.(ruta).(trayecto).General;
+                otherwise
+                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
+            end
+            
+            if isempty(dhg)
+                continue;
+            end
+            
+            try
+                m_dhg = (cell2mat(dhg.("PorcentajesVelocidad"))');
+            catch ME
+                error('Error al convertir los porcentajes de velocidad. Verifique los datos.');
+            end
+            
+            shg = dhg.Sexo;
+
+            tm = size(m_dhg);
+            for k = 1:tm(2)
+                conductor = m_dhg(:, k);
+
+                % Omitir datos NaN
+                conductor = conductor(~isnan(conductor));
+
+                % Acumular los datos por sexo
+                if shg(k) == 0
+                    promedioConductorH = [promedioConductorH; mean(conductor)];
+                    varianzaConductorH = [varianzaConductorH; var(conductor)];
+                else
+                    promedioConductorM = [promedioConductorM; mean(conductor)];
+                    varianzaConductorM = [varianzaConductorM; var(conductor)];
+                end
+            end
+        end
+    end
+
+    % Omitir promedios y varianzas NaN
+    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
+    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
+    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
+    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
+
+    % Generar la gráfica acumulada
+    figure;
+
+    % Gráfica de promedios para hombres y mujeres en la misma figura
+    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
+    hold on;
+    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
+
+    % Calcular y graficar la distribución para hombres
+    if ~isempty(promedioConductorH)
+        mu_h = mean(promedioConductorH);
+        sig_h = std(promedioConductorH);
+        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+        y_h = pdf('Normal', x_h, mu_h, sig_h);
+        plot(x_h, y_h, 'r')
+    else
+        mu_h = NaN;
+    end
+
+    % Calcular y graficar la distribución para mujeres
+    if ~isempty(promedioConductorM)
+        mu_m = mean(promedioConductorM);
+        sig_m = std(promedioConductorM);
+        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
+        y_m = pdf('Normal', x_m, mu_m, sig_m);
+        plot(x_m, y_m, 'b')
+    else
+        mu_m = NaN;
+    end
+
+    title(['Promedio Velocidad - Hombres y Mujeres (', tipoTabla, ')']);
+    xlabel('Promedio de porcentajes por segmento de velocidad');
+    ylabel('Frecuencia');
+    legend;
+
+    % Mostrar los promedios y varianzas en la esquina superior izquierda
+    y_lims = ylim;
+    x_lims = xlim;
+    offset_y = 0.05 * (y_lims(2) - y_lims(1));
+    offset_x = 0.05 * (x_lims(2) - x_lims(1));
+    
+    if ~isnan(mu_h)
+        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
+            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
+            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    if ~isnan(mu_m)
+        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
+            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
+            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    
+    hold off;
+end
+function graficarPromediosYVarianzaPorSexo(Rutas, tipoTabla)
+    promedioConductorH = [];
+    promedioConductorM = [];
+    varianzaConductorH = [];
+    varianzaConductorM = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+
+            switch tipoTabla
+                case 'horaPico'
+                    dhg = Rutas.(ruta).(trayecto).horaPico;
+                case 'horaValle'
+                    dhg = Rutas.(ruta).(trayecto).horaValle;
+                case 'General'
+                    dhg = Rutas.(ruta).(trayecto).General;
+                otherwise
+                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
+            end
+            
+            if isempty(dhg)
+                continue;
+            end
+            
+            try
+                m_dhg = (cell2mat(dhg.("riesgoCurva")')');
+            catch ME
+                error('Error al convertir los porcentajes de velocidad. Verifique los datos.');
+            end
+            
+            shg = dhg.Sexo;
+
+            tm = size(m_dhg);
+            for k = 1:tm(1)
+                conductor = m_dhg(k, :);
+
+                % Omitir datos NaN
+                conductor = conductor(~isnan(conductor));
+
+                % Acumular los datos por sexo
+                if shg(k) == 0
+                    promedioConductorH = [promedioConductorH; mean(conductor)];
+                    varianzaConductorH = [varianzaConductorH; var(conductor)];
+                else
+                    promedioConductorM = [promedioConductorM; mean(conductor)];
+                    varianzaConductorM = [varianzaConductorM; var(conductor)];
+                end
+            end
+        end
+    end
+
+    % Omitir promedios y varianzas NaN
+    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
+    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
+    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
+    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
+
+    % Generar la gráfica acumulada
+    figure;
+
+    % Gráfica de promedios para hombres y mujeres en la misma figura
+    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
+    hold on;
+    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
+
+    % Calcular y graficar la distribución para hombres
+    if ~isempty(promedioConductorH)
+        mu_h = mean(promedioConductorH);
+        sig_h = std(promedioConductorH);
+        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+        y_h = pdf('Normal', x_h, mu_h, sig_h);
+        plot(x_h, y_h, 'r')
+    else
+        mu_h = NaN;
+    end
+
+    % Calcular y graficar la distribución para mujeres
+    if ~isempty(promedioConductorM)
+        mu_m = mean(promedioConductorM);
+        sig_m = std(promedioConductorM);
+        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
+        y_m = pdf('Normal', x_m, mu_m, sig_m);
+        plot(x_m, y_m, 'b')
+    else
+        mu_m = NaN;
+    end
+
+    title(['Indice riesgo - Hombres y Mujeres (', tipoTabla, ')']);
+    xlabel('Indice riesgo por conductor');
+    ylabel('Frecuencia');
+    legend;
+
+    % Mostrar los promedios y varianzas en la esquina superior izquierda
+    y_lims = ylim;
+    x_lims = xlim;
+    offset_y = 0.05 * (y_lims(2) - y_lims(1));
+    offset_x = 0.05 * (x_lims(2) - x_lims(1));
+    
+    if ~isnan(mu_h)
+        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
+            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
+            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    if ~isnan(mu_m)
+        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
+            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
+            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    
+    hold off;
+end
+function graficarPromedios(Rutas, tipoTabla)
+    promedioConductorH = [];
+    promedioConductorM = [];
+    varianzaConductorH = [];
+    varianzaConductorM = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+
+            switch tipoTabla
+                case 'horaPico'
+                    dhg = Rutas.(ruta).(trayecto).horaPico;
+                case 'horaValle'
+                    dhg = Rutas.(ruta).(trayecto).horaValle;
+                case 'General'
+                    dhg = Rutas.(ruta).(trayecto).General;
+                otherwise
+                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
+            end
+            
+            if isempty(dhg)
+                continue;
+            end
+            
+            try
+                m_dhg = (cell2mat(dhg.("PromedioVelocidad")')');
+            catch ME
+                error('Error al convertir los promedios de velocidad. Verifique los datos.');
+            end
+            
+            shg = dhg.Sexo;
+
+            tm = size(m_dhg);
+            for k = 1:tm(1)
+                conductor = m_dhg(k, :);
+
+                % Omitir datos NaN
+                conductor = conductor(~isnan(conductor));
+
+                % Acumular los datos por sexo
+                if shg(k) == 0
+                    promedioConductorH = [promedioConductorH; mean(conductor)];
+                    varianzaConductorH = [varianzaConductorH; var(conductor)];
+                else
+                    promedioConductorM = [promedioConductorM; mean(conductor)];
+                    varianzaConductorM = [varianzaConductorM; var(conductor)];
+                end
+            end
+        end
+    end
+
+    % Omitir promedios y varianzas NaN
+    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
+    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
+    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
+    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
+
+    % Generar la gráfica acumulada
+    figure;
+
+    % Gráfica de promedios para hombres y mujeres en la misma figura
+    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
+    hold on;
+    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
+
+    % Calcular y graficar la distribución para hombres
+    if ~isempty(promedioConductorH)
+        mu_h = mean(promedioConductorH);
+        sig_h = std(promedioConductorH);
+        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+        y_h = pdf('Normal', x_h, mu_h, sig_h);
+        plot(x_h, y_h, 'r')
+    else
+        mu_h = NaN;
+    end
+
+    % Calcular y graficar la distribución para mujeres
+    if ~isempty(promedioConductorM)
+        mu_m = mean(promedioConductorM);
+        sig_m = std(promedioConductorM);
+        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
+        y_m = pdf('Normal', x_m, mu_m, sig_m);
+        plot(x_m, y_m, 'b')
+    else
+        mu_m = NaN;
+    end
+
+    title(['Promedio Velocidad - Hombres y Mujeres (', tipoTabla, ')']);
+    xlabel('Promedio de porcentajes por segmento de velocidad');
+    ylabel('Frecuencia');
+    legend;
+
+    % Mostrar los promedios y varianzas en la esquina superior izquierda
+    y_lims = ylim;
+    x_lims = xlim;
+    offset_y = 0.05 * (y_lims(2) - y_lims(1));
+    offset_x = 0.05 * (x_lims(2) - x_lims(1));
+    
+    if ~isnan(mu_h)
+        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
+            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
+            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    if ~isnan(mu_m)
+        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
+            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
+            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    
+    hold off;
+end
+function promedioConsumoGeneral(Rutas, tipoTabla)
+    promedioConductorH = [];
+    promedioConductorM = [];
+    varianzaConductorH = [];
+    varianzaConductorM = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+
+            switch tipoTabla
+                case 'horaPico'
+                    dhg = Rutas.(ruta).(trayecto).horaPico;
+                case 'horaValle'
+                    dhg = Rutas.(ruta).(trayecto).horaValle;
+                case 'General'
+                    dhg = Rutas.(ruta).(trayecto).General;
+                otherwise
+                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
+            end
+            
+            if isempty(dhg)
+                continue;
+            end
+            
+            try
+                m_dhg = (cell2mat(dhg.("PromedioConsumo")')');
+            catch ME
+                error('Error al convertir los promedios de consumo. Verifique los datos.');
+            end
+            
+            shg = dhg.Sexo;
+
+            tm = size(m_dhg);
+            for k = 1:tm(1)
+                conductor = m_dhg(k, :);
+
+                % Omitir datos NaN
+                conductor = conductor(~isnan(conductor));
+
+                % Acumular los datos por sexo
+                if shg(k) == 0
+                    promedioConductorH = [promedioConductorH; mean(conductor)];
+                    varianzaConductorH = [varianzaConductorH; var(conductor)];
+                else
+                    promedioConductorM = [promedioConductorM; mean(conductor)];
+                    varianzaConductorM = [varianzaConductorM; var(conductor)];
+                end
+            end
+        end
+    end
+
+    % Omitir promedios y varianzas NaN
+    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
+    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
+    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
+    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
+
+    % Generar la gráfica acumulada
+    figure;
+
+    % Gráfica de promedios para hombres y mujeres en la misma figura
+    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
+    hold on;
+    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
+
+    % Calcular y graficar la distribución para hombres
+    if ~isempty(promedioConductorH)
+        mu_h = mean(promedioConductorH);
+        sig_h = std(promedioConductorH);
+        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+        y_h = pdf('Normal', x_h, mu_h, sig_h);
+        plot(x_h, y_h, 'r')
+    else
+        mu_h = NaN;
+    end
+
+    % Calcular y graficar la distribución para mujeres
+    if ~isempty(promedioConductorM)
+        mu_m = mean(promedioConductorM);
+        sig_m = std(promedioConductorM);
+        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
+        y_m = pdf('Normal', x_m, mu_m, sig_m);
+        plot(x_m, y_m, 'b')
+    else
+        mu_m = NaN;
+    end
+
+    title(['Promedio Consumo - Hombres y Mujeres (', tipoTabla, ')']);
+    xlabel('Promedio de consumo por conductor');
+    ylabel('Frecuencia');
+    legend;
+
+    % Mostrar los promedios y varianzas en la esquina superior izquierda
+    y_lims = ylim;
+    x_lims = xlim;
+    offset_y = 0.05 * (y_lims(2) - y_lims(1));
+    offset_x = 0.05 * (x_lims(2) - x_lims(1));
+    
+    if ~isnan(mu_h)
+        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
+            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
+            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    if ~isnan(mu_m)
+        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
+            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
+            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    
+    hold off;
+end
+function graficarPromediosYVarianzaConsumo(Rutas, tipoTabla)
+    promedioConductorH = [];
+    promedioConductorM = [];
+    varianzaConductorH = [];
+    varianzaConductorM = [];
+
+    rutas = fieldnames(Rutas);
+    for i = 1:numel(rutas)
+        ruta = rutas{i};
+        trayectos = fieldnames(Rutas.(ruta));
+        for j = 1:numel(trayectos)
+            trayecto = trayectos{j};
+
+            switch tipoTabla
+                case 'horaPico'
+                    dhg = Rutas.(ruta).(trayecto).horaPico;
+                case 'horaValle'
+                    dhg = Rutas.(ruta).(trayecto).horaValle;
+                case 'General'
+                    dhg = Rutas.(ruta).(trayecto).General;
+                otherwise
+                    error('Tipo de tabla no válido. Debe ser "horaPico", "horaValle" o "General".');
+            end
+            
+            if isempty(dhg)
+                continue;
+            end
+            
+            try
+                m_dhg = (cell2mat(dhg.("PorcentajesConsumo"))');
+            catch ME
+                error('Error al convertir los porcentajes de consumo. Verifique los datos.');
+            end
+            
+            shg = dhg.Sexo;
+
+            tm = size(m_dhg);
+            for k = 1:tm(2)
+                conductor = m_dhg(:, k);
+
+                % Omitir datos NaN
+                conductor = conductor(~isnan(conductor));
+
+                % Acumular los datos por sexo
+                if shg(k) == 0
+                    promedioConductorH = [promedioConductorH; mean(conductor)];
+                    varianzaConductorH = [varianzaConductorH; var(conductor)];
+                else
+                    promedioConductorM = [promedioConductorM; mean(conductor)];
+                    varianzaConductorM = [varianzaConductorM; var(conductor)];
+                end
+            end
+        end
+    end
+
+    % Omitir promedios y varianzas NaN
+    promedioConductorH = promedioConductorH(~isnan(promedioConductorH));
+    promedioConductorM = promedioConductorM(~isnan(promedioConductorM));
+    varianzaConductorH = varianzaConductorH(~isnan(varianzaConductorH));
+    varianzaConductorM = varianzaConductorM(~isnan(varianzaConductorM));
+
+    % Generar la gráfica acumulada
+    figure;
+
+    % Gráfica de promedios para hombres y mujeres en la misma figura
+    scatter(promedioConductorH, zeros(1, length(promedioConductorH)), 'r', 'DisplayName', 'Hombres');
+    hold on;
+    scatter(promedioConductorM, zeros(1, length(promedioConductorM)), 'b', 'DisplayName', 'Mujeres');
+
+    % Calcular y graficar la distribución para hombres
+    if ~isempty(promedioConductorH)
+        mu_h = mean(promedioConductorH);
+        sig_h = std(promedioConductorH);
+        x_h = linspace(mu_h-3*sig_h, mu_h+3*sig_h, 100);
+        y_h = pdf('Normal', x_h, mu_h, sig_h);
+        plot(x_h, y_h, 'r')
+    else
+        mu_h = NaN;
+    end
+
+    % Calcular y graficar la distribución para mujeres
+    if ~isempty(promedioConductorM)
+        mu_m = mean(promedioConductorM);
+        sig_m = std(promedioConductorM);
+        x_m = linspace(mu_m-3*sig_m, mu_m+3*sig_m, 100);
+        y_m = pdf('Normal', x_m, mu_m, sig_m);
+        plot(x_m, y_m, 'b')
+    else
+        mu_m = NaN;
+    end
+
+    title(['Promedio Consumo - Hombres y Mujeres (', tipoTabla, ')']);
+    xlabel('Promedio de porcentajes por segmento de consumo');
+    ylabel('Frecuencia');
+    legend;
+
+    % Mostrar los promedios y varianzas en la esquina superior izquierda
+    y_lims = ylim;
+    x_lims = xlim;
+    offset_y = 0.05 * (y_lims(2) - y_lims(1));
+    offset_x = 0.05 * (x_lims(2) - x_lims(1));
+    
+    if ~isnan(mu_h)
+        text(x_lims(1) + offset_x, y_lims(2) - offset_y, ...
+            sprintf('Hombres: \nPromedio=%.2f\nVarianza=%.2f', mu_h, mean(varianzaConductorH)), ...
+            'Color', 'r', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    if ~isnan(mu_m)
+        text(x_lims(1) + offset_x, y_lims(2) - 5*offset_y, ...
+            sprintf('Mujeres: \nPromedio=%.2f\nVarianza=%.2f', mu_m, mean(varianzaConductorM)), ...
+            'Color', 'b', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    end
+    
+    hold off;
+end
+function plotAceleracionPorSexo(Rutas)
+
+% Definir colores para hombres y mujeres
+colorHombres = 'r';
+colorMujeres = 'b';
+
+% Inicializar arreglos para frecuencias y magnitudes
+aceleracionHombres = [];
+aceleracionMujeres = [];
+frecuenciaHombres = [];
+frecuenciaMujeres = [];
+
+% Definir los límites y el tamaño de los bins
+binEdges = -5:0.1:5; % Por ejemplo, bins de 0.1 en el rango [-3, 3]
+
+% Iterar sobre todas las rutas y trayectos
+rutas = fieldnames(Rutas);
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    trayectos = fieldnames(Rutas.(ruta));
+    for j = 1:numel(trayectos)
+        trayecto = trayectos{j};
+
+        % Obtener la tabla General
+        dhg = Rutas.(ruta).(trayecto).General;
+
+        % Verificar que existan las columnas necesarias
+        if ismember("Aceleracion", dhg.Properties.VariableNames) && ismember("Sexo", dhg.Properties.VariableNames)
+            aceleraciones = dhg.Aceleracion;
+            sexo = dhg.Sexo;
+
+            % Calcular frecuencia y magnitud para cada aceleración
+            for k = 1:numel(aceleraciones)
+                aceleracion = aceleraciones{k};
+                if isempty(aceleracion)
+                    continue; % Omitir si no hay datos de aceleración
+                end
+
+                % Filtrar las aceleraciones en el rango -0.8 a 0.8
+                aceleracion = aceleracion(aceleracion < -0.8 | aceleracion > 0.8);
+
+                % Bin the accelerations
+                [binCounts, binEdges] = histcounts(aceleracion, binEdges);
+                binCenters = binEdges(1:end-1) + diff(binEdges)/2;
+
+                for n = 1:numel(binCenters)
+                    if binCounts(n) > 0
+                        if sexo(k) == 0
+                            aceleracionHombres = [aceleracionHombres, binCenters(n)];
+                            frecuenciaHombres = [frecuenciaHombres, binCounts(n)];
+                        else
+                            aceleracionMujeres = [aceleracionMujeres, binCenters(n)];
+                            frecuenciaMujeres = [frecuenciaMujeres, binCounts(n)];
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+% Crear la figura
+figure;
+hold on;
+
+% Plotear puntos para hombres
+scatter(frecuenciaHombres, aceleracionHombres, 'MarkerEdgeColor', colorHombres, 'DisplayName', 'Hombres');
+
+% Plotear puntos para mujeres
+scatter(frecuenciaMujeres, aceleracionMujeres, 'MarkerEdgeColor', colorMujeres, 'DisplayName', 'Mujeres');
+
+% Configurar el título y etiquetas de los ejes
+title('Frecuencia de Aceleraciones por Sexo');
+xlabel('Frecuencia de Aceleración');
+ylabel('Magnitud de Aceleración');
+legend;
+
+hold off;
+end
