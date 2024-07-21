@@ -531,9 +531,9 @@ end
                     
                     while j < n && abs(pendiente) > umbral
                         % Convertir los objetos duration a segundos
-                        dt = seconds(tiempo(j) - tiempo(j-1));
+                        dt = seconds(tiempo(j) - tiempo(i));
                         
-                        pendiente = (velocidadCorregida(j) - velocidadCorregida(j-1)) / dt;
+                        pendiente = (velocidadCorregida(j) - velocidadCorregida(i)) / dt;
                         j = j + 1;
                     end
                     
