@@ -207,7 +207,7 @@ datosBuses = Calculos.calcularTiemposRutas(datosBuses);
 
 %% calcula la velocidad
 
-datosBuses = Calcular.velocidadTotal(datosBuses);
+datosBuses = Calcular.velocidadTotal(datosBuses, 'km/h', 'pendiente');
 
 %%
 datosBuses = Calculos.aproximarNivelBateria(datosBuses);

@@ -14,8 +14,12 @@ classdef Calcular
                 unidades = 'm/s'; % valor por defecto
             end
             if nargin < 3
-                filtro = false; % valor por defecto
+                filtro = 'sin_filtro'; % valor por defecto
             end
+
+            % Almacenar la información general de unidades y filtro en la estructura principal
+            datosBuses.info.velocidad.unidades = unidades;
+            datosBuses.info.velocidad.filtro = filtro;
 
             % Obtener los campos de los buses
             buses = fieldnames(datosBuses);
@@ -23,6 +27,11 @@ classdef Calcular
             % Iterar sobre cada bus
             for i = 1:numel(buses)
                 bus = buses{i};
+
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
+                end
 
                 % Obtener los campos de las fechas para el bus actual
                 fechas = fieldnames(datosBuses.(bus));
@@ -39,23 +48,25 @@ classdef Calcular
                             continue;
                         end
 
-                        % Calcular la velocidad total con o sin filtro
-                        if filtro
-                            velocidadTotal = Calcular.velocidadConFiltro(datosSensor, 'time', 'lat', 'lon', filtro);
-                        else
-                            velocidadTotal = Calcular.velocidadSinFiltro(datosSensor, 'time', 'lat', 'lon');
-                        end
+                        % Calcular la velocidad total con el filtro especificado
+                        velocidadTotal = Calcular.velocidadConFiltro(datosSensor, 'time', 'lat', 'lon', filtro);
+
 
                         % Convertir la velocidad según las unidades especificadas
                         try
-                            velocidadTotal = convvel(velocidadTotal, 'm/s', unidades);
+                            if ~strcmp(unidades, 'm/s')
+                                velocidadTotal = convvel(velocidadTotal, 'm/s', unidades);
+                            end
                         catch
-                            warning('No se pudo convertir la velocidad a las unidades especificadas: %s.', unidades);
-                            continue;
+                            warning('No se pudo convertir la velocidad a las unidades especificadas: %s. Se dejará en m/s.', unidades);
                         end
 
                         % Almacenar los datos calculados de velocidad en la estructura de datos
-                        datosBuses.(bus).(fecha).velocidadTotal = velocidadTotal;
+                        datosBuses.(bus).(fecha).(['velocidadTotal_' strrep(unidades, '/', '_')]) = velocidadTotal;
+
+                        % Mostrar mensaje de confirmación
+                        disp(['Procesamiento completado para bus ' bus ' en la fecha ' fecha '.']);
+
                     end
                 end
             end
@@ -91,9 +102,26 @@ classdef Calcular
 
         %%
 
-        function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
-            tiempo = datos.time;
-            velocidad = Calculos.calcularVelocidadMS(datos);
+        function velocidad = velocidadConFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, filtro)
+            switch filtro
+                case 'media_movil'
+                    velocidad = Calcular.velocidadMediaMovil(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
+                case 'kalman'
+                    velocidad = Calcular.velocidadKalman(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
+                case 'pendiente'
+                    velocidad = Calcular.corregirVelocidadPendiente(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, 3);
+                case 'sin_filtro'
+                    velocidad = Calcular.velocidadSinFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
+                otherwise
+                    error('Filtro no reconocido: %s. Use "media_movil", "kalman", "pendiente", "sin_filtro" u otros filtros disponibles.', filtro);
+            end
+        end
+
+
+        %%
+        function velocidadCorregida = corregirVelocidadPendiente(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, umbral)
+            tiempo = datos.(etiquetaTiempo);
+            velocidad = Calcular.velocidadSinFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
             n = length(velocidad);
             velocidadCorregida = velocidad;
 
@@ -139,6 +167,61 @@ classdef Calcular
 
             % Retornar el vector de velocidad corregida
             return;
+        end
+
+        %%
+
+        function datosBuses = calcularTiemposRutas(datosBuses, rutas)
+            % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados
+            % y almacena los resultados directamente en la estructura de entrada datosBuses.
+            % Las rutas se pasan como un parámetro adicional.
+
+            % Obtener los campos de los buses
+            buses = fieldnames(datosBuses);
+
+            % Iterar sobre cada bus
+            for i = 1:numel(buses)
+                bus = buses{i};
+
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
+                end
+
+                % Obtener los campos de las fechas para el bus actual
+                fechas = fieldnames(datosBuses.(bus));
+
+                % Iterar sobre cada fecha
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+                    datosSensor = datosBuses.(bus).(fecha).datosSensor;
+
+                    if isempty(datosSensor)
+                        continue;
+                    end
+
+                    % Inicializar el campo tiempoRuta como una celda vacía
+                    datosBuses.(bus).(fecha).tiempoRuta = {};
+
+                    % Iterar sobre cada ruta y calcular los tiempos de ruta
+                    rutaNames = fieldnames(rutas);
+                    for k = 1:numel(rutaNames)
+                        ruta = rutaNames{k};
+                        Ida = rutas.(ruta).Ida;
+                        Vuelta = rutas.(ruta).Vuelta;
+
+                        % Calcular los tiempos de ruta y almacenar en una celda temporal
+                        tiempoRutaTemp = Calculos.Ruta(datosSensor, Ida, Vuelta, 20);
+
+                        % Añadir el nombre de la ruta a cada fila de tiempoRutaTemp
+                        nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
+                        tiempoRutaTemp = [tiempoRutaTemp, nombreRuta];
+
+                        % Concatenar los resultados en el campo tiempoRuta
+                        datosBuses.(bus).(fecha).tiempoRuta = [datosBuses.(bus).(fecha).tiempoRuta; tiempoRutaTemp];
+                    end
+                end
+            end
         end
 
     end
