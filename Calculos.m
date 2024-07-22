@@ -1761,11 +1761,11 @@ end
                 end
             end
             
-            % Comprobar si el último viaje iniciado no ha sido cerrado correctamente
-            if estadoViaje == 2
-                llegadaVuelta = datos{:, 1}(end);
-                tiempos = [tiempos; {salidaIda, llegadaIda, llegadaVuelta}];
-            end
+            % % Comprobar si el último viaje iniciado no ha sido cerrado correctamente
+            % if estadoViaje == 2
+            %     llegadaVuelta = datos{:, 1}(end);
+            %     tiempos = [tiempos; {salidaIda, llegadaIda, llegadaVuelta}];
+            % end
         end
         
         

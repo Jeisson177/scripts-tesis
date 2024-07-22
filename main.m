@@ -137,7 +137,11 @@ datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
 %%
 % Calculo de todos los tiempos para cada ruta
 
-datosBuses = Calculos.calcularTiemposRutas(datosBuses);
+datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
+
+%%
+
+Calcular.resumenRecorridosPorRuta(datosBuses)
 
 %% calcula la velocidad
 

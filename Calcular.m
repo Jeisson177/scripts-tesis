@@ -171,7 +171,7 @@ classdef Calcular
 
         %%
 
-        function datosBuses = calcularTiemposRutas(datosBuses, rutas)
+        function datosBuses = tiemposRutas(datosBuses, rutas)
             % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados
             % y almacena los resultados directamente en la estructura de entrada datosBuses.
             % Las rutas se pasan como un parámetro adicional.
@@ -197,6 +197,7 @@ classdef Calcular
                     datosSensor = datosBuses.(bus).(fecha).datosSensor;
 
                     if isempty(datosSensor)
+                        warning("No se encontraron los datos del telefono para " + bus +  " para el dia " + fecha)
                         continue;
                     end
 
@@ -222,6 +223,61 @@ classdef Calcular
                     end
                 end
             end
+        end
+
+        %%
+
+        function resumenRutas = resumenRecorridosPorRuta(datosBuses)
+            % Esta función recorre toda la estructura datosBuses y hace un resumen
+            % del número de recorridos por cada ruta.
+
+            % Inicializar un contenedor para contar los recorridos por ruta
+            resumenRutas = containers.Map();
+
+            % Obtener los campos de los buses
+            buses = fieldnames(datosBuses);
+
+            % Iterar sobre cada bus
+            for i = 1:numel(buses)
+                bus = buses{i};
+
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
+                end
+
+                % Obtener los campos de las fechas para el bus actual
+                fechas = fieldnames(datosBuses.(bus));
+
+                % Iterar sobre cada fecha
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+
+                    % Verificar si hay campo tiempoRuta
+                    if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && ~isempty(datosBuses.(bus).(fecha).tiempoRuta)
+                        % Obtener la celda de tiempoRuta
+                        tiempoRuta = datosBuses.(bus).(fecha).tiempoRuta;
+
+                        % Iterar sobre cada fila de tiempoRuta
+                        for k = 1:size(tiempoRuta, 1)
+                            ruta = tiempoRuta{k, end};  % El nombre de la ruta está en la última columna
+
+                            % Incrementar el contador para la ruta actual
+                            if isKey(resumenRutas, ruta)
+                                resumenRutas(ruta) = resumenRutas(ruta) + 1;
+                            else
+                                resumenRutas(ruta) = 1;
+                            end
+                        end
+                    end
+                end
+            end
+
+            % Convertir el contenedor a una tabla para un resumen más claro
+            rutas = keys(resumenRutas);
+            numRecorridos = values(resumenRutas);
+
+            resumenRutas = table(rutas', cell2mat(numRecorridos)', 'VariableNames', {'Ruta', 'NumeroRecorridos'});
         end
 
     end
