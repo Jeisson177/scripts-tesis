@@ -1,0 +1,5 @@
+versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoEvento
+E.1.0.0,1067272,PB,Z374025,No Disponible,No Disponible,2024-07-16 02:53:59.586,2024-07-16 02:54:03.186,T,4.592417,-74.181667,2,3,False,2,EV17
+E.1.0.0,1069512,PB,Z374025,H617,No Disponible,2024-07-16 10:07:06.496,2024-07-16 10:07:09.266,T,4.592594,-74.182444,2,3,False,2,EV17
+E.1.0.0,1069878,PB,Z374025,EM,No Disponible,2024-07-16 12:18:57.066,2024-07-16 12:19:01.156,T,4.592400,-74.181747,2,3,False,2,EV17
+E.1.0.0,1072255,PB,Z374025,No Disponible,No Disponible,2024-07-16 21:27:57.954,2024-07-16 21:28:01.964,T,4.592936,-74.181783,2,3,False,2,EV17

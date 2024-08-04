@@ -1,0 +1,240 @@
+Carpeta: 4012-03-07-2024
+  Hora de inicio: 2024-07-03 02:00:00
+  Hora de fin: 2024-07-03 17:00:00
+  Total de horas: 16.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4012-04-07-2024
+  Hora de inicio: 2024-07-04 03:00:00
+  Hora de fin: 2024-07-04 20:00:00
+  Total de horas: 18.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4012-10-07-2024
+  Hora de inicio: 2024-07-10 03:00:00
+  Hora de fin: 2024-07-10 23:00:00
+  Total de horas: 21.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4012-11-07-2024
+  Hora de inicio: 2024-07-11 00:00:00
+  Hora de fin: 2024-07-11 23:00:00
+  Total de horas: 24.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4012-12-07-2024
+  Hora de inicio: 2024-07-12 00:00:00
+  Hora de fin: 2024-07-12 23:00:00
+  Total de horas: 24.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4012-13-07-2024
+  Hora de inicio: 2024-07-13 00:00:00
+  Hora de fin: 2024-07-13 23:00:00
+  Total de horas: 24.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4012-15-07-2024
+  Hora de inicio: 2024-07-15 02:00:00
+  Hora de fin: 2024-07-15 22:00:00
+  Total de horas: 21.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4012-16-07-2024
+  Hora de inicio: 2024-07-16 00:00:00
+  Hora de fin: 2024-07-16 23:00:00
+  Total de horas: 24.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4020-15-04-2024
+  Hora de inicio: 2024-04-15 02:00:00
+  Hora de fin: 2024-04-15 15:00:00
+  Total de horas: 14.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4020-16-04-2024
+  Hora de inicio: 2024-04-16 02:00:00
+  Hora de fin: 2024-04-16 19:00:00
+  Total de horas: 18.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4020-17-04-2024
+  Hora de inicio: 2024-04-17 02:00:00
+  Hora de fin: 2024-04-17 22:00:00
+  Total de horas: 21.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4020-18-04-2024
+  Hora de inicio: 2024-04-18 02:00:00
+  Hora de fin: 2024-04-18 21:00:00
+  Total de horas: 20.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4020-19-04-2024
+  Hora de inicio: 2024-04-19 03:00:00
+  Hora de fin: 2024-04-19 23:00:00
+  Total de horas: 21.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4020-22-04-2024
+  Hora de inicio: 2024-04-22 02:00:00
+  Hora de fin: 2024-04-22 21:00:00
+  Total de horas: 20.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4020-23-04-2024
+  Hora de inicio: 2024-04-23 02:00:00
+  Hora de fin: 2024-04-23 22:00:00
+  Total de horas: 21.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4020-24-04-2024
+  Hora de inicio: N/A
+  Hora de fin: N/A
+  Total de horas: 0.00
+  Estado: No hay archivos TXT
+
+Carpeta: 4020-25-04-2024
+  Hora de inicio: N/A
+  Hora de fin: N/A
+  Total de horas: 0.00
+  Estado: No hay archivos TXT
+
+Carpeta: 4020-26-04-2024
+  Hora de inicio: 2024-04-26 01:00:00
+  Hora de fin: 2024-04-26 16:00:00
+  Total de horas: 16.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4025-03-07-2024
+  Hora de inicio: 2024-07-03 02:00:00
+  Hora de fin: 2024-07-03 14:00:00
+  Total de horas: 13.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4025-04-07-2024
+  Hora de inicio: 2024-07-04 03:00:00
+  Hora de fin: 2024-07-04 19:00:00
+  Total de horas: 17.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4025-10-07-2024
+  Hora de inicio: 2024-07-10 02:00:00
+  Hora de fin: 2024-07-10 19:00:00
+  Total de horas: 18.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4025-11-07-2024
+  Hora de inicio: 2024-07-11 04:00:00
+  Hora de fin: 2024-07-11 18:00:00
+  Total de horas: 15.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4025-12-06-2024
+  Hora de inicio: N/A
+  Hora de fin: N/A
+  Total de horas: 0.00
+  Estado: Archivos TXT con fecha no coincidente
+
+Carpeta: 4025-15-07-2024
+  Hora de inicio: 2024-07-15 02:00:00
+  Hora de fin: 2024-07-15 18:00:00
+  Total de horas: 17.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4025-16-07-2024
+  Hora de inicio: 2024-07-16 02:00:00
+  Hora de fin: 2024-07-16 20:00:00
+  Total de horas: 19.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4104-15-04-2024
+  Hora de inicio: 2024-04-15 00:00:00
+  Hora de fin: 2024-04-15 21:00:00
+  Total de horas: 22.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4104-16-04-2024
+  Hora de inicio: 2024-04-16 02:00:00
+  Hora de fin: 2024-04-16 19:00:00
+  Total de horas: 18.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4104-17-04-2024
+  Hora de inicio: 2024-04-17 02:00:00
+  Hora de fin: 2024-04-17 23:00:00
+  Total de horas: 22.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4104-18-04-2024
+  Hora de inicio: 2024-04-18 02:00:00
+  Hora de fin: 2024-04-18 20:00:00
+  Total de horas: 19.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4104-19-04-2024
+  Hora de inicio: 2024-04-19 02:00:00
+  Hora de fin: 2024-04-19 21:00:00
+  Total de horas: 20.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4104-22-04-2024
+  Hora de inicio: 2024-04-22 02:00:00
+  Hora de fin: 2024-04-22 22:00:00
+  Total de horas: 21.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4104-23-04-2024
+  Hora de inicio: 2024-04-23 01:00:00
+  Hora de fin: 2024-04-23 14:00:00
+  Total de horas: 14.00
+  Estado: Archivos TXT correctos
+
+Carpeta: 4104-24-04-2024
+  Hora de inicio: N/A
+  Hora de fin: N/A
+  Total de horas: 0.00
+  Estado: No hay archivos TXT
+
+Carpeta: 4104-25-04-2024
+  Hora de inicio: N/A
+  Hora de fin: N/A
+  Total de horas: 0.00
+  Estado: No hay archivos TXT
+
+Carpeta: 4104-26-04-2024
+  Hora de inicio: 2024-04-26 01:00:00
+  Hora de fin: 2024-04-26 22:00:00
+  Total de horas: 22.00
+  Estado: Archivos TXT correctos
+
+Resumen de problemas:
+  Total de archivos no coincidentes o faltantes: 5
+  - 4020-24-04-2024: No hay archivos TXT
+  - 4020-25-04-2024: No hay archivos TXT
+  - 4025-12-06-2024: Fecha no coincidente
+  - 4104-24-04-2024: No hay archivos TXT
+  - 4104-25-04-2024: No hay archivos TXT
+
+Resumen de horas por ID de bus:
+  - Bus 4012: 172.00 horas
+  - Bus 4020: 151.00 horas
+  - Bus 4025: 99.00 horas
+  - Bus 4104: 158.00 horas
+
+Resumen de días de la semana por semana y por ID de bus:
+ID de bus: 4012
+  - Semana 26 (2024-07-01 a 2024-07-07): Thursday, Wednesday
+  - Semana 27 (2024-07-08 a 2024-07-14): Friday, Saturday, Thursday, Wednesday
+  - Semana 28 (2024-07-15 a 2024-07-21): Monday, Tuesday
+ID de bus: 4020
+  - Semana 15 (2024-04-15 a 2024-04-21): Friday, Monday, Thursday, Tuesday, Wednesday
+  - Semana 16 (2024-04-22 a 2024-04-28): Friday, Monday, Thursday, Tuesday, Wednesday
+ID de bus: 4025
+  - Semana 26 (2024-07-01 a 2024-07-07): Thursday, Wednesday
+  - Semana 27 (2024-07-08 a 2024-07-14): Thursday, Wednesday
+  - Semana 23 (2024-06-10 a 2024-06-16): Wednesday
+  - Semana 28 (2024-07-15 a 2024-07-21): Monday, Tuesday
+ID de bus: 4104
+  - Semana 15 (2024-04-15 a 2024-04-21): Friday, Monday, Thursday, Tuesday, Wednesday
+  - Semana 16 (2024-04-22 a 2024-04-28): Friday, Monday, Thursday, Tuesday, Wednesday

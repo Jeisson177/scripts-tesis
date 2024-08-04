@@ -153,6 +153,76 @@ classdef Map
     hold on;
 end
 
+
+%%
+
+
+function graficarSegmentosEnMapa(datos, segmentos, titulo, mapa)
+    % Verificar que 'datos' sea una tabla
+    if ~istable(datos)
+        error('La entrada debe ser una tabla.');
+    end
+
+    % Verificar y manejar el argumento 'mapa'
+    if nargin < 4 || isempty(mapa) || ~ishandle(mapa) || ~isa(mapa, 'matlab.ui.Figure')
+        mapa = figure; % Crear una nueva figura si no se proporciona o es inválido
+    else
+        figure(mapa); % Hacer que 'mapa' sea la figura actual sin crear una nueva
+    end
+
+    % Calcular distancias acumuladas a partir de los datos de latitud y longitud
+    distancias = Calculos.CalcularDistancia(datos);
+
+    % Definir una lista de colores para los segmentos
+    colores = lines(length(segmentos) + 1); % Incrementar el número de colores para incluir el primer y último segmentos
+
+    hold off; % Limpiar el gráfico actual
+
+    % Graficar el primer segmento de 0 al primer valor de segmentos
+    idx_inicio = 1;
+    idx_fin = find(distancias >= segmentos(1), 1);
+
+    if ~isempty(idx_fin)
+        latitudesSegmento = datos{idx_inicio:idx_fin, 'lat'};
+        longitudesSegmento = datos{idx_inicio:idx_fin, 'lon'};
+        geoscatter(latitudesSegmento, longitudesSegmento, 10, 'MarkerEdgeColor', colores(1,:), 'MarkerFaceColor', colores(1,:));
+        hold on;
+    end
+
+    % Graficar los segmentos intermedios
+    for i = 1:length(segmentos)-1
+        idx_inicio = find(distancias >= segmentos(i), 1);
+        idx_fin = find(distancias >= segmentos(i+1), 1);
+
+        if ~isempty(idx_inicio) && ~isempty(idx_fin)
+            latitudesSegmento = datos{idx_inicio:idx_fin, 'lat'};
+            longitudesSegmento = datos{idx_inicio:idx_fin, 'lon'};
+            geoscatter(latitudesSegmento, longitudesSegmento, 10, 'MarkerEdgeColor', colores(i+1,:), 'MarkerFaceColor', colores(i+1,:));
+            hold on;
+        end
+    end
+
+    % Graficar el último segmento del último valor de segmentos al final de los datos
+    idx_inicio = find(distancias >= segmentos(end), 1);
+    idx_fin = height(datos);
+
+    if ~isempty(idx_inicio) && idx_inicio < idx_fin
+        latitudesSegmento = datos{idx_inicio:idx_fin, 'lat'};
+        longitudesSegmento = datos{idx_inicio:idx_fin, 'lon'};
+        geoscatter(latitudesSegmento, longitudesSegmento, 10, 'MarkerEdgeColor', colores(end,:), 'MarkerFaceColor', colores(end,:));
+    end
+
+    % Ajustar los límites para mostrar toda la ruta
+    geolimits('auto');
+    hold off; % Liberar el gráfico actual
+
+    % Añadir título a la gráfica
+        title(titulo);
+    
+end
+
+
+
 %%
 function mapa = VelocidadSTS(datos, fechaInicio, fechaFin, titulo, leyenda, mapa)
     % Verificar que 'datos' sea una tabla

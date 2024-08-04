@@ -254,6 +254,9 @@ end
     return;
 end
 
+
+
+
 %%
 
 function datosBuses = calcularPromedioConsumoRutas(datosBuses)
@@ -324,9 +327,9 @@ end
             end
             
             % Asumiendo que las columnas son: tiempo, latitud, longitud
-            tiempo = datos{:, 1};
-            lat = datos{:, 2};
-            lon = datos{:, 3};
+            tiempo = datos.time;
+            lat = datos.lat;
+            lon = datos.lon;
             
             % Calcular la diferencia de tiempo en segundos
             diferenciaTiempo = seconds(diff(tiempo));
@@ -509,7 +512,7 @@ end
         
         
         function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
-            tiempo = datos{:, 1};
+            tiempo = datos.time;
             velocidad = Calculos.calcularVelocidadMS(datos);
             n = length(velocidad);
             velocidadCorregida = velocidad;
@@ -520,16 +523,17 @@ end
                 dt = seconds(tiempo(i+1) - tiempo(i));
                 
                 % Calcular la pendiente entre dos puntos consecutivos
-                pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
-                
+                %%pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
+                pendiente = (velocidad(i+1) - velocidad(i)) / dt;
                 % Si la pendiente supera el umbral, encontrar un punto donde no lo haga
                 if abs(pendiente) > umbral
                     j = i + 2; % Iniciar con el siguiente punto
+                    
                     while j < n && abs(pendiente) > umbral
                         % Convertir los objetos duration a segundos
-                        dt = seconds(tiempo(j) - tiempo(i));
+                        dt = seconds(tiempo(j) - tiempo(j-1));
                         
-                        pendiente = (velocidadCorregida(j) - velocidadCorregida(i)) / dt;
+                        pendiente = (velocidadCorregida(j) - velocidadCorregida(j-1)) / dt;
                         j = j + 1;
                     end
                     
@@ -792,6 +796,7 @@ end
 
 
 function datosBuses = calcularPorcentajeBateriaRutas(datosBuses)
+
     % Esta función calcula el porcentaje de batería para las rutas de cada bus en cada fecha
     % basándose en los tiempos de ruta y los datos del sensor.
     
@@ -834,6 +839,72 @@ function datosBuses = calcularPorcentajeBateriaRutas(datosBuses)
 
     return;
 end
+
+
+%%
+
+function datosBuses = calcularPromedioVelocidadRutas2(datosBuses)
+
+    % Definir segmentos para las rutas
+    Rutas.Ruta4104.Ida = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
+    Rutas.Ruta4104.Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
+    
+    Rutas.Ruta4020.Ida = [2.3, 8.1, 11.9, 12.9, 14.8, 19.25];
+    Rutas.Ruta4020.Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
+    
+    % Segments for week 2 to be added here
+    Rutas.RutaXXXX.Ida = [1 2];
+    Rutas.RutaXXXX.Vuelta = [1 2];
+
+    Rutas.RutaXXXX.Ida = [1 2];
+    Rutas.RutaXXXX.Vuelta = [1 2];
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos del sensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
+
+                % Procesar cada ruta del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    fechaInicioIda = tiempoRuta{k, 1};
+                    fechaFinIda = tiempoRuta{k, 2};
+                    ruta = tiempoRuta{k, 4};  % Nombre de la ruta
+                    dataFiltradaIda = ImportarDatos.filtrarDatosPorFechas(datosSensor, fechaInicioIda, fechaFinIda);
+
+                    % Trayecto de vuelta
+                    fechaInicioVuelta = tiempoRuta{k, 2};
+                    fechaFinVuelta = tiempoRuta{k, 3};
+                    dataFiltradaVuelta = ImportarDatos.filtrarDatosPorFechas(datosSensor, fechaInicioVuelta, fechaFinVuelta);
+
+                    % Calcular y almacenar los promedios para ida y vuelta según la ruta
+                    if isfield(Rutas, ruta)
+                        PromediosIda = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltradaIda, Rutas.(ruta).Ida);
+                        PromediosVuelta = Calculos.calcularPromedioVelocidadPorSegmentos(dataFiltradaVuelta, Rutas.(ruta).Vuelta);
+
+                        % Almacenar los promedios en la estructura de datos
+                        datosBuses.(fecha).(bus).PromediosIda{k, 1} = PromediosIda;
+                        datosBuses.(fecha).(bus).PromediosVuelta{k, 1} = PromediosVuelta;
+                    else
+                        fprintf('Ruta %s no definida en la estructura de segmentos.\n', ruta);
+                    end
+                end
+            end
+        end
+    end
+    return;
+end
+
 
 %%
 
@@ -1436,33 +1507,35 @@ end
         
         % Recorrer los datos de sensor para encontrar los puntos en la curva
         for i = 1:size(datosCordenadasSensor, 1)
-            distanciaInicio = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), inicioCurva(1), inicioCurva(2));
-            distanciaFin = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), finCurva(1), finCurva(2));
-            
-            if distanciaInicio < 10 % Si estamos cerca del inicio de la curva
-                % Guardar los datos de velocidad, radio y relación velocidad/radio
-                
-                
-                
-                datosCurva(j, 1) = velocidad(i);
+    if i <= numel(radio) % Verificar que el índice sea válido para radio
+        distanciaInicio = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), inicioCurva(1), inicioCurva(2));
+        distanciaFin = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), finCurva(1), finCurva(2));
+
+        if distanciaInicio < 10 % Si estamos cerca del inicio de la curva
+            % Guardar los datos de velocidad, radio y relación velocidad/radio
+            if ~isnan(radio(i)) && radio(i) ~= -1 % Verificar que radio sea un valor válido
                 datosCurva(j, 2) = radio(i);
+                datosCurva(j, 1) = velocidad(i);
                 datosCurva(j, 3) = velocidad(i) / radio(i);
-                
-                if velocidad(i)<1.5
-                    radio(i)=1;
+
+                if velocidad(i) < 1.5
+                    radio(i) = 1;
                 end
+
                 if isnan(datosCurva(j, 3))
-                    datosCurva(j, 3)=0;
+                    datosCurva(j, 3) = 0;
                 end
-                if radio(i)==-1
-                     datosCurva(j, 3)=0;
-                end
+
                 j = j + 1;
-            elseif distanciaFin < 10 % Si estamos cerca del final de la curva
-                break; % Salir del bucle
             end
+        elseif distanciaFin < 10 % Si estamos cerca del final de la curva
+            break; % Salir del bucle
         end
-        
+    else
+        break; % Si el índice es mayor que el tamaño de radio, salir del bucle
+    end
+end
+
         % Almacenar los datos de esta curva en datosn
         datosn{Ncurva} = datosCurva;
         
@@ -1688,11 +1761,11 @@ end
                 end
             end
             
-            % Comprobar si el último viaje iniciado no ha sido cerrado correctamente
-            if estadoViaje == 2
-                llegadaVuelta = datos{:, 1}(end);
-                tiempos = [tiempos; {salidaIda, llegadaIda, llegadaVuelta}];
-            end
+            % % Comprobar si el último viaje iniciado no ha sido cerrado correctamente
+            % if estadoViaje == 2
+            %     llegadaVuelta = datos{:, 1}(end);
+            %     tiempos = [tiempos; {salidaIda, llegadaIda, llegadaVuelta}];
+            % end
         end
         
         
@@ -1710,6 +1783,7 @@ end
         
         %%
         
+        
         function datosBuses = calcularTiemposRutas(datosBuses)
     % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados
     % y almacena los resultados directamente en la estructura de entrada datosBuses.
@@ -1718,10 +1792,13 @@ end
     rutas = struct();
     rutas.Ruta4020.Ida = [4.593216, -74.178910];
     rutas.Ruta4020.Vuelta = [4.6096941, -74.0738544];
+    
     rutas.Ruta4104.Ida = [4.587917000000000, -74.149976900000000];
     rutas.Ruta4104.Vuelta = [4.562243400000000, -74.083503800000000];
+
     rutas.Ruta4104S2.Ida = [4.587954800000000, -74.172482000000000];
     rutas.Ruta4104S2.Vuelta = [4.652558600000000, -74.061468400000000];
+    
     rutas.Ruta4020S2.Ida = [4.575836400000000, -74.168218100000000];
     rutas.Ruta4020S2.Vuelta = [4.676501100000000, -74.141395100000000];
     
@@ -1737,6 +1814,10 @@ end
         for j = 1:numel(buses)
             bus = buses{j};
             datosSensor = datosBuses.(fecha).(bus).datosSensor;
+
+            if isempty(datosSensor)
+                continue;
+            end
             
             % Inicializar el campo tiempoRuta como una celda vacía
             datosBuses.(fecha).(bus).tiempoRuta = {};
@@ -1750,6 +1831,10 @@ end
                 
                 % Calcular los tiempos de ruta y almacenar en una celda temporal
                 tiempoRutaTemp = Calculos.Ruta(datosSensor, Ida, Vuelta, 20);
+                
+                % Añadir el nombre de la ruta a cada fila de tiempoRutaTemp
+                nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
+                tiempoRutaTemp = [tiempoRutaTemp, nombreRuta];
                 
                 % Concatenar los resultados en el campo tiempoRuta
                 datosBuses.(fecha).(bus).tiempoRuta = [datosBuses.(fecha).(bus).tiempoRuta; tiempoRutaTemp];
@@ -1842,11 +1927,8 @@ function datosBuses = calcularAceleracionRutas(datosBuses)
                     inicioIda = tiempoRuta{k, 1};
                     finIda = tiempoRuta{k, 2};
 
-                    datosIda = datosSensor(datosSensor{:, 1} >= inicioIda & datosSensor{:, 1} <= finIda, :);
-                    
                     % Calcular aceleración de ida
-                    diffv = diff(velocidadIda);
-                    aceleracionIda =  diffv;
+                    aceleracionIda = diff(velocidadIda);
                     
                     % Calcular aceleración de vuelta
                     aceleracionVuelta = diff(velocidadVuelta);
@@ -1897,6 +1979,307 @@ function datosBuses = extraerP60(datosBuses)
                     % Almacenar los segmentos P60 en la estructura de datos
                     datosBuses.(fecha).(bus).segmentoP60{k, 1} = segmentoP60Ida;
                     datosBuses.(fecha).(bus).segmentoP60{k, 2} = segmentoP60Vuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+
+%%
+
+function datosBuses = extraerSegmentosDatos(datosBuses)
+    % Esta función extrae segmentos de datosSensor para cada ruta de cada bus en cada fecha.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datosSensor para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'datosSensor')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosSensor = datosBuses.(fecha).(bus).datosSensor;
+                
+                % Calcular y almacenar los segmentos de datosSensor para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    segmentoDatosIda = ImportarDatos.filtrarDatosPorFechas(datosSensor, inicioIda, finIda);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    segmentoDatosVuelta = ImportarDatos.filtrarDatosPorFechas(datosSensor, inicioVuelta, finVuelta);
+                    
+                    % Almacenar los segmentos de datosSensor en la estructura de datos
+                    if ~isfield(datosBuses.(fecha).(bus), 'segmentosDatos')
+                        datosBuses.(fecha).(bus).segmentosDatos = cell(size(tiempoRuta, 1), 2);
+                    end
+                    datosBuses.(fecha).(bus).segmentosDatos{k, 1} = segmentoDatosIda;
+                    datosBuses.(fecha).(bus).segmentosDatos{k, 2} = segmentoDatosVuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+
+
+%%
+
+function datosBuses = extraerEV1(datosBuses)
+    % Esta función extrae segmentos de la tabla EV1 para cada ruta de cada bus en cada fecha.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos EV1 para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'EV1')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosEV1 = datosBuses.(fecha).(bus).EV1;
+                
+                % Calcular y almacenar el segmento EV1 para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    segmentoEV1Ida = datosEV1(datosEV1.fechaHoraLecturaDato >= inicioIda & datosEV1.fechaHoraLecturaDato <= finIda, :);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    segmentoEV1Vuelta = datosEV1(datosEV1.fechaHoraLecturaDato >= inicioVuelta & datosEV1.fechaHoraLecturaDato <= finVuelta, :);
+                    
+                    % Almacenar los segmentos EV1 en la estructura de datos
+                    datosBuses.(fecha).(bus).segmentoEV1{k, 1} = segmentoEV1Ida;
+                    datosBuses.(fecha).(bus).segmentoEV1{k, 2} = segmentoEV1Vuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+%%
+
+function datosBuses = extraerEV2(datosBuses)
+    % Esta función extrae segmentos de la tabla EV2 para cada ruta de cada bus en cada fecha.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos EV2 para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'EV2')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosEV2 = datosBuses.(fecha).(bus).EV2;
+                
+                % Calcular y almacenar el segmento EV2 para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    segmentoEV2Ida = datosEV2(datosEV2.fechaHoraLecturaDato >= inicioIda & datosEV2.fechaHoraLecturaDato <= finIda, :);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    segmentoEV2Vuelta = datosEV2(datosEV2.fechaHoraLecturaDato >= inicioVuelta & datosEV2.fechaHoraLecturaDato <= finVuelta, :);
+                    
+                    % Almacenar los segmentos EV2 en la estructura de datos
+                    datosBuses.(fecha).(bus).segmentoEV2{k, 1} = segmentoEV2Ida;
+                    datosBuses.(fecha).(bus).segmentoEV2{k, 2} = segmentoEV2Vuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+%%
+
+function datosBuses = extraerEV8(datosBuses)
+    % Esta función extrae segmentos de la tabla EV8 para cada ruta de cada bus en cada fecha.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos EV8 para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'EV8')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosEV8 = datosBuses.(fecha).(bus).EV8;
+                
+                % Calcular y almacenar el segmento EV8 para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    segmentoEV8Ida = datosEV8(datosEV8.fechaHoraLecturaDato >= inicioIda & datosEV8.fechaHoraLecturaDato <= finIda, :);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    segmentoEV8Vuelta = datosEV8(datosEV8.fechaHoraLecturaDato >= inicioVuelta & datosEV8.fechaHoraLecturaDato <= finVuelta, :);
+                    
+                    % Almacenar los segmentos EV8 en la estructura de datos
+                    datosBuses.(fecha).(bus).segmentoEV8{k, 1} = segmentoEV8Ida;
+                    datosBuses.(fecha).(bus).segmentoEV8{k, 2} = segmentoEV8Vuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+%%
+
+function datosBuses = extraerEV18(datosBuses)
+    % Esta función extrae segmentos de la tabla EV18 para cada ruta de cada bus en cada fecha.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos EV18 para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'EV18')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosEV18 = datosBuses.(fecha).(bus).EV18;
+                
+                % Calcular y almacenar el segmento EV18 para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    segmentoEV18Ida = datosEV18(datosEV18.fechaHoraLecturaDato >= inicioIda & datosEV18.fechaHoraLecturaDato <= finIda, :);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    segmentoEV18Vuelta = datosEV18(datosEV18.fechaHoraLecturaDato >= inicioVuelta & datosEV18.fechaHoraLecturaDato <= finVuelta, :);
+                    
+                    % Almacenar los segmentos EV18 en la estructura de datos
+                    datosBuses.(fecha).(bus).segmentoEV18{k, 1} = segmentoEV18Ida;
+                    datosBuses.(fecha).(bus).segmentoEV18{k, 2} = segmentoEV18Vuelta;
+                end
+            end
+        end
+    end
+
+    return;
+end
+
+
+%%
+
+function datosBuses = extraerEV19(datosBuses)
+    % Esta función extrae segmentos de la tabla EV19 para cada ruta de cada bus en cada fecha.
+
+    % Iterar sobre todas las fechas disponibles en datosBuses
+    fechas = fieldnames(datosBuses);
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+        
+        % Buscar cada tipo de bus en la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+        for j = 1:numel(buses)
+            bus = buses{j};
+            
+            % Asegurarse de que existen datos de ruta y datos EV19 para el bus
+            if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'EV19')
+                tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                datosEV19 = datosBuses.(fecha).(bus).EV19;
+                
+                % Filtrar los datos del evento 19
+                datosEvento19 = datosEV19(datosEV19.codigoEvento == "EV19", :);
+                
+                % Inicializar tablas de salida para cada tipo
+                tabla1 = table();
+                tabla2 = table();
+                tabla3 = table();
+                tabla4 = table();
+                
+                % Verificar y asignar datos para cada código de comportamiento anómalo
+                for codigo = 1:4
+                    datosFiltrados = datosEvento19(datosEvento19.codigoComportamientoAnomalo == string(codigo), {'fechaHoraLecturaDato', 'latitud', 'longitud', 'codigoComportamientoAnomalo'});
+                    switch codigo
+                        case 1
+                            tabla1 = datosFiltrados;
+                        case 2
+                            tabla2 = datosFiltrados;
+                        case 3
+                            tabla3 = datosFiltrados;
+                        case 4
+                            tabla4 = datosFiltrados;
+                    end
+                end
+                
+                % Calcular y almacenar el segmento EV19 para cada trayecto de ida y vuelta en las rutas del día
+                for k = 1:size(tiempoRuta, 1)
+                    % Trayecto de ida
+                    inicioIda = tiempoRuta{k, 1};
+                    finIda = tiempoRuta{k, 2};
+                    segmentoEV19_1_Ida = tabla1(tabla1.fechaHoraLecturaDato >= inicioIda & tabla1.fechaHoraLecturaDato <= finIda, :);
+                    segmentoEV19_2_Ida = tabla2(tabla2.fechaHoraLecturaDato >= inicioIda & tabla2.fechaHoraLecturaDato <= finIda, :);
+                    segmentoEV19_3_Ida = tabla3(tabla3.fechaHoraLecturaDato >= inicioIda & tabla3.fechaHoraLecturaDato <= finIda, :);
+                    segmentoEV19_4_Ida = tabla4(tabla4.fechaHoraLecturaDato >= inicioIda & tabla4.fechaHoraLecturaDato <= finIda, :);
+                    
+                    % Trayecto de vuelta
+                    inicioVuelta = tiempoRuta{k, 2};
+                    finVuelta = tiempoRuta{k, 3};
+                    segmentoEV19_1_Vuelta = tabla1(tabla1.fechaHoraLecturaDato >= inicioVuelta & tabla1.fechaHoraLecturaDato <= finVuelta, :);
+                    segmentoEV19_2_Vuelta = tabla2(tabla2.fechaHoraLecturaDato >= inicioVuelta & tabla2.fechaHoraLecturaDato <= finVuelta, :);
+                    segmentoEV19_3_Vuelta = tabla3(tabla3.fechaHoraLecturaDato >= inicioVuelta & tabla3.fechaHoraLecturaDato <= finVuelta, :);
+                    segmentoEV19_4_Vuelta = tabla4(tabla4.fechaHoraLecturaDato >= inicioVuelta & tabla4.fechaHoraLecturaDato <= finVuelta, :);
+                    
+                    % Almacenar los segmentos EV19 en la estructura de datos
+                    datosBuses.(fecha).(bus).segmentoEV19_1{k, 1} = segmentoEV19_1_Ida;
+                    datosBuses.(fecha).(bus).segmentoEV19_1{k, 2} = segmentoEV19_1_Vuelta;
+                    datosBuses.(fecha).(bus).segmentoEV19_2{k, 1} = segmentoEV19_2_Ida;
+                    datosBuses.(fecha).(bus).segmentoEV19_2{k, 2} = segmentoEV19_2_Vuelta;
+                    datosBuses.(fecha).(bus).segmentoEV19_3{k, 1} = segmentoEV19_3_Ida;
+                    datosBuses.(fecha).(bus).segmentoEV19_3{k, 2} = segmentoEV19_3_Vuelta;
+                    datosBuses.(fecha).(bus).segmentoEV19_4{k, 1} = segmentoEV19_4_Ida;
+                    datosBuses.(fecha).(bus).segmentoEV19_4{k, 2} = segmentoEV19_4_Vuelta;
                 end
             end
         end
