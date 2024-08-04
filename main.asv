@@ -1,145 +1,30 @@
 
-datos1b1=ImportarDatos.Sensor("Datos/4012-03-07-2024");
-
-G=Graficas.velocidadTiempo(datos, fechaInicio, fechaFin, metodoVelocidad, titulo, colorYlinea,leyenda, gra)
-%% Segmentación de las rutas
-Ruta4104Ida = [0.85, 2.1, 4.1, 4.5, 5.2, 8.0, 8.6, 10.5, 13.9];
-Ruta4104Vuelta = [1.18, 2.1, 3.5, 5.2, 10.2, 11.9, 13.5];
-
-
-Ruta4020Ida = [2.3, 8.1, 11.9, 12.9, 14.8, 19.25];
-Ruta4020Vuelta = [2.04, 5.1, 8.6, 11.13, 14.65, 19.44];
-
-
-
-Sexo4104 = ['H', 'H', 'M', 'M', 'M', 'M'];
-
-Ida4020 = [4.593216, -74.178910];
-Vuelta4020 = [4.6096941, -74.0738544];
-
-Ida4104 = [4.587917000000000, -74.149976900000000];
-Vuelta4104 = [4.562243400000000, -74.083503800000000];
-
-
-
-%% Grafica general de aceleraciones
-
-
-% Llamar a la función con la estructura Rutas
-%graficarAceleracionesPorConductor(Rutas);
-
-
-
-
-%% importar solo un dato
-Sensor=ImportarDatos.Sensor('Datos\2024-04-18\4104');
-datosCordenadasSensor=ImportarDatos.SensorCordenadas(Sensor);
-% fechaInicio="2024-04-23 6:39:00.434";
-%  fechaFin="2024-04-23 7:50:00.434";
-% r=Calculos.riesgoCurva(datosCordenadasSensor,fechaInicio, fechaFin);
-
-tiempoR=Calculos.Ruta(datosCordenadasSensor,Ida4104,Vuelta4104,20);
-T=size(tiempoR);
-
-% Ccurvas1=Calculos.Lcurvasida4020();
-% Ccurvas2=Calculos.LcurvasVuelta4020();
-% Ccurvas3=Calculos.Lcurvasida4104();
-% Ccurvas=Calculos.LcurvasVuelta4104();
-% for i=1:T(1)
-% array2(:,i)=Calculos.riesgoCurva2(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},Ccurvas);
-% end
-% for i=1:T(1)
-%     m{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,1},tiempoR{i,2},'r','ida','ida');
-%     m2{i}=Map.Ruta(datosCordenadasSensor,tiempoR{i,2},tiempoR{i,3},'b','vuelta','vuelta');
-%
-% end
-%%
-m=Map.Ruta(datosCordenadasSensor,tiempoR{1,1},tiempoR{1,2},'r','ida','ida');
-hold on
-marcador=Pcurvas.s4104_1.ida{1,1};
-marcador2=Pcurvas.s4104_1.ida{1,2};
-geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
-geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
-
-%
-
-%%
-nombres = fieldnames(datosBuses);
-narray = 1;
-Ccurvas = Calculos.Lcurvasida4020();
-%Ccurvas = Calculos.LcurvasVuelta4020();
-%Ccurvas = Calculos.Lcurvasida4104();
-% Ccurvas = Calculos.LcurvasVuelta4104();
-
-for i = 1:5
-    Na = nombres{i};
-    data = datosBuses.(Na).bus_4020.datosSensor;
-    tiempos=datosBuses.(Na).bus_4020.tiempoRuta;
-    T = size(datosBuses.(Na).bus_4020.tiempoRuta);
-    for j = 1:T(1)
-        array3(:, narray) = Calculos.riesgoCurva2(data, tiempos{j, 1}, tiempos{j, 2}, Ccurvas);
-        narray = narray + 1;
-    end
-end
-
-
-
-%%
-nombres = fieldnames(datosBuses);
-narray = 1;
-for i=6:10
-    Na = nombres{i};  % Asegurarse de que Na sea una cadena de texto
-    data=datosBuses.(Na).bus_4020.EV1;
-    tiempos=datosBuses.(Na).bus_4020.tiempoRuta;
-    Ti = size(datosBuses.(Na).bus_4020.tiempoRuta);
-    for j=1:Ti(1)
-        fechaInicio= tiempos{j, 1};
-        fechaFin=tiempos{j, 3};
-
-        if ischar(fechaInicio) || isstring(fechaInicio)
-            fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
-        end
-        if ischar(fechaFin) || isstring(fechaFin)
-            fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
-        end
-        Filtrados =data(data.fechaHoraLecturaDato >= fechaInicio & data.fechaHoraLecturaDato <= fechaFin, :);%se filtran por fecha
-        %         F1 = Filtrados(Filtrados.codigoComportamientoAnomalo == '1', :);
-        % F2 = Filtrados(Filtrados.codigoComportamientoAnomalo == '2', :);
-        % F3 = Filtrados(Filtrados.codigoComportamientoAnomalo == '3', :);
-        % F4 = Filtrados(Filtrados.codigoComportamientoAnomalo == '4', :);
-
-        Evento18=size(Filtrados);
-
-        E1(1,narray)=Evento18(1);
-        %             Evento18=size(F2);
-        %
-        %             E2(1,narray)=Evento18(1);
-        %
-        %             Evento18=size(F3);
-        %
-        %             E3(1,narray)=Evento18(1);
-        %             Evento18=size(F4);
-        %
-        %             E4(1,narray)=Evento18(1);
-
-        %             E(:,narray)=sum(Filtrados.estadoAperturaCierrePuertas);
-
-        narray=narray+1;
-    end
-end
-
 %% Importar todos los datos tomados por el movil
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
 
-%%
-% Calculo de todos los tiempos para cada ruta
+%% Calculo de todos los tiempos para cada ruta
 
-datosBuses = Calculos.calcularTiemposRutas(datosBuses);
+datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
 
-%% calcula la velocidad
+%% Muestra un resumen de los datos totales a procesar
 
-datosBuses = Calcular.velocidadTotal(datosBuses);
+Calcular.resumenRecorridosPorRuta(datosBuses)
+
+%% calcula la velocidad por fecha
+% Recomendado no usar, salvo para debug, procesa TODOS lo datos, cosume
+% mucho tiempo y recursos
+% datosBuses = Calcular.velocidadTotal(datosBuses, 'km/h', 'pendiente');
+
+%% Calcular velocidad por ruta
+% Calcula la velocidad, solo durante el tiempo de la ruta
+datosBuses = Calcular.calcularVelocidadPorRutas(datosBuses);
+
+%% Extrer datos sensor por ruta:
+datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
+
+%% Graficar
+Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4020", "f_15_04_2024", "ruta1")
 
 %%
 datosBuses = Calculos.aproximarNivelBateria(datosBuses);

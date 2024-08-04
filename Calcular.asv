@@ -228,9 +228,8 @@ classdef Calcular
 
         %%
 
-
         function datosBuses = calcularVelocidadPorRutas(datosBuses)
-    % Esta función calcula las velocidades para cada ruta de cada bus,
+    % Esta función calcula la velocidad para las rutas de cada bus 
     % basándose en los tiempos de ruta y los datos del sensor.
 
     % Obtener los campos de los buses
@@ -248,6 +247,9 @@ classdef Calcular
         % Obtener los campos de las fechas para el bus actual
         fechas = fieldnames(datosBuses.(bus));
 
+        % Crear un contenedor para almacenar las velocidades por ruta
+        velocidadRutas = containers.Map();
+
         % Iterar sobre cada fecha
         for j = 1:numel(fechas)
             fecha = fechas{j};
@@ -257,14 +259,9 @@ classdef Calcular
                 tiempoRuta = datosBuses.(bus).(fecha).tiempoRuta;
                 datosSensor = datosBuses.(bus).(fecha).datosSensor;
 
-                % Inicializar el campo velocidadRuta como una celda vacía
-                if ~isfield(datosBuses.(bus).(fecha), 'velocidadRuta') || isempty(datosBuses.(bus).(fecha).velocidadRuta)
-                    datosBuses.(bus).(fecha).velocidadRuta = {}; % Inicializar como celda vacía si no existe
-                end
-
-                % Calcular la velocidad para cada ruta completa (ida y vuelta)
+                % Calcular la velocidad para cada trayecto de ida y vuelta en las rutas
                 for k = 1:size(tiempoRuta, 1)
-                    ruta = tiempoRuta{k, end}; % El nombre de la ruta está en la última columna
+                    ruta = tiempoRuta{k, 4}; % El nombre de la ruta está en la cuarta columna
 
                     % Trayecto de ida
                     inicioIda = tiempoRuta{k, 1};
@@ -278,25 +275,20 @@ classdef Calcular
                     datosVuelta = datosSensor(datosSensor{:, 'time'} >= inicioVuelta & datosSensor{:, 'time'} <= finVuelta, :);
                     velocidadVuelta = Calcular.velocidadConFiltro(datosVuelta, 'time', 'lat', 'lon', 'sin_filtro');
 
-                    % Almacenar las velocidades calculadas para toda la ruta
-                    velocidadesRuta = [velocidadIda; velocidadVuelta];
-
-                    % Guardar las velocidades para la ruta
-                    tiempoVelocidad = {inicioIda, finVuelta, velocidadesRuta, ruta};
-
-                    % Concatenar los resultados en el campo velocidadRuta
-                    datosBuses.(bus).(fecha).velocidadRuta = [datosBuses.(bus).(fecha).velocidadRuta; tiempoVelocidad];
-
-                    % Mostrar mensaje de confirmación
-                    disp(['Velocidades calculadas para la ruta ' ruta ' en el bus ' bus ' en la fecha ' fecha '.']);
+                    % Almacenar las velocidades en el contenedor
+                    if isKey(velocidadRutas, ruta)
+                        velocidadRutas(ruta) = [velocidadRutas(ruta); {velocidadIda, velocidadVuelta}];
+                    else
+                        velocidadRutas(ruta) = {velocidadIda, velocidadVuelta};
+                    end
                 end
-            else
-                warning("No se encontraron los datos necesarios para calcular las velocidades de las rutas en el bus " + bus + " para el día " + fecha)
             end
         end
+
+        % Almacenar las velocidades calculadas por ruta en la estructura de datos
+        datosBuses.(bus).velocidadRutas = velocidadRutas;
     end
 end
-
 
 
         %%
@@ -353,73 +345,6 @@ end
 
             resumenRutas = table(rutas', cell2mat(numRecorridos)', 'VariableNames', {'Ruta', 'NumeroRecorridos'});
         end
-
-        function datosBuses = extraerDatosSensorPorRutas(datosBuses)
-            % Esta función extrae los datos del sensor para las rutas de cada bus,
-            % basándose en los tiempos de ruta.
-
-            % Obtener los campos de los buses
-            buses = fieldnames(datosBuses);
-
-            % Iterar sobre cada bus
-            for i = 1:numel(buses)
-                bus = buses{i};
-
-                % Saltar el campo 'info'
-                if strcmp(bus, 'info')
-                    continue;
-                end
-
-                % Obtener los campos de las fechas para el bus actual
-                fechas = fieldnames(datosBuses.(bus));
-
-                % Iterar sobre cada fecha
-                for j = 1:numel(fechas)
-                    fecha = fechas{j};
-
-                    % Asegurarse de que existen datos de ruta y datos del sensor para el bus
-                    if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && isfield(datosBuses.(bus).(fecha), 'datosSensor')
-                        tiempoRuta = datosBuses.(bus).(fecha).tiempoRuta;
-                        datosSensor = datosBuses.(bus).(fecha).datosSensor;
-
-                        % Inicializar el campo datosSensorRuta como una celda vacía
-                        if ~isfield(datosBuses.(bus).(fecha), 'datosSensorRuta') || isempty(datosBuses.(bus).(fecha).datosSensorRuta)
-                            datosBuses.(bus).(fecha).datosSensorRuta = {}; % Inicializar como celda vacía si no existe
-                        end
-
-                        % Extraer los datos del sensor para cada ruta completa (ida y vuelta)
-                        for k = 1:size(tiempoRuta, 1)
-                            ruta = tiempoRuta{k, end}; % El nombre de la ruta está en la última columna
-
-                            % Trayecto de ida
-                            inicioIda = tiempoRuta{k, 1};
-                            finIda = tiempoRuta{k, 2};
-                            datosIda = datosSensor(datosSensor{:, 'time'} >= inicioIda & datosSensor{:, 'time'} <= finIda, :);
-
-                            % Trayecto de vuelta
-                            inicioVuelta = tiempoRuta{k, 2};
-                            finVuelta = tiempoRuta{k, 3};
-                            datosVuelta = datosSensor(datosSensor{:, 'time'} >= inicioVuelta & datosSensor{:, 'time'} <= finVuelta, :);
-
-                            % Concatenar los datos de ida y vuelta
-                            datosRuta = [datosIda; datosVuelta];
-
-                            % Almacenar los datos del sensor extraídos
-                            tiempoDatosSensor = {inicioIda, finVuelta, datosRuta, ruta};
-
-                            % Concatenar los resultados en el campo datosSensorRuta
-                            datosBuses.(bus).(fecha).datosSensorRuta = [datosBuses.(bus).(fecha).datosSensorRuta; tiempoDatosSensor];
-
-                            % Mostrar mensaje de confirmación
-                            disp(['Datos del sensor extraídos para la ruta ' ruta ' en el bus ' bus ' en la fecha ' fecha '.']);
-                        end
-                    else
-                        warning("No se encontraron los datos necesarios para extraer los datos del sensor de las rutas en el bus " + bus + " para el día " + fecha)
-                    end
-                end
-            end
-        end
-
 
 
     end
