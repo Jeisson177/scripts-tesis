@@ -109,7 +109,7 @@ classdef Calcular
                 case 'kalman'
                     velocidad = Calcular.velocidadKalman(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
                 case 'pendiente'
-                    velocidad = Calcular.corregirVelocidadPendiente(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, 3);
+                    velocidad = Calcular.corregirVelocidadPendiente(datos, 3);
                 case 'sin_filtro'
                     velocidad = Calcular.velocidadSinFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
                 otherwise
@@ -119,31 +119,33 @@ classdef Calcular
 
 
         %%
-        function velocidadCorregida = corregirVelocidadPendiente(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, umbral)
-            tiempo = datos.(etiquetaTiempo);
-            velocidad = Calcular.velocidadSinFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
+
+function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
+            tiempo = datos.time;
+            velocidad = Calculos.calcularVelocidadMS(datos);
             n = length(velocidad);
             velocidadCorregida = velocidad;
-
+            
             i = 1;
             while i < n - 1
                 % Convertir los objetos duration a segundos
                 dt = seconds(tiempo(i+1) - tiempo(i));
-
+                
                 % Calcular la pendiente entre dos puntos consecutivos
                 %%pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
                 pendiente = (velocidad(i+1) - velocidad(i)) / dt;
                 % Si la pendiente supera el umbral, encontrar un punto donde no lo haga
                 if abs(pendiente) > umbral
                     j = i + 2; % Iniciar con el siguiente punto
+                    
                     while j < n && abs(pendiente) > umbral
                         % Convertir los objetos duration a segundos
-                        dt = seconds(tiempo(j) - tiempo(i));
-
-                        pendiente = (velocidadCorregida(j) - velocidadCorregida(i)) / dt;
+                        dt = seconds(tiempo(j) - tiempo(j-1));
+                        
+                        pendiente = (velocidadCorregida(j) - velocidadCorregida(j-1)) / dt;
                         j = j + 1;
                     end
-
+                    
                     % Si encontramos un punto donde la pendiente es menor al umbral
                     if abs(pendiente) <= umbral
                         % Interpolación lineal entre los puntos i y j
@@ -152,7 +154,7 @@ classdef Calcular
                         p = polyfit(seconds(x - x(1)), y, 1); % Coeficientes de la regresión lineal
                         t = tiempo(i+1:j-1);
                         velocidadCorregida(i+1:j-1) = polyval(p, seconds(t - x(1))); % Evaluar la regresión lineal
-
+                        
                         % Actualizar el punto inicial y continuar
                         i = j - 1;
                     else
@@ -164,10 +166,11 @@ classdef Calcular
                     i = i + 1;
                 end
             end
-
+            
             % Retornar el vector de velocidad corregida
             return;
         end
+        
 
         %%
 
@@ -270,13 +273,13 @@ classdef Calcular
                     inicioIda = tiempoRuta{k, 1};
                     finIda = tiempoRuta{k, 2};
                     datosIda = datosSensor(datosSensor{:, 'time'} >= inicioIda & datosSensor{:, 'time'} <= finIda, :);
-                    velocidadIda = Calcular.velocidadConFiltro(datosIda, 'time', 'lat', 'lon', 'sin_filtro');
+                    velocidadIda = Calcular.velocidadConFiltro(datosIda, 'time', 'lat', 'lon', 'pendiente');
 
                     % Trayecto de vuelta
                     inicioVuelta = tiempoRuta{k, 2};
                     finVuelta = tiempoRuta{k, 3};
                     datosVuelta = datosSensor(datosSensor{:, 'time'} >= inicioVuelta & datosSensor{:, 'time'} <= finVuelta, :);
-                    velocidadVuelta = Calcular.velocidadConFiltro(datosVuelta, 'time', 'lat', 'lon', 'sin_filtro');
+                    velocidadVuelta = Calcular.velocidadConFiltro(datosVuelta, 'time', 'lat', 'lon', 'pendiente');
 
                     % Almacenar las velocidades calculadas para toda la ruta
                     velocidadesRuta = [velocidadIda; velocidadVuelta];
