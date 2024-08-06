@@ -109,7 +109,7 @@ classdef Calcular
                 case 'kalman'
                     velocidad = Calcular.velocidadKalman(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
                 case 'pendiente'
-                    velocidad = Calcular.corregirVelocidadPendiente(datos, 3);
+                    velocidad = Calcular.corregirVelocidadPendiente(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, 3);
                 case 'sin_filtro'
                     velocidad = Calcular.velocidadSinFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
                 otherwise
