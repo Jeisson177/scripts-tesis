@@ -1,0 +1,1186 @@
+[33mcommit 88c667e8a599ab7a883aed6d97185f0e4dbdc10d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Merge: a836345 b2dd9d6
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Aug 6 11:30:37 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit b2dd9d676b15f7dcac4974020904557b3156a55e[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Aug 6 11:30:22 2024 -0500
+
+    Update Calcular.m
+
+[33mcommit a836345940ab3821f944250f52e6ce1246000a89[m
+Merge: f1f10d0 12aaac6
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Aug 6 11:13:16 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 12aaac60f58eeb968964eba809d63ba07295b006[m
+Author: CoKeFish <rrtc26@gmail.com>
+Date:   Mon Aug 5 11:11:09 2024 -0500
+
+    up
+
+[33mcommit 8497f912901c2f0a8bcf24cb6e829915056214e7[m
+Author: CoKeFish <rrtc26@gmail.com>
+Date:   Sun Aug 4 18:13:55 2024 -0500
+
+    Graficar
+
+[33mcommit f1f10d0949776909f447f09dfc2f922c7015f814[m
+Merge: 894bcde 95601c7
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun Aug 4 09:55:11 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 95601c7f8f3de4f4176a255f9e581e9baa8e8811[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon Jul 22 14:17:37 2024 -0500
+
+    Basico
+
+[33mcommit 823e9e956fe397e44fc411a077099b8d6331a9e6[m
+Merge: b7baff2 d848c8a
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Jul 21 22:03:57 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit b7baff2119d1317338129ef0c87d01b071244b38[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Jul 21 22:03:54 2024 -0500
+
+    Update
+    
+    Tiempo rutas sin terminar, se modificara como se calcula las velocidades, demasiado tardado calcular para todos los datos
+
+[33mcommit d848c8a436cce548d5825a855aa7307220e9353b[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun Jul 21 16:13:23 2024 -0500
+
+    corrección función corregir velocidad
+
+[33mcommit 0d1fb54e42c37b841e260e5a00813e233ad6e97c[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat Jul 20 19:24:54 2024 -0500
+
+    funciones pa abajo
+
+[33mcommit 6c66cc4fc651a790e65a17ca1ed953aa16470a86[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sat Jul 20 17:28:40 2024 -0500
+
+    Super update
+    
+    Principio de la refactorización de datos
+
+[33mcommit 2908ab3867a77005fad15edcedc0c734752a397c[m
+Merge: 220f2bd 9930f68
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed Jul 17 19:06:47 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 220f2bd6c4e4ba5fd002ebde7870c3f9b0af7bc8[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed Jul 17 19:06:43 2024 -0500
+
+    Up
+
+[33mcommit 9930f68774b81320530a111c161ab8f5e7b7aa2e[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Wed Jul 17 18:16:05 2024 -0500
+
+    adicion nuevas rutas
+
+[33mcommit f5c8875df9c34f3bec208a318158afdd469953c7[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon Jun 10 19:00:56 2024 -0500
+
+    up
+
+[33mcommit 7c8d5c13f8612f15a9bcd8b7c4919db3186d874c[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Jun 6 13:12:56 2024 -0500
+
+    up
+
+[33mcommit 894bcde279516c1b8b39c0905de50bf6f02e0f49[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Jun 6 12:17:06 2024 -0500
+
+    comit
+
+[33mcommit 494d1b91e23ccbc803ae73db9d16286100d3dd28[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed Jun 5 21:47:55 2024 -0500
+
+    up
+
+[33mcommit 91f08d8dc26914ba1e307387211c45caa0649946[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed Jun 5 21:38:20 2024 -0500
+
+    up
+
+[33mcommit 6b40647ad907ffe0e4be8ee1c4c646a7cf310c41[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Tue Jun 4 11:09:28 2024 -0500
+
+    data
+
+[33mcommit cd868afac35515f0ba25c1f9a7e50e11a90c1acc[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Tue Jun 4 10:58:13 2024 -0500
+
+    a
+
+[33mcommit b51e998a92f32f5c31f2ff0dcc74ab435dcd40aa[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Tue Jun 4 09:01:30 2024 -0500
+
+    up
+
+[33mcommit 707b075fb5fbc9c6c68de8f5cc1fe3e4f36d4bfe[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon Jun 3 18:59:22 2024 -0500
+
+    up
+
+[33mcommit 418ba7f023ec05276f4fe521a633f99820cf8827[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon Jun 3 05:59:57 2024 -0500
+
+    up
+
+[33mcommit 95af801a911c71e59fe16415e7a7e8079fd3e936[m
+Merge: 047d085 d0c0e6e
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Jun 2 03:49:16 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 047d085ac6afc6d7cfb77aea082cdae1c6e60552[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Jun 2 03:48:55 2024 -0500
+
+    super up
+
+[33mcommit d0c0e6eefff3898066d98b75b44e4bd5079ccc75[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat Jun 1 15:43:50 2024 -0500
+
+    knn y pca
+
+[33mcommit e25b481bce6227b62f88d4f341ee0a3d703e2e8e[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat Jun 1 14:47:53 2024 -0500
+
+    pc
+
+[33mcommit cc4ba6e111f636e507526304d6ac12111a5c2a01[m
+Merge: 4c2bf92 3962326
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri May 31 12:22:01 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 4c2bf924ea2ab51f259fe34ed90c8e8e9e981b7d[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri May 31 12:21:28 2024 -0500
+
+    completado curvas
+
+[33mcommit 3962326d4ba3b5ed2e524d44746dbb250bec4749[m
+Merge: edbcc43 82e08a2
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 30 11:14:26 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit edbcc43d8768e107b638bf672710aadba43cb607[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 30 11:13:58 2024 -0500
+
+    BASI
+
+[33mcommit 82e08a2ff2033dd0f24fb69c506e58fad26e9b77[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 30 10:31:35 2024 -0500
+
+    up
+
+[33mcommit 97d49ec0f55a41bfa3d4291695c21ddc3286e242[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 30 09:40:24 2024 -0500
+
+    up
+
+[33mcommit 541bc603ff2ecc39ec2bb96e219a3a2262bfd140[m
+Merge: c317ea2 30f13e7
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed May 29 15:05:21 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit c317ea2463b6d92a7e856d767d61b54707c8d847[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed May 29 15:04:15 2024 -0500
+
+    up
+
+[33mcommit 30f13e72fc8ee9a1da859679ce90bd4e62eb18d5[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed May 29 15:02:07 2024 -0500
+
+    29 de mayo
+
+[33mcommit eb4c5cffe2f946335211a3e1a4c40f24d6693682[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Tue May 28 05:26:00 2024 -0500
+
+    up
+
+[33mcommit 8053ff7cd32f5750d5a9b4bfe01e163934fe57a0[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 16:07:24 2024 -0500
+
+    Update Dataset.mat
+
+[33mcommit b578cfe7e221566b9fd0f3f65693525f637183e7[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 16:06:21 2024 -0500
+
+    up
+
+[33mcommit a87ccb6f714bb07edf35224155ab8c790b48aef5[m
+Merge: 1358828 f5deefe
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 07:37:44 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 13588285f1f83a73a32abd449ba97395a9c47322[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 07:37:42 2024 -0500
+
+    Update Calculos.m
+
+[33mcommit f5deefe25c8d4bfcd896489a8b3c4d8e924e4223[m
+Merge: 7b55a13 4018bf7
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 07:36:38 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 7b55a13f46ba4d08d9889764f7bc8b6ef262da8e[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 07:36:20 2024 -0500
+
+    up
+
+[33mcommit 4018bf76dfa71560d0358b11026652d04ad425e9[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 07:27:34 2024 -0500
+
+    up
+
+[33mcommit 75087112febe17e84668d12b88b7c1764695440a[m
+Merge: d495d2c 9b9e5bc
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 06:12:46 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit d495d2c11c99de39d3b5e67a33d92e004ffb0789[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 27 06:12:35 2024 -0500
+
+    up
+
+[33mcommit 9b9e5bcb56d5b15129b8314251bade1499cec5b1[m
+Merge: c48dad8 8551075
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun May 26 21:59:04 2024 -0500
+
+    cambio
+
+[33mcommit c48dad85f06acc2c05734230bcc11dc73837b7a8[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun May 26 21:54:54 2024 -0500
+
+    curvas
+
+[33mcommit 855107539ccf215bd6c22fdbd9dce41acfa98d75[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 24 13:28:57 2024 -0500
+
+    Update Dataset.mat
+
+[33mcommit 841d056c4f7c20d10f87f9e6addf1cf409321ec2[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 24 13:14:41 2024 -0500
+
+    up
+
+[33mcommit ea1200f1cebb6a677d29a98964e97dc4c140de3d[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 24 13:09:27 2024 -0500
+
+    up
+
+[33mcommit d64933680c491d01b13ed808cc0fa0f241cc2737[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 20 09:51:39 2024 -0500
+
+    Update .name
+
+[33mcommit 396075e78a90a42285c2407b8091e5150f8ef79d[m
+Merge: dbcfc79 0f053df
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 20 09:51:36 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit dbcfc792fc3eef661fe51af8e7e7f0b4b462685d[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 20 09:49:05 2024 -0500
+
+    up
+
+[33mcommit 0f053df3ebaadf808fb18602bd7e03bca70381bc[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun May 19 20:01:05 2024 -0500
+
+    graficas
+
+[33mcommit 179834934ca2b91c1381638c89bfcccc2eb0c7cc[m
+Merge: 926d510 57cda35
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun May 19 17:00:18 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 926d510fc4e9ab458d0bb6bb9bd967d204a9220b[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun May 19 17:00:16 2024 -0500
+
+    eventos hora pico hora valle
+
+[33mcommit 57cda3582c9665ba9c16173d4f31a6fe4029c7e6[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat May 18 18:58:08 2024 -0500
+
+    modificacion
+    
+    modificacion para mostrar en el boxplot las curvas
+
+[33mcommit 58c62606bef5dfc895b6a70f2b62d5f35c90185a[m
+Merge: 25d787b 371c449
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sat May 18 15:23:55 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 25d787b10a911083aa7dc283b0a31b6c914b49a3[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sat May 18 15:22:20 2024 -0500
+
+    Update main.m
+
+[33mcommit 371c4496d27954a080e86b1757bff9100b7e756c[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sat May 18 15:21:53 2024 -0500
+
+    Create Dataset.mat
+
+[33mcommit d5ad67fbc1b85986e320332acc2dd00289b07b5f[m
+Merge: efcf46a c3c6a3f
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sat May 18 15:20:50 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit efcf46a2d6b84b1948cd63ff299c47d570ee6c90[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sat May 18 15:20:47 2024 -0500
+
+    up
+
+[33mcommit c3c6a3f3b443e16a84993d4da3c58e53eca38188[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 17 13:02:39 2024 -0500
+
+    Update ImportarDatos.m
+
+[33mcommit 4d49f2179526bb5ec8ac0cc2e993a39ec9ef7ea3[m
+Merge: ac8f88b 5dfb7ce
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 17 12:33:30 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit ac8f88ba1e14abdeeac9d6c280b9a9ff74774855[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 17 12:33:27 2024 -0500
+
+    Update ImportarDatos.m
+
+[33mcommit 5dfb7ce9d86cf58ea00bf2215257cced02ad35d3[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri May 17 11:26:25 2024 -0500
+
+    insersion curva
+
+[33mcommit 0fa5faf9f68f6b0b7e195f3c2ed9da5d6d24413b[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri May 17 10:38:35 2024 -0500
+
+    pu
+
+[33mcommit 12ee7231c7b9d17d373524c4199d208e9025ef1e[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 16 19:57:57 2024 -0500
+
+    up
+
+[33mcommit a98f7ecdafec1ffd2d039e773850577d669a00ae[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun May 12 11:20:19 2024 -0500
+
+     c
+
+[33mcommit 274f940473ce58b9287ab8bc1c9e25735cbd923d[m
+Merge: 54ca916 07b293f
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed May 8 12:34:02 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 54ca916700dbde8ff5e929472dec6f3dcccd33f4[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed May 8 12:33:38 2024 -0500
+
+    Segmentos y refactorizacion
+
+[33mcommit 07b293f7adaec602070af0771114d38f6ad3c910[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Wed May 8 09:26:14 2024 -0500
+
+    pp
+
+[33mcommit 2fd60af2221c2ca5e5ba01f9bfffd48d7dcb1cda[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue May 7 21:24:58 2024 -0500
+
+    aumento en distancia margen en calculos
+
+[33mcommit 4b0ad1689447c0948c2ebd447b5e8829ec181f14[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue May 7 17:07:32 2024 -0500
+
+    prueba
+
+[33mcommit adc555a93025472564a7f564990112d4277ca0e6[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue May 7 17:04:10 2024 -0500
+
+    funcion bien los calculos
+
+[33mcommit 91004cf65329bcf38269cee8b7822514e54b915f[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue May 7 09:23:48 2024 -0500
+
+    asv
+
+[33mcommit 0a209c8533682ee591e0b9e8b46d76f600c7dd98[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon May 6 22:11:34 2024 -0500
+
+    Update Calculos.m
+
+[33mcommit 7252cdd1d9e2a3a8e6efb449c0858dd9d8ae3a1d[m
+Merge: 9b477c9 40d8686
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon May 6 21:31:56 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 9b477c915d95d3121780253c833532beff60344f[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon May 6 21:31:55 2024 -0500
+
+    c
+
+[33mcommit 40d868609eb4f10436616775ee6ede1c082d86cd[m
+Merge: b90a424 ae10357
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 6 20:20:49 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit b90a4249f8b42925c3a0378e5598213e7a7b30d0[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon May 6 20:20:04 2024 -0500
+
+    Percentiles
+
+[33mcommit e70c0fcb7b7b662a9d7f79aeb517a79516c97399[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon May 6 13:00:34 2024 -0500
+
+    cambio asv
+
+[33mcommit ae10357fc2a4be217d79601ca9cebdebc6f87d27[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun May 5 18:21:01 2024 -0500
+
+    pruebas en main
+
+[33mcommit 2b097e2ed6091a3dd93026c7070d9b192dd0716e[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun May 5 15:05:46 2024 -0500
+
+    modificacion curvatura
+    
+    se añadieron funciones para ver las curvas tanto para ida como para vuelta modificando la funcion modificar curvatura, para que reciba el radio y la funcion fuera mas reutilizable
+
+[33mcommit 0cba57a4e4da659d93fd029dee23e40c26ae6040[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat May 4 17:47:25 2024 -0500
+
+    pruebas
+
+[33mcommit 70f3b7eec7142f5d35e61e61eb1c3bf35f0c867f[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat May 4 16:59:47 2024 -0500
+
+    o
+
+[33mcommit 0fd9698211e56f1967237e14380e4c3a9db4855d[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat May 4 16:52:13 2024 -0500
+
+    r2
+    
+    se añadio riegoscurva2 y ya funciona, retorna los maximos de curvas en un arreglo de una columna,
+
+[33mcommit c12220427fa60ab44ac5a2f5093cf4c8db6ca77c[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat May 4 14:43:29 2024 -0500
+
+    otro cambio
+
+[33mcommit 742d9069723d142925ed680ca056e682b04f076b[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri May 3 22:12:47 2024 -0500
+
+    njj
+
+[33mcommit c4141cab8239e4c7f33474d688aae99f3b299762[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri May 3 17:25:15 2024 -0500
+
+    distancia con odometro
+
+[33mcommit 57ec1d2e56a551ba8b3474e3894be955d03c68ed[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri May 3 16:29:27 2024 -0500
+
+    cambio curvatura
+    
+    ya no hay errores en la funcion de curvatura
+
+[33mcommit 295a1bd415a31d02a288357b87864f9c8ed1c1e9[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 3 10:51:21 2024 -0500
+
+    linea
+
+[33mcommit cd1329eaab98439bb1b66a1be104b03d02691ea7[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 3 09:44:33 2024 -0500
+
+    Todo
+
+[33mcommit 8bc7416c624a6994d366534abf9bb312e4b983ae[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri May 3 08:59:49 2024 -0500
+
+    Mejoras
+
+[33mcommit c340fe2d5d7a41b7dc15969b640e7367133d76b7[m
+Merge: 7ce772a 3655c21
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu May 2 23:17:41 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 7ce772acb6892a88622bb6abfdc95660773268d6[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu May 2 23:16:53 2024 -0500
+
+    datos completos
+
+[33mcommit 3655c21d8cf49547c8b3272e443a05dc2bb4149f[m
+Merge: d1379bb 5b10d01
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 2 23:09:41 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit d1379bb3fd62d168bfeb25eb2c9b989ff14d6f64[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 2 23:09:37 2024 -0500
+
+    Funciona leyenda ruta adeciva
+
+[33mcommit 5b10d01653e7b85a6c121bdfb5a179cfa15015b3[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu May 2 22:48:52 2024 -0500
+
+    añadi carpeta
+
+[33mcommit 2935666e77b30720032c446469ca0f40ab9c00a1[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu May 2 21:29:09 2024 -0500
+
+    Add files via upload
+
+[33mcommit cbb2a3efcb85ede5608c0b9aa72668f1e0b2a46b[m
+Merge: bebfc35 b85142e
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 2 21:14:23 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit bebfc35f4bbd1354fc0a967f3476407769ac3d40[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu May 2 21:14:20 2024 -0500
+
+    actuMain
+
+[33mcommit b85142e3658ff1e6ae56f0ae864afdd07af7ec77[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu May 2 20:36:53 2024 -0500
+
+    Add files via upload
+
+[33mcommit 22acc68f4324cb708fe1799ea5aa58934ce95b57[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu May 2 20:17:33 2024 -0500
+
+    Add files via upload
+
+[33mcommit e9df7328abc5afc86ca0e3dd02008ce8bcd2f7c5[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Wed May 1 18:16:09 2024 -0500
+
+    Update Calculos.m
+    
+    correccion curvatura
+
+[33mcommit cb69d7161ac6d778ea56c63ec8ed6c0d101ba36c[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Apr 30 22:16:32 2024 -0500
+
+    Update Graficas.m
+    
+    Grafica de riesgo velocidad y curva ya esta bien, solo que la velocidad esta en m/s y no en Km/h
+
+[33mcommit b029e007657a1aa0dcbb0ecb4cc0d0738a78506c[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Apr 30 22:15:18 2024 -0500
+
+    Update Calculos.m
+    
+    riesgocurva ya esta bien
+
+[33mcommit 4aa003222d9146b3b04d8321cca531cf7ebe1b96[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon Apr 29 16:03:48 2024 -0500
+
+    Velocidad percentil
+
+[33mcommit 192550c52d158cfc57ed201081f99f9d34f14858[m
+Merge: 99e5dce 61ebb22
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon Apr 29 15:54:12 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 99e5dceb307eb4720c7c9bdf72c33143385f872f[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon Apr 29 15:54:10 2024 -0500
+
+    Graficas
+
+[33mcommit 61ebb22c51f6dcd8e7c509ee80cea9f96b2ca86e[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon Apr 29 15:53:44 2024 -0500
+
+    Update Calculos.m
+
+[33mcommit 5edf6e5063877ca560007f355e96c5bfad9bd2fb[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Mon Apr 29 13:58:09 2024 -0500
+
+    Funcion todo
+
+[33mcommit 0a4188dbf2e157e7b93cbe752da3e82cb6c719ac[m
+Merge: 4741f1a 0e3778b
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Apr 28 23:04:34 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 4741f1a20e882171b1fa7e4c6250e7d268114fe2[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Apr 28 23:04:30 2024 -0500
+
+    refactor
+
+[33mcommit 0e3778b8d0ac3239e0c3776041cdb6ad0e8d5a45[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun Apr 28 18:15:27 2024 -0500
+
+    Update Graficas.m
+
+[33mcommit f8b3b70d0ae14dad7126b6be03c4e5f058f4a125[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun Apr 28 18:11:10 2024 -0500
+
+    Update Graficas.m
+
+[33mcommit 6c51e18e6c5ee0b5a85dbf5d03bee1f269cc439c[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun Apr 28 18:09:32 2024 -0500
+
+    Update Calculos.m
+
+[33mcommit 5cbdebc1227748886d8a5e9878bc1653fcea2073[m
+Merge: dc32d89 c45384d
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Apr 28 15:52:16 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit dc32d899f38518b6861fa2714223dfc013d718a6[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Apr 28 15:52:14 2024 -0500
+
+    Pruebas main
+
+[33mcommit c45384dc7f717705d1569707af460acf74d8553e[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sun Apr 28 11:43:27 2024 -0500
+
+    Update Graficas.m
+    
+    modifique DistanciaVsEnergia
+
+[33mcommit b245febf0cafe83ae7827858babadf37b4013383[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Apr 28 06:46:32 2024 -0500
+
+    actu
+
+[33mcommit 9f6a7e22be3ce704066ad1e48868f01f64c92e7e[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Sat Apr 27 13:14:46 2024 -0500
+
+    Update Graficas.m
+    
+    agregar ocupacion vs tiempo
+
+[33mcommit c7c7eb5fa38be8d036457fc2020ebf77a445c3e2[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Apr 26 11:15:33 2024 -0500
+
+    update main
+
+[33mcommit a89c6a3a801da63b30e8f230dc7e20c68f53d8c0[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Apr 26 11:02:11 2024 -0500
+
+    Main
+
+[33mcommit 2fd8c10835bed0e6a23591373ef654477f0462a7[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Apr 26 10:34:00 2024 -0500
+
+    Documentando el main
+
+[33mcommit c822209110582061111caf595cf7b362a16db7db[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Apr 26 09:53:07 2024 -0500
+
+    graficas segmentos
+
+[33mcommit 8570337b5d6a0c2eff64e4364c5e643d00c918fa[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 25 22:48:20 2024 -0500
+
+    add data
+
+[33mcommit a18d18ea621693d1673a854d572c2c269118c9be[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 25 22:13:21 2024 -0500
+
+    Update
+
+[33mcommit 6132bd1a982fe88d67b9f2c684475583d4a6bb04[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 25 18:22:06 2024 -0500
+
+    Datos
+
+[33mcommit b350d5470c57951a79796795d6124c50a10a4fa2[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 25 11:55:00 2024 -0500
+
+    pp
+
+[33mcommit 8d6341e0c7b088fc827620445bd7e27fb28fe05c[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Apr 25 09:20:55 2024 -0500
+
+    Add files via upload
+
+[33mcommit 6b5120587d49f0cde610e06496b46e684eb3face[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Apr 25 09:17:46 2024 -0500
+
+    Add files via upload
+
+[33mcommit a4dec7f4d942923da34e2b23b4eb1798c2b01990[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Tue Apr 23 23:28:52 2024 -0500
+
+    Basic
+
+[33mcommit 33b79f26f76283ac31be8bbf790ef7e771f5c387[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Apr 19 09:46:36 2024 -0500
+
+    Update Graficas.m
+    
+    Arreglo del histograma
+
+[33mcommit a1a82976e81d7b2ae8038e67dd2e48fd4c09a4c8[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Apr 19 08:00:38 2024 -0500
+
+    Update
+    
+    Histograma y correccion de velocidad y aceleracion
+
+[33mcommit 449587129fcb59dbbcedcd9bb694b311f2505460[m
+Merge: 783d382 837a65c
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 18 14:28:05 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit 783d382b62e64ec8a3cdfd0c830352bfd7b75478[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 18 14:27:47 2024 -0500
+
+    xzxc
+
+[33mcommit 837a65cf89c60044e69327fb7b90e6d70ecf7bd8[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Apr 18 11:22:52 2024 -0500
+
+    Create carpetaSensor
+
+[33mcommit 036776da980b2c34539547149cce2b5e710fb511[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Wed Apr 17 12:25:36 2024 -0500
+
+    Update Calculos.m
+    
+    añadi funcion maxima velocidad por curva
+
+[33mcommit b580d7ce7acee98d01f2ee39a1715bf8fece0407[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Apr 16 09:43:33 2024 -0500
+
+    Update Graficas.m
+
+[33mcommit 3c66d643a0e862ddac122ec65abe82593c7defd2[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon Apr 15 19:22:47 2024 -0500
+
+    Update Graficas.m
+    
+    tiempoVSenergia
+
+[33mcommit 725e73a66db6d41728cfb59d37eeddbec7ec8eec[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon Apr 15 19:19:51 2024 -0500
+
+    Update Graficas.m
+    
+    funcion consumovsdistancia
+
+[33mcommit 4b1878f0742068043db246cd4d91bd829d2f98b0[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon Apr 15 19:15:10 2024 -0500
+
+    Update ImportarDatos.m
+    
+    correccion p60
+
+[33mcommit c0d3a08b7a5e8fa2f7d06693ba8be4d826312121[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Mon Apr 15 18:46:36 2024 -0500
+
+    Update ImportarDatos.m
+    
+    se añadieron eventos 2,8,18,20,21 y trama p60
+
+[33mcommit e7ede7edad0afd20aafb52b16ba3614416d89247[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Sun Apr 7 14:29:21 2024 -0500
+
+    Update
+
+[33mcommit 572ca466b42ffee99fa08908e0fe5b868061a384[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Apr 5 03:10:16 2024 -0500
+
+    Aceleración y mapa arreglos
+
+[33mcommit 1c61244c2c5a9df3ff6c262b09d7d4cf93a51616[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Apr 5 00:41:57 2024 -0500
+
+    bug arreglado
+
+[33mcommit b280dcf03e593c6d092cbe2d70c8bcb607520c4f[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 4 20:47:22 2024 -0500
+
+    aaaaa
+
+[33mcommit 89b9ffcad8cd629c735b111cb9dd139dd7136bc1[m
+Merge: c7b55ba 015da0d
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 4 18:54:35 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit c7b55ba6372e76053d34f02a1666482b99bb673b[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Apr 4 18:41:53 2024 -0500
+
+    min
+
+[33mcommit 015da0db07f497a0c166f22c1aa77a56b7dbd8fa[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Apr 4 11:52:34 2024 -0500
+
+    Update Calculos.m
+
+[33mcommit c401272a2b7930530f18f43c65529bf0738ff656[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Apr 4 11:52:17 2024 -0500
+
+    Update Graficas.m
+
+[33mcommit 330b282ec804f42db48f4be77f5d1a3fa59ff4f1[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Apr 4 11:51:39 2024 -0500
+
+    Update main.m
+
+[33mcommit 11b8aa161beb14d445fea14887b76d28374097ce[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed Apr 3 11:02:38 2024 -0500
+
+    Actu basico
+
+[33mcommit 22e5da4085870ad4f75e133dfe0c0b2db21820de[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed Apr 3 06:45:07 2024 -0500
+
+    Add new data
+
+[33mcommit 2519703a3e87619abb954f059c7caad09b47f34b[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Mar 26 17:57:05 2024 -0500
+
+    Update Calculos.m
+    
+    funcion direccion y metodo detectar direccion
+
+[33mcommit 0edb3c3f7c74ab0de3e2c1959730dd33ba30552d[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Mar 26 17:56:15 2024 -0500
+
+    Update Graficas.m
+    
+    cambie nombre de un metodo , velocidad vs distancia
+
+[33mcommit 43d358cfa71ac787b41a9d29b7573cb9a9e66f85[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Mar 26 17:55:39 2024 -0500
+
+    Update Map.m
+
+[33mcommit 662f6eeef9e1674e266f70289e0c0b1f6ee4428f[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Mar 26 17:54:56 2024 -0500
+
+    Update main.m
+    
+    agregue metodo calculary dibujar direccion
+
+[33mcommit b16c5a40dfcd80a46762d022af76b01abdfd6904[m
+Merge: b0b0c8c 6ae91f7
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 19:00:36 2024 -0500
+
+    Merge branch 'main' of https://github.com/Jeisson177/scripts-tesis
+
+[33mcommit b0b0c8c7e6f1e474c8d3916a55f048fbd140f8bf[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 18:56:43 2024 -0500
+
+    Graficas velocidad sts y correcciones
+
+[33mcommit 6ae91f78fc2193092511c8b50f5f0f139bd45cfa[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri Mar 22 13:08:00 2024 -0500
+
+    Update main.m
+    
+    se añadio como se usa el metodo
+
+[33mcommit 4a943add0e1f331de13d6f363a7f6ea92fad8aea[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri Mar 22 13:07:29 2024 -0500
+
+    Update ImportarDatos.m
+    
+    modifique etiquetas de latitud y longitud por lat y lon
+
+[33mcommit 084f1127458d7f214a216ddcfbc5d4ac64700b4d[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri Mar 22 13:06:38 2024 -0500
+
+    Update Graficas.m
+    
+    añadi metodo distanciavstiempo
+
+[33mcommit 165edc69dea14c292f5131dc9f37ff7fd1db4d5f[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Fri Mar 22 13:05:56 2024 -0500
+
+    Update Calculos.m
+    
+    añadi distancia y corrección de velocidad
+
+[33mcommit d7f1cce6a6e786e6f06bb4b4436e8fb05d50b49f[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 10:36:43 2024 -0500
+
+    Update Calculos.m
+
+[33mcommit d51cb88eb49b847a1c06fd9f3864851374445d4a[m
+Merge: 4302e09 086cf57
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 16:27:12 2024 +0100
+
+    Merge branch 'Jeisson177:main' into main
+
+[33mcommit 4302e09f82da05e942fdb38540c78c529952776b[m
+Merge: 614e49f 475fb68
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 10:23:06 2024 -0500
+
+    Merge branch 'main' of https://github.com/CoKeFish/scripts-tesis
+
+[33mcommit 614e49f5a77817ee4792352c282850da282505b7[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 10:21:12 2024 -0500
+
+    ADD
+
+[33mcommit 086cf574a0dde832fa7a1699ac0e1f19555a6d86[m
+Merge: 638f123 475fb68
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 16:15:49 2024 +0100
+
+    Merge pull request #2 from CoKeFish/main
+    
+    Curvatura, eventos en plots
+
+[33mcommit 475fb683a4d84a08bee97f03c5ae6f164067cb8c[m
+Merge: 41f1f97 638f123
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 16:15:38 2024 +0100
+
+    Merge branch 'main' into main
+
+[33mcommit 41f1f97bb00ca921c67ac5a57837d1d2cf48e641[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Fri Mar 22 09:17:44 2024 -0500
+
+    Curvatura, eventos en plots
+
+[33mcommit 638f123389ad4cee4c58af902e8957e0b29c871b[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Mar 21 22:21:39 2024 -0500
+
+    Update Calculos.m
+
+[33mcommit 5af0fbe560cb52735c911a37140dd7bc00bad61f[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Mar 21 22:21:05 2024 -0500
+
+    Update main.m
+
+[33mcommit 736a69886c0005c42f33ee43fcab03f76e3ca606[m
+Merge: 6772362 ac04e2b
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Thu Mar 21 19:05:41 2024 -0500
+
+    Merge pull request #1 from CoKeFish/main
+    
+    Cambios
+
+[33mcommit ac04e2b1c6e74a28dca244edb23ecae8371699b1[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Mar 21 18:49:26 2024 -0500
+
+    Update main.m
+
+[33mcommit e415852cf43fbeda654e8820d819c77b051a1ff7[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Mar 21 18:05:00 2024 -0500
+
+    Lo de la velocidad
+
+[33mcommit 80a847e466e9ed5dcc65958cd538069cdb5d2e5a[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Thu Mar 21 04:38:50 2024 -0500
+
+    Mapas eventos y rutas
+
+[33mcommit 47da87b94498e971554ee5712fff06c2bafe6e60[m
+Author: CoKeFish <37970518+CoKeFish@users.noreply.github.com>
+Date:   Wed Mar 20 12:32:07 2024 -0500
+
+    Update
+
+[33mcommit 677236294bdcbf8147418b51b014a8edb08ee5b3[m
+Author: Jeisson177 <79467624+Jeisson177@users.noreply.github.com>
+Date:   Tue Mar 19 19:19:30 2024 -0500
+
+    Create main
