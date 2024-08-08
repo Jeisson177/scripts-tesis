@@ -20,6 +20,7 @@ datosBuses = Calcular.calcularVelocidadPorRutas(datosBuses);
 %% Extrer datos sensor por ruta:
 datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
 
+
 %% Graficar
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4020", "f_15_04_2024")
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4020", "f_15_04_2024", 1)
