@@ -330,8 +330,8 @@ classdef Calcular
                         datosSensor = datosBuses.(bus).(fecha).datosSensor;
 
                         % Inicializar el campo velocidadRuta como una celda vacía
-                        if ~isfield(datosBuses.(bus).(fecha), 'aceleracionRuta') || isempty(datosBuses.(bus).(fecha).aceleracionRuta)
-                            datosBuses.(bus).(fecha).aceleracionRuta = {}; % Inicializar como celda vacía si no existe
+                        if ~isfield(datosBuses.(bus).(fecha), 'velocidadRuta') || isempty(datosBuses.(bus).(fecha).velocidadRuta)
+                            datosBuses.(bus).(fecha).velocidadRuta = {}; % Inicializar como celda vacía si no existe
                         end
 
                         % Calcular la velocidad para cada ruta completa (ida y vuelta)
@@ -341,23 +341,24 @@ classdef Calcular
 
                             % Trayecto de ida
                             inicioIda = tiempoRuta{k, 1};
-                            velocidadIda = datosBuses.(bus).(fecha).velocidadRuta{k, 3};
-                            tiempoIda = datosBuses.(bus).(fecha).datosSensorRuta{k, 3}.time;
+                            finIda = tiempoRuta{k, 2};
+                            velocidadIda = datosBuses.bus_4012.f_03_07_2024.velocidadRuta{k, 3};
+                            tiempoIda = datosBuses.bus_4012.f_03_07_2024.datosSensorRuta{k, 3};
                             aceleracionIda = Calcular.aceleracion(velocidadIda, tiempoIda);
 
                             % Trayecto de vuelta
                             finVuelta = tiempoRuta{k, 3};
 
-                            velocidadVuelta = datosBuses.(bus).(fecha).velocidadRuta{k, 4};
-                            tiempoVuelta = datosBuses.(bus).(fecha).datosSensorRuta{k, 4}.time;
+                            velocidadVuelta = datosBuses.bus_4012.f_03_07_2024.velocidadRuta{k, 4};
+                            tiempoVuelta = datosBuses.bus_4012.f_03_07_2024.datosSensorRuta{k, 4};
 
                             aceleracionVuelta = Calcular.aceleracion(velocidadVuelta, tiempoVuelta);
 
                             % Guardar las velocidades para la ruta
-                            tiempoAceleracion = {inicioIda, finVuelta, aceleracionIda, aceleracionVuelta, ruta};
+                            tiempoVelocidad = {inicioIda, finVuelta, aceleracionIda, aceleracionVuelta, ruta};
 
                             % Concatenar los resultados en el campo velocidadRuta
-                            datosBuses.(bus).(fecha).aceleracionRuta = [datosBuses.(bus).(fecha).aceleracionRuta; tiempoAceleracion];
+                            datosBuses.(bus).(fecha).velocidadRuta = [datosBuses.(bus).(fecha).velocidadRuta; tiempoVelocidad];
 
                             % Mostrar mensaje de confirmación
                             disp(['Velocidades calculadas para la ruta ' ruta ' en el bus ' bus ' en la fecha ' fecha '.']);
@@ -369,7 +370,7 @@ classdef Calcular
             end
         end
 
-        function aceleracion = aceleracion(velocidades, fechas)
+        function aceleracion = aceleracion(fechas, velocidades)
             % Función para calcular la aceleración a partir de fechas y velocidades
     % donde la longitud de 'velocidades' es una unidad menos que 'fechas'.
     

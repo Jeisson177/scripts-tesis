@@ -849,7 +849,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
             % busesDatos es una estructura opcional de entrada que contiene datos previos.
 
             % Verificar si se proporcionó la estructura busesDatos
-            if nargin < 3
+            if nargin < 2
                 busesDatos = struct(); % Crear una nueva estructura si no se proporcionó
             end
 
@@ -857,7 +857,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
             carpetas = ImportarDatos.getFolderList(basePath);
 
             % Iterar sobre cada carpeta
-            for i = 1:numero
+            for i = 1:length(carpetas)
                 carpetaPath = fullfile(basePath, carpetas{i});
                 partes = strsplit(carpetas{i}, '-');
                 busID = partes{1};

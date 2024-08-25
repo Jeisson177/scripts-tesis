@@ -19,7 +19,7 @@ datosBuses = Calcular.calcularVelocidadPorRutas(datosBuses);
 
 %% Calcular aceleracion por ruta
 % Calcula la velocidad, solo durante el tiempo de la ruta
-datosBuses = Calcular.AceleracionPorRutas(datosBuses);
+datosBuses = Calcular.aceleracion(datosBuses);
 
 %% Extrer datos sensor por ruta:
 datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
@@ -28,9 +28,6 @@ datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
 %% Graficar
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4020", "f_15_04_2024")
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4020", "f_15_04_2024", 1)
-
-%% Aceleracion
-Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1)
 
 %%
 datosBuses = Calculos.aproximarNivelBateria(datosBuses);
