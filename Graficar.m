@@ -51,7 +51,7 @@ classdef Graficar
                     % Obtener los tiempos asociados a las velocidades
                     datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 3}; % Datos del sensor para la ruta
                     tiempos = datosSensorRuta.time(2:end-1); % Usar los tiempos del sensor
-
+                    velocidades = velocidades(1:end-1); % cambio porque estaba dando error con lo de arriba
                     % Graficar las velocidades
                     figure;
                     plot(tiempos, velocidades, '-'); % Usar solo '-' para una línea continua
