@@ -1,3 +1,48 @@
+%datos.Acc(abs(datos.Acc)<=0.3)=NaN;
+% Inicializar variables
+intervalo_inicio = 1;
+tiempo_constante = [];
+valor_constante = [];
+
+% Recorrer la señal para identificar intervalos positivos y negativos
+while intervalo_inicio <= length(datos.Acc)
+    if acc(intervalo_inicio) > 0
+        % Buscar el final del intervalo positivo
+        intervalo_fin = find(acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+        if isempty(intervalo_fin)
+            intervalo_fin = length(datos.Acc);
+        end
+        altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
+    else
+        % Buscar el final del intervalo negativo
+        intervalo_fin = find(datos.Acc(intervalo_inicio:end) > 0, 1) + intervalo_inicio - 2;
+        if isempty(intervalo_fin)
+            intervalo_fin = length(datos.Acc);
+        end
+        altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
+    end
+    
+    % Crear la señal constante
+    tiempo_constante = [tiempo_constante; tiempo(intervalo_inicio:intervalo_fin)];
+    valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
+    
+    % Actualizar el inicio del siguiente intervalo
+    intervalo_inicio = intervalo_fin + 1;
+end
+
+% Ploteo de la señal constante
+plot(tiempo_constante, valor_constante, 'r-', 'LineWidth', 2);
+
+% Ajustar el eje x para que se vea como datetime
+datetick('x', 'HH:MM:SS', 'keeplimits', 'keepticks');
+xlabel('Tiempo');
+ylabel('Valores de Acc');
+title('Comparación de la Señal y la Señal Constante por Intervalos');
+legend('Señal Original', 'Señal Constante');
+grid on;
+hold off;
+
+%%
 %datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
 datosBuses = ImportarDatos.importarMuestra('Datos', 4);
 %% Calculo de todos los tiempos para cada ruta
@@ -30,7 +75,7 @@ datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_04_07_2024", 1)
 
 %% Aceleracion
-Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_04_07_2024", 1)
+Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1)
 
 %%
 datosBuses = Calculos.aproximarNivelBateria(datosBuses);
