@@ -43,7 +43,8 @@ grid on;
 hold off;
 
 %%
-%datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
+datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
+%%
 datosBuses = ImportarDatos.importarMuestra('Datos', 4);
 %% Calculo de todos los tiempos para cada ruta
 
