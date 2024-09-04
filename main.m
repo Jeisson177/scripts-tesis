@@ -1,29 +1,38 @@
-%datos.Acc(abs(datos.Acc)<=0.3)=NaN;
+datos.Acc(abs(datos.Acc)<=0.3)=0;
 % Inicializar variables
 intervalo_inicio = 1;
 tiempo_constante = [];
 valor_constante = [];
 
-% Recorrer la señal para identificar intervalos positivos y negativos
+% Recorrer la señal para identificar intervalos positivos, negativos o 0
 while intervalo_inicio <= length(datos.Acc)
-    if acc(intervalo_inicio) > 0
+    if datos.Acc(intervalo_inicio) > 0
         % Buscar el final del intervalo positivo
-        intervalo_fin = find(acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+        intervalo_fin = find(datos.Acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
         if isempty(intervalo_fin)
             intervalo_fin = length(datos.Acc);
         end
         altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
-    else
+        
+    elseif datos.Acc(intervalo_inicio) < 0
         % Buscar el final del intervalo negativo
-        intervalo_fin = find(datos.Acc(intervalo_inicio:end) > 0, 1) + intervalo_inicio - 2;
+        intervalo_fin = find(datos.Acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
         if isempty(intervalo_fin)
             intervalo_fin = length(datos.Acc);
         end
         altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
+        
+    else
+        % Para los valores de 0
+        intervalo_fin = find(datos.Acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
+        if isempty(intervalo_fin)
+            intervalo_fin = length(datos.Acc);
+        end
+        altura = 0; % Asignar 0 cuando el valor es 0
     end
     
     % Crear la señal constante
-    tiempo_constante = [tiempo_constante; tiempo(intervalo_inicio:intervalo_fin)];
+    tiempo_constante = [tiempo_constante; datos.Tiempo(intervalo_inicio:intervalo_fin)];
     valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
     
     % Actualizar el inicio del siguiente intervalo
