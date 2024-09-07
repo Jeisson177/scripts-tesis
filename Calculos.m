@@ -1,53 +1,79 @@
 classdef Calculos
     methods (Static)
         
-        function [tiempo_constante, valor_constante] = aceleracionPorCuadrosMx(datos) %se recbie una tabla con valores Acc y tiempo
-            %por ejemplo datos = table(datosBuses.bus_4012.f_03_07_2024.datosSensor.time(6300:10842), datosBuses.bus_4012.f_03_07_2024.aceleracionRuta{1, 3}  , 'VariableNames', {'Tiempo', 'Acc'});
-            datos.Acc(abs(datos.Acc)<=0.3)=0;
-            % Inicializar variables
-            intervalo_inicio = 1;
-            tiempo_constante = [];
-            valor_constante = [];
+        function [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos] = aceleracionPorCuadrosMx(datos)
+    % Aplicar el umbral de aceleración
+    datos.Acc(abs(datos.Acc) <= 0.3) = 0;
+    
+    % Inicializar variables
+    intervalo_inicio = 1;
+    magnitudes_positivas = [];
+    magnitudes_negativas = [];
+    tiempos_positivos = [];
+    tiempos_negativos = [];
 
-        % Recorrer la señal para identificar intervalos positivos, negativos o 0
-        while intervalo_inicio <= length(datos.Acc)
-            if datos.Acc(intervalo_inicio) > 0
-                % Buscar el final del intervalo positivo
-                intervalo_fin = find(datos.Acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
-                if isempty(intervalo_fin)
-                    intervalo_fin = length(datos.Acc);
-                end
-                altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
-        
-            elseif datos.Acc(intervalo_inicio) < 0
-                % Buscar el final del intervalo negativo
-                intervalo_fin = find(datos.Acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
-                if isempty(intervalo_fin)
-                    intervalo_fin = length(datos.Acc);
-                end
-                altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
-        
-            else
-                % Para los valores de 0
-                intervalo_fin = find(datos.Acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
-                if isempty(intervalo_fin)
-                    intervalo_fin = length(datos.Acc);
-                end
-                altura = 0; % Asignar 0 cuando el valor es 0
+    % Recorrer la señal para identificar intervalos positivos, negativos o 0
+    while intervalo_inicio <= length(datos.Acc)
+        if datos.Acc(intervalo_inicio) > 0
+            % Buscar el final del intervalo positivo
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
             end
-    
-            % Crear la señal constante
-            tiempo_constante = [tiempo_constante; datos.Tiempo(intervalo_inicio:intervalo_fin)];
-            valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
-    
-            % Actualizar el inicio del siguiente intervalo
-            intervalo_inicio = intervalo_fin + 1;
+            altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
+
+            % Calcular la duración del intervalo
+            duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+
+            % Guardar magnitud y duración en arreglos separados para intervalos positivos
+            magnitudes_positivas = [magnitudes_positivas; altura];
+            tiempos_positivos = [tiempos_positivos; duracion];
+
+        elseif datos.Acc(intervalo_inicio) < 0
+            % Buscar el final del intervalo negativo
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
+            end
+            altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
+
+            % Calcular la duración del intervalo
+            duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+
+            % Guardar magnitud y duración en arreglos separados para intervalos negativos
+            magnitudes_negativas = [magnitudes_negativas; altura];
+            tiempos_negativos = [tiempos_negativos; duracion];
+
+        else
+            % Para los valores de 0
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
+            end
         end
 
+        % Actualizar el inicio del siguiente intervalo
+        intervalo_inicio = intervalo_fin + 1;
+    end
 
+    % Eliminar las últimas 2 muestras de los arreglos
+    if length(magnitudes_positivas) > 2
+        magnitudes_positivas(end-1:end) = [];
+    end
 
-        end
-        
+    if length(magnitudes_negativas) > 2
+        magnitudes_negativas(end-1:end) = [];
+    end
+
+    if length(tiempos_positivos) > 2
+        tiempos_positivos(end-1:end) = [];
+    end
+
+    if length(tiempos_negativos) > 2
+        tiempos_negativos(end-1:end) = [];
+    end
+end
+
         function [tiempo_constante, valor_constante] = aceleracionPorCuadrosProm(datos) %se recbie una tabla con valores Acc y tiempo
             %por ejemplo datos = table(datosBuses.bus_4012.f_03_07_2024.datosSensor.time(6300:10842), datosBuses.bus_4012.f_03_07_2024.aceleracionRuta{1, 3}  , 'VariableNames', {'Tiempo', 'Acc'});
             datos.Acc(abs(datos.Acc)<=0.3)=0;

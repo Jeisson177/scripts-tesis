@@ -62,18 +62,12 @@ magAccP=valor_constante(pos_accPositivos+1);
 %magAccP=magAccP/distancia;
 plot(tiempo_constante(2:end),magAccP);
 %%
-
-datos.Acc(abs(datos.Acc) <= 0.3) = 0;
+datos.Acc(abs(datos.Acc)<=0.3)=0;
 % Inicializar variables
 intervalo_inicio = 1;
 tiempo_constante = [];
 valor_constante = [];
-
-% Arreglos separados para magnitudes y tiempos
-magnitudes_positivas = [];
-magnitudes_negativas = [];
-tiempos_positivos = [];
-tiempos_negativos = [];
+magnitudes_duraciones = [];
 
 % Recorrer la señal para identificar intervalos positivos, negativos o 0
 while intervalo_inicio <= length(datos.Acc)
@@ -85,13 +79,6 @@ while intervalo_inicio <= length(datos.Acc)
         end
         altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
         
-        % Calcular la duración del intervalo
-        duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
-        
-        % Guardar magnitud y duración en arreglos separados para intervalos positivos
-        magnitudes_positivas = [magnitudes_positivas; altura];
-        tiempos_positivos = [tiempos_positivos; duracion];
-        
     elseif datos.Acc(intervalo_inicio) < 0
         % Buscar el final del intervalo negativo
         intervalo_fin = find(datos.Acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
@@ -99,13 +86,6 @@ while intervalo_inicio <= length(datos.Acc)
             intervalo_fin = length(datos.Acc);
         end
         altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
-        
-        % Calcular la duración del intervalo
-        duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
-        
-        % Guardar magnitud y duración en arreglos separados para intervalos negativos
-        magnitudes_negativas = [magnitudes_negativas; altura];
-        tiempos_negativos = [tiempos_negativos; duracion];
         
     else
         % Para los valores de 0
@@ -119,6 +99,12 @@ while intervalo_inicio <= length(datos.Acc)
     % Crear la señal constante
     tiempo_constante = [tiempo_constante; datos.Tiempo(intervalo_inicio:intervalo_fin)];
     valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
+    
+    % Calcular magnitud y duración si el intervalo es positivo
+    if altura > 0
+        duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+        magnitudes_duraciones = [magnitudes_duraciones; altura, duracion];
+    end
     
     % Actualizar el inicio del siguiente intervalo
     intervalo_inicio = intervalo_fin + 1;
@@ -136,10 +122,18 @@ legend('Señal Original', 'Señal Constante');
 grid on;
 hold on;
 
-magnitudes_positivas(end-1:end) = [];
-magnitudes_negativas(end-1:end) = [];
-tiempos_positivos(end-1:end) = [];
-tiempos_negativos(end-1:end) = [];
+nuevo = diff(valor_constante);
+nuevopositivo = nuevo;
+nuevopositivo(nuevopositivo < 0) = 0;
+
+numaccpos = nuevopositivo .* valor_constante(2:end);
+aceleracionesP = numel(findpeaks(numaccpos));
+[~, pos_accPositivos] = findpeaks(numaccpos);
+
+
+
+
+
 %%
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
 %%
