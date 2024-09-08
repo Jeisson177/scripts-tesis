@@ -64,11 +64,12 @@ datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
 Calcular.resumenRecorridosPorRuta(datosBuses)
 
 %% Calcular los kilometros por ruta
-% Extrer datos sensor por ruta:
-% Extraer datos P60
-datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
-datosBuses = Calculos.extraerP60(datosBuses);
 datosBuses = Calcular.calcularKilometroRutas(datosBuses);
+
+%% calcula la velocidad por fecha
+% Recomendado no usar, salvo para debug, procesa TODOS lo datos, cosume
+% mucho tiempo y recursos
+% datosBuses = Calcular.velocidadTotal(datosBuses, 'km/h', 'pendiente');
 
 %% Calcular velocidad por ruta
 % Calcula la velocidad, solo durante el tiempo de la ruta
@@ -78,6 +79,12 @@ datosBuses = Calcular.calcularVelocidadPorRutas(datosBuses);
 % Calcula la velocidad, solo durante el tiempo de la ruta
 datosBuses = Calcular.AceleracionPorRutas(datosBuses);
 
+%% Extrer datos sensor por ruta:
+datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
+
+%% Extraer datos P60
+datosBuses = Calculos.extraerP60(datosBuses);
+
 
 %% Graficar
 %Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4020", "f_15_04_2024")
@@ -85,34 +92,6 @@ Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_04_07_2024", 1)
 
 %% Aceleracion
 Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-%% ---------------Funciones viejas--------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 %%
 datosBuses = Calculos.aproximarNivelBateria(datosBuses);

@@ -547,7 +547,7 @@ classdef Calcular
         end
         function datosBuses = calcularKilometroRutas(datosBuses)
 
-           datosBuses =  Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutasWrapper);
+           datosBuses =  Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutas);
             
         end
 
