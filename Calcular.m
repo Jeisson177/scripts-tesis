@@ -104,10 +104,6 @@ classdef Calcular
 
         function velocidad = velocidadConFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, filtro)
             switch filtro
-                case 'media_movil'
-                    velocidad = Calcular.velocidadMediaMovil(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
-                case 'kalman'
-                    velocidad = Calcular.velocidadKalman(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
                 case 'pendiente'
                     velocidad = Calcular.corregirVelocidadPendiente(datos, 3);
                 case 'sin_filtro'
@@ -117,7 +113,7 @@ classdef Calcular
             end
         end
 
-        
+
 
 
         %%
@@ -206,8 +202,10 @@ classdef Calcular
                         continue;
                     end
 
-                    % Inicializar el campo tiempoRuta como una celda vacía
-                    datosBuses.(bus).(fecha).tiempoRuta = {};
+                    % Inicializar el campo tiempoRuta como una tabla vacía con encabezados
+                    headers = {'Inicio_Ruta', 'Inicio_Retorno', 'Fin_Retorno', 'Ruta'};
+                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 4), 'VariableNames', headers);  % Inicializar tabla vacía
+
 
                     % Iterar sobre cada ruta y calcular los tiempos de ruta
                     rutaNames = fieldnames(rutas);
@@ -223,6 +221,9 @@ classdef Calcular
                         nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
                         tiempoRutaTemp = [tiempoRutaTemp, nombreRuta];
 
+                        if isempty(tiempoRutaTemp)
+                            continue
+                        end
                         % Concatenar los resultados en el campo tiempoRuta
                         datosBuses.(bus).(fecha).tiempoRuta = [datosBuses.(bus).(fecha).tiempoRuta; tiempoRutaTemp];
                     end
@@ -371,16 +372,16 @@ classdef Calcular
 
         function aceleracion = aceleracion(velocidades, fechas)
             % Función para calcular la aceleración a partir de fechas y velocidades
-    % donde la longitud de 'velocidades' es una unidad menos que 'fechas'.
-    
-    % Calcular las diferencias de tiempo en segundos, excluyendo el último punto de tiempo
-    dt = seconds(diff(fechas(1:end-1))); % Diferencias en tiempo, en segundos
-    
-    % Calcular las diferencias de velocidad
-    dv = diff(velocidades); % En este caso, no es necesario usar 'diff' ya que ya hay un dato menos
-    
-    % Calcular la aceleración (dv/dt)
-    aceleracion = dv ./ dt;
+            % donde la longitud de 'velocidades' es una unidad menos que 'fechas'.
+
+            % Calcular las diferencias de tiempo en segundos, excluyendo el último punto de tiempo
+            dt = seconds(diff(fechas(1:end-1))); % Diferencias en tiempo, en segundos
+
+            % Calcular las diferencias de velocidad
+            dv = diff(velocidades); % En este caso, no es necesario usar 'diff' ya que ya hay un dato menos
+
+            % Calcular la aceleración (dv/dt)
+            aceleracion = dv ./ dt;
         end
 
 
@@ -442,7 +443,7 @@ classdef Calcular
         function datosBuses = extraerDatosSensorPorRutas(datosBuses)
 
 
-            
+
             % Esta función extrae los datos del sensor para las rutas de cada bus,
             % basándose en los tiempos de ruta.
 
@@ -504,6 +505,58 @@ classdef Calcular
                 end
             end
         end
+
+
+        function datosBuses = iterarSobreBusesYFechas(datosBuses, funcionAplicar)
+            % Obtener los campos de los buses
+            buses = fieldnames(datosBuses);
+
+            % Iterar sobre cada bus
+            for i = 1:numel(buses)
+                bus = buses{i};
+
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
+                end
+
+                % Obtener los campos de las fechas para el bus actual
+                fechas = fieldnames(datosBuses.(bus));
+
+                % Iterar sobre cada fecha
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+
+
+
+                    for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
+                        datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
+
+                    end
+                end
+            end
+        end
+
+        function datosBuses = calcularKilometroRutasWrapper(datosBuses, k)
+
+            kilometrosOdometro = datosBuses.segmentoP60 ;
+            tiemposRutas = datosBuses.tiempoRuta;
+
+            if isempty(kilometrosOdometro) || isempty(tiemposRutas)
+                return;
+            end
+
+            datosBuses.tiempoRuta{k, 5} = datosBuses.segmentoP60{k, 1}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 1}.kilometrosOdometro(1);
+            datosBuses.tiempoRuta{k, 6} = datosBuses.segmentoP60{k, 2}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 2}.kilometrosOdometro(1);
+            
+        end
+        function datosBuses = calcularKilometroRutas(datosBuses)
+
+           datosBuses =  Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutasWrapper);
+            
+        end
+
+        
 
 
 
