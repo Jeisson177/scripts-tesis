@@ -388,58 +388,61 @@ classdef Calcular
         %%
 
         function resumenRutas = resumenRecorridosPorRuta(datosBuses)
-            % Esta función recorre toda la estructura datosBuses y hace un resumen
-            % del número de recorridos por cada ruta.
+    % Esta función recorre toda la estructura datosBuses y hace un resumen
+    % del número de recorridos por cada ruta.
 
-            % Inicializar un contenedor para contar los recorridos por ruta
-            resumenRutas = containers.Map();
+    % Inicializar un contenedor para contar los recorridos por ruta
+    resumenRutas = containers.Map('KeyType', 'char', 'ValueType', 'double');  % Especificar tipos de clave y valor
 
-            % Obtener los campos de los buses
-            buses = fieldnames(datosBuses);
+    % Obtener los campos de los buses
+    buses = fieldnames(datosBuses);
 
-            % Iterar sobre cada bus
-            for i = 1:numel(buses)
-                bus = buses{i};
+    % Iterar sobre cada bus
+    for i = 1:numel(buses)
+        bus = buses{i};
 
-                % Saltar el campo 'info'
-                if strcmp(bus, 'info')
-                    continue;
-                end
+        % Saltar el campo 'info'
+        if strcmp(bus, 'info')
+            continue;
+        end
 
-                % Obtener los campos de las fechas para el bus actual
-                fechas = fieldnames(datosBuses.(bus));
+        % Obtener los campos de las fechas para el bus actual
+        fechas = fieldnames(datosBuses.(bus));
 
-                % Iterar sobre cada fecha
-                for j = 1:numel(fechas)
-                    fecha = fechas{j};
+        % Iterar sobre cada fecha
+        for j = 1:numel(fechas)
+            fecha = fechas{j};
 
-                    % Verificar si hay campo tiempoRuta
-                    if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && ~isempty(datosBuses.(bus).(fecha).tiempoRuta)
-                        % Obtener la celda de tiempoRuta
-                        tiempoRuta = datosBuses.(bus).(fecha).tiempoRuta;
+            % Verificar si hay campo tiempoRuta
+            if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && ~isempty(datosBuses.(bus).(fecha).tiempoRuta)
+                % Obtener la tabla de tiempoRuta
+                tiempoRuta = datosBuses.(bus).(fecha).tiempoRuta;
 
-                        % Iterar sobre cada fila de tiempoRuta
-                        for k = 1:size(tiempoRuta, 1)
-                            ruta = tiempoRuta{k, end};  % El nombre de la ruta está en la última columna
+                % Iterar sobre cada fila de tiempoRuta
+                for k = 1:size(tiempoRuta, 1)
+                    ruta = char(tiempoRuta.Ruta{k});  % Asegurarse de que la ruta sea de tipo 'char'
 
-                            % Incrementar el contador para la ruta actual
-                            if isKey(resumenRutas, ruta)
-                                resumenRutas(ruta) = resumenRutas(ruta) + 1;
-                            else
-                                resumenRutas(ruta) = 1;
-                            end
-                        end
+                    % Incrementar el contador para la ruta actual
+                    if isKey(resumenRutas, ruta)
+                        resumenRutas(ruta) = resumenRutas(ruta) + 1;
+                    else
+                        resumenRutas(ruta) = 1;
                     end
                 end
             end
-
-            % Convertir el contenedor a una tabla para un resumen más claro
-            rutas = keys(resumenRutas);
-            numRecorridos = values(resumenRutas);
-
-            resumenRutas = table(rutas', cell2mat(numRecorridos)', 'VariableNames', {'Ruta', 'NumeroRecorridos'});
         end
+    end
 
+    % Convertir el contenedor a una tabla para un resumen más claro
+    rutas = keys(resumenRutas);
+    numRecorridos = values(resumenRutas);
+
+    resumenRutas = table(rutas', cell2mat(numRecorridos)', 'VariableNames', {'Ruta', 'NumeroRecorridos'});
+end
+
+
+
+        %%
         function datosBuses = extraerDatosSensorPorRutas(datosBuses)
 
 
@@ -528,36 +531,87 @@ classdef Calcular
                     fecha = fechas{j};
 
 
-
+try
                     for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
                         datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
 
                     end
+catch ME
+    fprintf('Error encontrado: %s\n', ME.message);
+end
+
                 end
             end
         end
-
         function datosBuses = calcularKilometroRutasWrapper(datosBuses, k)
 
-            kilometrosOdometro = datosBuses.segmentoP60 ;
+            kilometrosOdometro = datosBuses.segmentoP60;
             tiemposRutas = datosBuses.tiempoRuta;
 
             if isempty(kilometrosOdometro) || isempty(tiemposRutas)
                 return;
             end
 
-            datosBuses.tiempoRuta{k, 5} = datosBuses.segmentoP60{k, 1}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 1}.kilometrosOdometro(1);
-            datosBuses.tiempoRuta{k, 6} = datosBuses.segmentoP60{k, 2}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 2}.kilometrosOdometro(1);
-            
+            % Verificar si las columnas de "Kilometros_Ida" y "Kilometros_Vuelta" ya existen
+            if ~ismember('Kilometros_Ida', tiemposRutas.Properties.VariableNames)
+                % Agregar columnas vacías con encabezados 'Kilometros_Ida' y 'Kilometros_Vuelta'
+                tiemposRutas.Kilometros_Ida = nan(height(tiemposRutas), 1);
+                tiemposRutas.Kilometros_Vuelta = nan(height(tiemposRutas), 1);
+                datosBuses.tiempoRuta = tiemposRutas; % Actualizar la tabla con las nuevas columnas
+            end
+
+            % Calcular y asignar los valores para las nuevas columnas
+            try
+            datosBuses.tiempoRuta{k, 'Kilometros_Ida'} = datosBuses.segmentoP60{k, 1}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 1}.kilometrosOdometro(1);
+            datosBuses.tiempoRuta{k, 'Kilometros_Vuelta'} = datosBuses.segmentoP60{k, 2}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 2}.kilometrosOdometro(1);
+            catch ME
+fprintf('Error encontrado: %s\n', ME.message);
+            end
         end
+
         function datosBuses = calcularKilometroRutas(datosBuses)
+            % Esta función iterará sobre los buses y las fechas para calcular los kilómetros recorridos
+            % y agregar las columnas "Kilometros_Ida" y "Kilometros_Vuelta" a la tabla tiempoRuta.
 
-           datosBuses =  Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutasWrapper);
-            
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutasWrapper);
         end
 
-        
 
+
+        function datosBuses = ConductoresTemplante(datosBuses)
+            % Esta función agrega columnas vacías 'ID_Conductor' y 'Sexo' a la tabla tiempoRuta
+            % para cada ruta utilizando la función iterarSobreBusesYFechas.
+
+            % Usar la función iterarSobreBusesYFechas para aplicar el cambio
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.agregarColumnasConductor);
+        end
+
+        function datosFecha = agregarColumnasConductor(datosFecha, k)
+            % Función auxiliar que agrega las columnas 'ID_Conductor' y 'Sexo' a la tabla tiempoRuta para cada ruta.
+
+            % Verificar si la tabla tiempoRuta existe
+            if isfield(datosFecha, 'tiempoRuta')
+                % Obtener la tabla tiempoRuta
+                tiempoRuta = datosFecha.tiempoRuta;
+
+                % Verificar si las columnas 'ID_Conductor' y 'Sexo' ya existen
+                if ~ismember('ID_Conductor', tiempoRuta.Properties.VariableNames)
+                    % Agregar columna 'ID_Conductor' vacía (como NaN)
+                    tiempoRuta.ID_Conductor = NaN(height(tiempoRuta), 1);  % Columna numérica vacía
+                end
+                if ~ismember('Sexo', tiempoRuta.Properties.VariableNames)
+                    % Agregar columna 'Sexo' vacía (como cadenas vacías)
+                    tiempoRuta.Sexo = repmat({''}, height(tiempoRuta), 1);  % Columna de celdas vacía
+                end
+
+                % Actualizar las celdas vacías de 'ID_Conductor' y 'Sexo' en la fila correspondiente 'k'
+                tiempoRuta.ID_Conductor(k) = NaN;  % Deja la celda vacía (NaN)
+                tiempoRuta.Sexo{k} = '';  % Deja la celda vacía (cadena vacía)
+
+                % Actualizar la tabla tiempoRuta en datosFecha
+                datosFecha.tiempoRuta = tiempoRuta;
+            end
+        end
 
 
     end

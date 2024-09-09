@@ -140,22 +140,26 @@ magnitudes_positivas(end-1:end) = [];
 magnitudes_negativas(end-1:end) = [];
 tiempos_positivos(end-1:end) = [];
 tiempos_negativos(end-1:end) = [];
-%%
+%% Importar todos los datos
+clc
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
-%% 
-% Calculo de todos los tiempos para cada ruta
+datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
+%% Importar una muestra de datos
+clc
 datosBuses = ImportarDatos.importarMuestra('Datos', 3);
 datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
 
 %% Muestra un resumen de los datos totales a procesar
 
-Calcular.resumenRecorridosPorRuta(datosBuses)
+Calcular.resumenRecorridosPorRuta(datosBuses);
 
 %% Calcular los kilometros por ruta
 % Extrer datos sensor por ruta:
 % Extraer datos P60
 datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
 datosBuses = Calculos.extraerP60(datosBuses);
+
+%%
 datosBuses = Calcular.calcularKilometroRutas(datosBuses);
 
 %% Calcular velocidad por ruta
@@ -175,16 +179,9 @@ Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_04_07_2024", 1)
 Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1)
 
 
+%% Generar conductores
 
-
-
-
-
-
-
-
-
-
+datosBuses = Calcular.ConductoresTemplante(datosBuses);
 
 %% ---------------Funciones viejas--------------------------
 
