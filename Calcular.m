@@ -202,8 +202,10 @@ classdef Calcular
                         continue;
                     end
 
-                    % Inicializar el campo tiempoRuta como una celda vacía
-                    datosBuses.(bus).(fecha).tiempoRuta = {};
+                    % Inicializar el campo tiempoRuta como una tabla vacía con encabezados
+                    headers = {'Inicio_Ruta', 'Inicio_Retorno', 'Fin_Retorno', 'Ruta'};
+                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 4), 'VariableNames', headers);  % Inicializar tabla vacía
+
 
                     % Iterar sobre cada ruta y calcular los tiempos de ruta
                     rutaNames = fieldnames(rutas);
@@ -219,6 +221,9 @@ classdef Calcular
                         nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
                         tiempoRutaTemp = [tiempoRutaTemp, nombreRuta];
 
+                        if isempty(tiempoRutaTemp)
+                            continue
+                        end
                         % Concatenar los resultados en el campo tiempoRuta
                         datosBuses.(bus).(fecha).tiempoRuta = [datosBuses.(bus).(fecha).tiempoRuta; tiempoRutaTemp];
                     end
@@ -551,23 +556,7 @@ classdef Calcular
             
         end
 
-
-        function datosBuses = calcularAceleracion(datosBuses, bus, fecha)
-            if ~isfield(datosBuses.(bus).(fecha), 'velocidadRuta')
-                return;
-            end
-
-            velocidadRuta = datosBuses.(bus).(fecha).velocidadRuta;
-            % Aquí iría el cálculo específico de aceleración usando los datos de velocidadRuta
-            % ...
-
-            % Mostrar mensaje de confirmación
-            disp(['Aceleración calculada para bus ' bus ' en la fecha ' fecha '.']);
-        end
-
-
-
-
+        
 
 
 

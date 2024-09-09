@@ -142,10 +142,9 @@ tiempos_positivos(end-1:end) = [];
 tiempos_negativos(end-1:end) = [];
 %%
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
-%%
-datosBuses = ImportarDatos.importarMuestra('Datos', 4);
-%% Calculo de todos los tiempos para cada ruta
-
+%% 
+% Calculo de todos los tiempos para cada ruta
+datosBuses = ImportarDatos.importarMuestra('Datos', 3);
 datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
 
 %% Muestra un resumen de los datos totales a procesar
