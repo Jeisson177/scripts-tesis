@@ -183,6 +183,10 @@ Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1)
 
 datosBuses = Calcular.ConductoresTemplante(datosBuses);
 
+%% Aceleracion
+
+temp = Calcular.aceleracionPorCuadrosMaximosRutas(datosBuses);
+
 %% ---------------Funciones viejas--------------------------
 
 

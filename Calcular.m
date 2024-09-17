@@ -388,57 +388,57 @@ classdef Calcular
         %%
 
         function resumenRutas = resumenRecorridosPorRuta(datosBuses)
-    % Esta función recorre toda la estructura datosBuses y hace un resumen
-    % del número de recorridos por cada ruta.
+            % Esta función recorre toda la estructura datosBuses y hace un resumen
+            % del número de recorridos por cada ruta.
 
-    % Inicializar un contenedor para contar los recorridos por ruta
-    resumenRutas = containers.Map('KeyType', 'char', 'ValueType', 'double');  % Especificar tipos de clave y valor
+            % Inicializar un contenedor para contar los recorridos por ruta
+            resumenRutas = containers.Map('KeyType', 'char', 'ValueType', 'double');  % Especificar tipos de clave y valor
 
-    % Obtener los campos de los buses
-    buses = fieldnames(datosBuses);
+            % Obtener los campos de los buses
+            buses = fieldnames(datosBuses);
 
-    % Iterar sobre cada bus
-    for i = 1:numel(buses)
-        bus = buses{i};
+            % Iterar sobre cada bus
+            for i = 1:numel(buses)
+                bus = buses{i};
 
-        % Saltar el campo 'info'
-        if strcmp(bus, 'info')
-            continue;
-        end
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
+                end
 
-        % Obtener los campos de las fechas para el bus actual
-        fechas = fieldnames(datosBuses.(bus));
+                % Obtener los campos de las fechas para el bus actual
+                fechas = fieldnames(datosBuses.(bus));
 
-        % Iterar sobre cada fecha
-        for j = 1:numel(fechas)
-            fecha = fechas{j};
+                % Iterar sobre cada fecha
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
 
-            % Verificar si hay campo tiempoRuta
-            if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && ~isempty(datosBuses.(bus).(fecha).tiempoRuta)
-                % Obtener la tabla de tiempoRuta
-                tiempoRuta = datosBuses.(bus).(fecha).tiempoRuta;
+                    % Verificar si hay campo tiempoRuta
+                    if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && ~isempty(datosBuses.(bus).(fecha).tiempoRuta)
+                        % Obtener la tabla de tiempoRuta
+                        tiempoRuta = datosBuses.(bus).(fecha).tiempoRuta;
 
-                % Iterar sobre cada fila de tiempoRuta
-                for k = 1:size(tiempoRuta, 1)
-                    ruta = char(tiempoRuta.Ruta{k});  % Asegurarse de que la ruta sea de tipo 'char'
+                        % Iterar sobre cada fila de tiempoRuta
+                        for k = 1:size(tiempoRuta, 1)
+                            ruta = char(tiempoRuta.Ruta{k});  % Asegurarse de que la ruta sea de tipo 'char'
 
-                    % Incrementar el contador para la ruta actual
-                    if isKey(resumenRutas, ruta)
-                        resumenRutas(ruta) = resumenRutas(ruta) + 1;
-                    else
-                        resumenRutas(ruta) = 1;
+                            % Incrementar el contador para la ruta actual
+                            if isKey(resumenRutas, ruta)
+                                resumenRutas(ruta) = resumenRutas(ruta) + 1;
+                            else
+                                resumenRutas(ruta) = 1;
+                            end
+                        end
                     end
                 end
             end
+
+            % Convertir el contenedor a una tabla para un resumen más claro
+            rutas = keys(resumenRutas);
+            numRecorridos = values(resumenRutas);
+
+            resumenRutas = table(rutas', cell2mat(numRecorridos)', 'VariableNames', {'Ruta', 'NumeroRecorridos'});
         end
-    end
-
-    % Convertir el contenedor a una tabla para un resumen más claro
-    rutas = keys(resumenRutas);
-    numRecorridos = values(resumenRutas);
-
-    resumenRutas = table(rutas', cell2mat(numRecorridos)', 'VariableNames', {'Ruta', 'NumeroRecorridos'});
-end
 
 
 
@@ -531,14 +531,14 @@ end
                     fecha = fechas{j};
 
 
-try
-                    for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
-                        datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
+                    try
+                        for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
+                            datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
 
+                        end
+                    catch ME
+                        fprintf('Error encontrado: %s\n', ME.message);
                     end
-catch ME
-    fprintf('Error encontrado: %s\n', ME.message);
-end
 
                 end
             end
@@ -562,10 +562,10 @@ end
 
             % Calcular y asignar los valores para las nuevas columnas
             try
-            datosBuses.tiempoRuta{k, 'Kilometros_Ida'} = datosBuses.segmentoP60{k, 1}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 1}.kilometrosOdometro(1);
-            datosBuses.tiempoRuta{k, 'Kilometros_Vuelta'} = datosBuses.segmentoP60{k, 2}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 2}.kilometrosOdometro(1);
+                datosBuses.tiempoRuta{k, 'Kilometros_Ida'} = datosBuses.segmentoP60{k, 1}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 1}.kilometrosOdometro(1);
+                datosBuses.tiempoRuta{k, 'Kilometros_Vuelta'} = datosBuses.segmentoP60{k, 2}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 2}.kilometrosOdometro(1);
             catch ME
-fprintf('Error encontrado: %s\n', ME.message);
+                fprintf('Error encontrado: %s\n', ME.message);
             end
         end
 
@@ -611,6 +611,138 @@ fprintf('Error encontrado: %s\n', ME.message);
                 % Actualizar la tabla tiempoRuta en datosFecha
                 datosFecha.tiempoRuta = tiempoRuta;
             end
+        end
+
+
+        function [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos] = aceleracionPorCuadrosMx(datos)
+            % Aplicar el umbral de aceleración
+            datos.Acc(abs(datos.Acc) <= 0.3) = 0;
+
+            % Inicializar variables
+            intervalo_inicio = 1;
+            magnitudes_positivas = [];
+            magnitudes_negativas = [];
+            tiempos_positivos = [];
+            tiempos_negativos = [];
+
+            % Recorrer la señal para identificar intervalos positivos, negativos o 0
+            while intervalo_inicio <= length(datos.Acc)
+                if datos.Acc(intervalo_inicio) > 0
+                    % Buscar el final del intervalo positivo
+                    intervalo_fin = find(datos.Acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+                    if isempty(intervalo_fin)
+                        intervalo_fin = length(datos.Acc);
+                    end
+                    altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
+
+                    % Calcular la duración del intervalo
+                    duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+
+                    % Guardar magnitud y duración en arreglos separados para intervalos positivos
+                    magnitudes_positivas = [magnitudes_positivas; altura];
+                    tiempos_positivos = [tiempos_positivos; duracion];
+
+                elseif datos.Acc(intervalo_inicio) < 0
+                    % Buscar el final del intervalo negativo
+                    intervalo_fin = find(datos.Acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
+                    if isempty(intervalo_fin)
+                        intervalo_fin = length(datos.Acc);
+                    end
+                    altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
+
+                    % Calcular la duración del intervalo
+                    duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+
+                    % Guardar magnitud y duración en arreglos separados para intervalos negativos
+                    magnitudes_negativas = [magnitudes_negativas; altura];
+                    tiempos_negativos = [tiempos_negativos; duracion];
+
+                else
+                    % Para los valores de 0
+                    intervalo_fin = find(datos.Acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
+                    if isempty(intervalo_fin)
+                        intervalo_fin = length(datos.Acc);
+                    end
+                end
+
+                % Actualizar el inicio del siguiente intervalo
+                intervalo_inicio = intervalo_fin + 1;
+            end
+
+            % Eliminar las últimas 2 muestras de los arreglos
+            if length(magnitudes_positivas) > 2
+                magnitudes_positivas(end-1:end) = [];
+            end
+
+            if length(magnitudes_negativas) > 2
+                magnitudes_negativas(end-1:end) = [];
+            end
+
+            if length(tiempos_positivos) > 2
+                tiempos_positivos(end-1:end) = [];
+            end
+
+            if length(tiempos_negativos) > 2
+                tiempos_negativos(end-1:end) = [];
+            end
+        end
+
+        function [tiempo_constante, valor_constante] = aceleracionPorCuadrosProm(datos) %se recbie una tabla con valores Acc y tiempo
+            %por ejemplo datos = table(datosBuses.bus_4012.f_03_07_2024.datosSensor.time(6300:10842), datosBuses.bus_4012.f_03_07_2024.aceleracionRuta{1, 3}  , 'VariableNames', {'Tiempo', 'Acc'});
+            datos.Acc(abs(datos.Acc)<=0.3)=0;
+            % Inicializar variables
+            intervalo_inicio = 1;
+            tiempo_constante = [];
+            valor_constante = [];
+
+            % Recorrer la señal para identificar intervalos positivos, negativos o 0
+            while intervalo_inicio <= length(datos.Acc)
+                if datos.Acc(intervalo_inicio) > 0
+                    % Buscar el final del intervalo positivo
+                    intervalo_fin = find(datos.Acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+                    if isempty(intervalo_fin)
+                        intervalo_fin = length(datos.Acc);
+                    end
+                    altura = mean(datos.Acc(intervalo_inicio:intervalo_fin));
+
+                elseif datos.Acc(intervalo_inicio) < 0
+                    % Buscar el final del intervalo negativo
+                    intervalo_fin = find(datos.Acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
+                    if isempty(intervalo_fin)
+                        intervalo_fin = length(datos.Acc);
+                    end
+                    altura = mean(datos.Acc(intervalo_inicio:intervalo_fin));
+
+                else
+                    % Para los valores de 0
+                    intervalo_fin = find(datos.Acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
+                    if isempty(intervalo_fin)
+                        intervalo_fin = length(datos.Acc);
+                    end
+                    altura = 0; % Asignar 0 cuando el valor es 0
+                end
+
+                % Crear la señal constante
+                tiempo_constante = [tiempo_constante; datos.Tiempo(intervalo_inicio:intervalo_fin)];
+                valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
+
+                % Actualizar el inicio del siguiente intervalo
+                intervalo_inicio = intervalo_fin + 1;
+            end
+
+
+
+        end
+
+        function datosBuses = aceleracionPorCuadrosMaximosRutas(datosBuses)
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.aceleracionPorCuadrosMaximosWraper);
+        end
+        function datosBuses = aceleracionPorCuadrosMaximosWraper(datosBuses, k)
+            print("Holas")
+        end
+
+        function datosBuses = aceleracionPorCuadrosPromedio(datosBuses)
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutasWrapper);
         end
 
 
