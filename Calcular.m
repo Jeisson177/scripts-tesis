@@ -745,6 +745,68 @@ classdef Calcular
             datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutasWrapper);
         end
 
+        function datosBuses = llenarIndicadoresAceleracion(datosBuses)
+            % Obtener los nombres de los buses
+            busesNames = fieldnames(datosBuses);
+
+            % Recorrer cada bus en la estructura datosBuses
+            for i = 1:length(busesNames)
+                busName = busesNames{i};  % Nombre del bus actual
+                busData = datosBuses.(busName);  % Acceder a los datos del bus actual
+
+                % Obtener los nombres de los subcampos dentro de cada bus (por ejemplo: f_03_07_2024)
+                subfields = fieldnames(busData);  % Subcampos dentro del bus
+
+                % Recorrer los subcampos
+                for j = 1:length(subfields)
+                    subfieldName = subfields{j};  % Nombre del subcampo
+                    try
+                        datosSensorRuta = datosBuses.(busName).(subfieldName).datosSensorRuta;  % Acceder a datosSensorRuta
+                        numFilas = size(datosSensorRuta, 1);  % Asume que tiene filas como una tabla o matriz
+
+                        for f = 1:numFilas
+                            try
+                                % Para la ida
+                                tiempoIda = datosSensorRuta{f, 3}.time(3:end);
+                                AccIda = datosBuses.(busName).(subfieldName).aceleracionRuta{f, 3};
+                                datos = table(tiempoIda, AccIda, 'VariableNames', {'Tiempo', 'Acc'});
+
+                                [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos] = Calcular.aceleracionPorCuadrosMx(datos);
+
+                                datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_positivasIda{f} = sum(magnitudes_positivas) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
+                                datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_negativasIda{f} = sum(magnitudes_negativas) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
+                                datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_magnitudes{f} = length(magnitudes_negativas) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
+                                datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosIda{f} = sum(seconds(tiempos_positivos)) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
+                                datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosIda{f} = sum(seconds(tiempos_negativos)) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
+                            catch
+                                fprintf('Error procesando la ida para el bus %s en el subcampo %s, fila %d.\n', busName, subfieldName, f);
+                            end
+
+                            try
+                                % Para la vuelta
+                                tiempoVuelta = datosSensorRuta{f, 4}.time(3:end);
+                                AccVuelta = datosBuses.(busName).(subfieldName).aceleracionRuta{f, 4};
+                                datos = table(tiempoVuelta, AccVuelta, 'VariableNames', {'Tiempo', 'Acc'});
+
+                                [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos] = Calcular.aceleracionPorCuadrosMx(datos);
+
+                                datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_positivasVuelta{f} = sum(magnitudes_positivas) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
+                                datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_negativasVuelta{f} = sum(magnitudes_negativas) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
+                                datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_magnitudes{f} = length(magnitudes_negativas) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
+                                datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosVuelta{f} = sum(seconds(tiempos_positivos)) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
+                                datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosVuelta{f} = sum(seconds(tiempos_negativos)) / datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
+                            catch
+                                fprintf('Error procesando la vuelta para el bus %s en el subcampo %s, fila %d.\n', busName, subfieldName, f);
+                            end
+                        end
+                    catch
+                        fprintf('Error procesando el subcampo %s del bus %s.\n', subfieldName, busName);
+                    end
+                end
+            end
+        end
+
+
 
     end
 end
