@@ -21,23 +21,25 @@ for i = 1:length(busesNames)
             %modificar aqui
             datos = table(tiempoIda, AccIda  , 'VariableNames', {'Tiempo', 'Acc'});
             [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos]=Calculos.aceleracionPorCuadrosMx(datos);
-            datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_positivasIda{f}=sum(magnitudes_positivas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
-            datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_negativasIda{f}=sum(magnitudes_negativas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
-            datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_magnitudes{f}=length(magnitudes_negativas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
+            datosBuses.(busName).(subfieldName).tiempoRuta.aceleracionesKMIda{f}=mean(magnitudes_positivas);
+            datosBuses.(busName).(subfieldName).tiempoRuta.frenadasKMIda{f}=mean(magnitudes_negativas);
+            datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_frenadasIda{f}=length(magnitudes_negativas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
+            datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_aceleracionesIda{f}=length(magnitudes_positivas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
             
-            datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosIda{f}=sum(seconds(tiempos_positivos))/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
-            datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosIda{f}=sum(seconds(tiempos_negativos))/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
+            datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosIda{f}=mean(seconds(tiempos_positivos));
+            datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosIda{f}=mean(seconds(tiempos_negativos));
             
             tiempoIda=datosSensorRuta{f,4}.time(3:end);%vuelta
             AccIda=datosBuses.(busName).(subfieldName).aceleracionRuta{f,4};
             datos = table(tiempoIda, AccIda  , 'VariableNames', {'Tiempo', 'Acc'});
             [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos]=Calculos.aceleracionPorCuadrosMx(datos);
-            datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_positivasVuelta{f}=sum(magnitudes_positivas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
-            datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_negativasVuelta{f}=sum(magnitudes_negativas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
-            datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_magnitudes{f}=length(magnitudes_negativas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
+            datosBuses.(busName).(subfieldName).tiempoRuta.aceleracionesKMVuelta{f}=mean(magnitudes_positivas);
+            datosBuses.(busName).(subfieldName).tiempoRuta.frenadasKMVuelta{f}=mean(magnitudes_negativas);
+            datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_frenadasVuelta{f}=length(magnitudes_negativas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
+            datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_aceleracionesvuelta{f}=length(magnitudes_positivas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
             
-            datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosVuelta{f}=sum(seconds(tiempos_positivos))/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
-            datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosVuelta{f}=sum(seconds(tiempos_negativos))/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta;
+            datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosVuelta{f}=mean(seconds(tiempos_positivos));
+            datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosVuelta{f}=mean(seconds(tiempos_negativos));
             
         end
        
