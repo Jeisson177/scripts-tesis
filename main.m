@@ -18,6 +18,7 @@ for i = 1:length(busesNames)
         for f=1:numFilas
             tiempoIda=datosSensorRuta{f,3}.time(3:end);
             AccIda=datosBuses.(busName).(subfieldName).aceleracionRuta{f,3};
+            %modificar aqui
             datos = table(tiempoIda, AccIda  , 'VariableNames', {'Tiempo', 'Acc'});
             [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos]=Calculos.aceleracionPorCuadrosMx(datos);
             datosBuses.(busName).(subfieldName).tiempoRuta.magnitudes_positivasIda{f}=sum(magnitudes_positivas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Ida(f);
