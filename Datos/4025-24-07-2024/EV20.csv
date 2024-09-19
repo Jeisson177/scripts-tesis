@@ -1,0 +1,2 @@
+versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoEvento,porcentajeCargaBaterias
+E.1.0.0,1111162,PB,Z374025,No Disponible,No Disponible,2024-07-24 22:08:07.907,2024-07-24 22:08:08.147,T,4.593094,-74.181944,2,3,False,2,EV20,32.0

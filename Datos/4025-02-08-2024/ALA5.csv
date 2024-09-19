@@ -1,0 +1,2 @@
+versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoAlarma,nivelAlarma,codigoCamara
+E.1.0.0,1153568,PB,Z374025,No Disponible,No Disponible,2024-08-02 02:44:42.066,2024-08-02 02:44:42.576,T,4.592736,-74.181925,3,3,False,2,ALA5,N/A,BSO
