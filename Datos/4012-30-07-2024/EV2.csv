@@ -1,4 +1,5 @@
 versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoEvento,estadoAperturaCierrePuertas
+E.1.0.0,619186,PB,Z374012,H617,No Disponible,2024-07-30 07:27:45.586,2024-07-30 07:27:46.306,T,4.592578,-74.181089,2,3,False,2,EV2,True
 E.1.0.0,620005,PB,Z374012,A617,No Disponible,2024-07-30 09:51:59.204,2024-07-30 09:51:59.264,T,4.605086,-74.067217,2,3,False,2,EV2,False
 E.1.0.0,618640,PB,Z374012,A617,No Disponible,2024-07-30 05:49:38.436,2024-07-30 05:49:38.876,T,4.593953,-74.074842,2,3,False,2,EV2,True
 E.1.0.0,619575,PB,Z374012,A617,No Disponible,2024-07-30 08:43:59.736,2024-07-30 08:43:59.776,T,4.589569,-74.146103,2,3,False,2,EV2,True

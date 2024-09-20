@@ -1,4 +1,5 @@
 versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoEvento,peso,temperaturaCabina,estimacionOcupacionSuben,estimacionOcupacionBajan,estimacionOcupacionAbordo
+E.1.0.0,579620,PB,Z374012,H617,No Disponible,2024-07-24 09:56:18.146,2024-07-24 09:56:18.366,T,4.592417,-74.180258,2,3,False,2,EV1,,25.0,0,1,-29
 E.1.0.0,579119,PB,Z374012,A617,No Disponible,2024-07-24 08:24:00.576,2024-07-24 08:24:01.076,T,4.605078,-74.066186,2,3,False,2,EV1,,22.0,0,4,-22
 E.1.0.0,579149,PB,Z374012,A617,No Disponible,2024-07-24 08:29:17.176,2024-07-24 08:29:17.586,T,4.606014,-74.072572,2,3,False,2,EV1,,22.0,0,0,-23
 E.1.0.0,578691,PB,Z374012,A617,No Disponible,2024-07-24 07:14:40.017,2024-07-24 07:14:40.276,T,4.591186,-74.141925,2,3,False,2,EV1,,21.0,4,0,21

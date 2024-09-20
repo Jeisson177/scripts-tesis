@@ -78,7 +78,7 @@ function result = buscarParadasConCoordenadas(route_short_name)
     end
 
     % Definir la consulta SQL
-    sqlquery = "SELECT stop_code, stop_name, ST_X(stop_loc::geometry) AS lon, ST_Y(stop_loc::geometry) AS lat FROM stops WHERE stop_id IN (SELECT stop_id FROM stop_times WHERE trip_id IN (SELECT trip_id FROM (SELECT trip_id FROM trips WHERE route_id IN (SELECT route_id FROM routes WHERE route_short_name = '" + route_short_name + "') ORDER BY RANDOM() LIMIT 1  ) AS subquery  ) );";
+    sqlquery = "SELECT stops.stop_code, stops.stop_name, stop_times.stop_sequence, ST_X(stop_loc::geometry) AS lon, ST_Y(stop_loc::geometry) AS lat FROM stops JOIN stop_times ON stops.stop_id = stop_times.stop_id WHERE stop_times.trip_id IN (SELECT trip_id FROM (SELECT trip_id FROM trips WHERE route_id IN (SELECT route_id FROM routes WHERE route_short_name = '" + route_short_name + "') ORDER BY RANDOM() LIMIT 1  ) AS subquery );";
 
 
     % Ejecutar la consulta

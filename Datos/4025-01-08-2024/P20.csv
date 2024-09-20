@@ -1,4 +1,5 @@
 versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,velocidadVehiculo,aceleracionVehiculo
+E.1.0.0,1147508,PB,Z374025,No Disponible,No Disponible,2024-08-01 00:00:00.026,2024-08-01 00:00:00.176,T,4.592875,-74.182208,1,3,False,2,0,0
 E.1.0.0,1153474,PB,Z374025,No Disponible,No Disponible,2024-08-01 22:23:00.016,2024-08-01 22:23:00.056,T,4.592550,-74.182136,1,3,False,2,0,0
 E.1.0.0,1153472,PB,Z374025,No Disponible,No Disponible,2024-08-01 22:22:40.026,2024-08-01 22:22:40.206,T,4.592550,-74.182136,1,3,False,2,0,0
 E.1.0.0,1153471,PB,Z374025,No Disponible,No Disponible,2024-08-01 22:22:20.016,2024-08-01 22:22:20.126,T,4.592550,-74.182136,1,3,False,2,0,0

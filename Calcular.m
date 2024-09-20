@@ -196,26 +196,31 @@ classdef Calcular
                 for j = 1:numel(fechas)
                     fecha = fechas{j};
                     datosSensor = datosBuses.(bus).(fecha).datosSensor;
+                    p20 = datosBuses.(bus).(fecha).P20;
+                    p20 = sortrows(p20,"fechaHoraLecturaDato","ascend");
 
                     if isempty(datosSensor)
                         warning("No se encontraron los datos del telefono para " + bus +  " para el dia " + fecha)
                         continue;
                     end
 
+                    if isempty(p20)
+                        warning("No se encontraron los datos P60 " + bus +  " para el dia " + fecha)
+                        continue;
+                    end
+
                     % Inicializar el campo tiempoRuta como una tabla vacía con encabezados
-                    headers = {'Inicio_Ruta', 'Inicio_Retorno', 'Fin_Retorno', 'Ruta'};
-                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 4), 'VariableNames', headers);  % Inicializar tabla vacía
+                    headers = {'Inicio_Ruta', 'Fin_Ruta', 'Ruta'};
+                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 3), 'VariableNames', headers);  % Inicializar tabla vacía
 
 
-                    % Iterar sobre cada ruta y calcular los tiempos de ruta
-                    rutaNames = fieldnames(rutas);
-                    for k = 1:numel(rutaNames)
-                        ruta = rutaNames{k};
-                        Ida = rutas.(ruta).Ida;
-                        Vuelta = rutas.(ruta).Vuelta;
 
-                        % Calcular los tiempos de ruta y almacenar en una celda temporal
-                        tiempoRutaTemp = Calculos.Ruta(datosSensor, Ida, Vuelta, 20);
+                    for k = 1:numel(rutas)
+                        ruta = rutas(k).idruta;
+
+                        % Busca una ruta especifica y retorna todas las
+                        % coincidencias
+                        tiempoRutaTemp = Calcular.Ruta(p20, rutas(k).stops, 30, .8);
 
                         % Añadir el nombre de la ruta a cada fila de tiempoRutaTemp
                         nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
@@ -230,6 +235,74 @@ classdef Calcular
                 end
             end
         end
+
+
+        %%
+        function tiempos = Ruta(datosP20, paradas, distanciaUmbral, porcentajeMinimoParadas)
+            % Esta función devuelve un array con los tiempos de salida, llegada al punto de regreso,
+            % y regreso al punto de inicio para cada viaje.
+
+            % Convertir las fechas en 'datosP20' a datetimes sin zona horaria para la comparación
+            datosP20{:, 'fechaHoraLecturaDato'} = datetime(datosP20{:, 'fechaHoraLecturaDato'}, 'TimeZone', '');
+
+
+            % Inicializar variables
+            tiempos = [];  % Inicializar una matriz para guardar los tiempos de cada viaje
+            estadoViaje = 0;  % 0 = fuera de la ruta, 1 = en la ruta
+            paradasVisitadas = false(height(paradas), 1);  % Marcador para saber si se ha pasado por la parada
+            tiempoRecarga = minutes(1);  % Tiempo mínimo de recarga antes de iniciar una nueva ruta
+            lastTime = datetime('0000-01-01', 'TimeZone', '');  % Inicializar la última hora registrada
+            inicioRuta = datetime('0000-01-01', 'TimeZone', '');  % Inicializar tiempo de inicio de ruta
+
+            % Recorrer todos los puntos de datos de p20
+            for i = 1:height(datosP20)
+                % Obtener la posición actual del bus
+                latBus = datosP20.latitud(i);
+                lonBus = datosP20.longitud(i);
+
+                % Verificar la distancia a cada parada
+                for j = 1:height(paradas)
+                    latParada = paradas.lat(j);
+                    lonParada = paradas.lon(j);
+
+                    % Calcular la distancia entre el bus y la parada actual
+                    distParada = Calculos.geodist(latBus, lonBus, latParada, lonParada);
+
+                    % Si la distancia es menor que el umbral, se marca como visitada
+                    if distParada < distanciaUmbral
+                        paradasVisitadas(j) = true;  % Marcar la parada como visitada
+                    end
+                end
+
+
+                % Verificar si se ha pasado por el porcentaje mínimo de paradas
+                porcentajeVisitadas = sum(paradasVisitadas) / height(paradas);
+
+                switch estadoViaje
+                    case 0  % Bus fuera de la ruta (esperando iniciar un nuevo viaje)
+                        if porcentajeVisitadas > porcentajeMinimoParadas && ...
+                                (isempty(tiempos) || (datosP20.fechaHoraLecturaDato(i) - lastTime > tiempoRecarga))
+                            % Iniciar nuevo viaje
+                            inicioRuta = datosP20.fechaHoraLecturaDato(i);  % Guardar el tiempo de inicio
+                            estadoViaje = 1;  % Cambiar el estado a "en viaje"
+                        end
+
+                    case 1  % Bus en la ruta (viajando)
+                        % Verificar si ha pasado por el porcentaje mínimo de paradas
+                        if porcentajeVisitadas >= porcentajeMinimoParadas
+                            finRuta = datosP20.fechaHoraLecturaDato(i);  % Guardar el tiempo de fin
+                            % Registrar el viaje
+                            tiempos = [tiempos; {inicioRuta, finRuta}];
+                            lastTime = finRuta;  % Actualizar la última hora registrada
+                            % Reiniciar el estado del viaje y las paradas visitadas
+                            estadoViaje = 0;
+                            paradasVisitadas(:) = false;  % Reiniciar las paradas visitadas para el siguiente viaje
+                        end
+                end
+            end
+
+        end
+
 
 
         %%

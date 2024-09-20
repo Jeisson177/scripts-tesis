@@ -1,4 +1,5 @@
 versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoEvento,codigoComportamientoAnomalo
+E.1.0.0,1153573,PB,Z374025,No Disponible,No Disponible,2024-08-02 02:45:29.837,2024-08-02 02:45:29.966,T,4.592736,-74.181925,2,3,False,2,EV19,4
 E.1.0.0,1159919,PB,Z374025,No Disponible,No Disponible,2024-08-02 21:46:52.475,2024-08-02 21:47:00.165,T,4.593119,-74.182042,2,3,True,2,EV19,4
 E.1.0.0,1159912,PB,Z374025,No Disponible,No Disponible,2024-08-02 21:45:42.773,2024-08-02 21:45:43.109,T,4.592728,-74.180817,2,3,False,2,EV19,4
 E.1.0.0,1159904,PB,Z374025,H613,No Disponible,2024-08-02 21:44:19.566,2024-08-02 21:44:19.756,T,4.592728,-74.180817,2,3,False,2,EV19,4
