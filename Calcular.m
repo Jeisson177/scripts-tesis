@@ -196,8 +196,20 @@ classdef Calcular
                 for j = 1:numel(fechas)
                     fecha = fechas{j};
                     datosSensor = datosBuses.(bus).(fecha).datosSensor;
+                    if isfield(datosBuses, bus) && isfield(datosBuses.(bus), fecha) && isfield(datosBuses.(bus).(fecha), 'P20') ...
+                            && istable(datosBuses.(bus).(fecha).P20) && ~isempty(datosBuses.(bus).(fecha).P20)
+                        p20 = datosBuses.(bus).(fecha).P20;
+                    else
+                        warning('El campo P20 no existe para el bus %s en la fecha %s', bus, fecha);
+                        continue
+                    end
+
+                    try
                     p20 = datosBuses.(bus).(fecha).P20;
                     p20 = sortrows(p20,"fechaHoraLecturaDato","ascend");
+                    catch
+                        2+2;
+                    end
 
                     if isempty(datosSensor)
                         warning("No se encontraron los datos del telefono para " + bus +  " para el dia " + fecha)
@@ -220,7 +232,7 @@ classdef Calcular
 
                         % Busca una ruta especifica y retorna todas las
                         % coincidencias
-                        tiempoRutaTemp = Calcular.Ruta(p20, rutas(k).stops, 30, .8);
+                        tiempoRutaTemp = Calcular.Ruta(p20, rutas(k).stops, 30, .4);
 
                         % Añadir el nombre de la ruta a cada fila de tiempoRutaTemp
                         nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
@@ -245,14 +257,15 @@ classdef Calcular
             % Convertir las fechas en 'datosP20' a datetimes sin zona horaria para la comparación
             datosP20{:, 'fechaHoraLecturaDato'} = datetime(datosP20{:, 'fechaHoraLecturaDato'}, 'TimeZone', '');
 
-
             % Inicializar variables
             tiempos = [];  % Inicializar una matriz para guardar los tiempos de cada viaje
             estadoViaje = 0;  % 0 = fuera de la ruta, 1 = en la ruta
             paradasVisitadas = false(height(paradas), 1);  % Marcador para saber si se ha pasado por la parada
+            ultimoStopSequence = 0;  % Inicializar el último `stop_sequence` visitado
             tiempoRecarga = minutes(1);  % Tiempo mínimo de recarga antes de iniciar una nueva ruta
             lastTime = datetime('0000-01-01', 'TimeZone', '');  % Inicializar la última hora registrada
             inicioRuta = datetime('0000-01-01', 'TimeZone', '');  % Inicializar tiempo de inicio de ruta
+            porcentajeVisitadas = 0;
 
             % Recorrer todos los puntos de datos de p20
             for i = 1:height(datosP20)
@@ -260,47 +273,52 @@ classdef Calcular
                 latBus = datosP20.latitud(i);
                 lonBus = datosP20.longitud(i);
 
-                % Verificar la distancia a cada parada
+                % Verificar la distancia a cada parada en orden de `stop_sequence`
                 for j = 1:height(paradas)
                     latParada = paradas.lat(j);
                     lonParada = paradas.lon(j);
+                    stopSequence = paradas.stop_sequence(j);  % Obtener el stop_sequence actual
+
+
 
                     % Calcular la distancia entre el bus y la parada actual
                     distParada = Calculos.geodist(latBus, lonBus, latParada, lonParada);
 
                     % Si la distancia es menor que el umbral, se marca como visitada
                     if distParada < distanciaUmbral
+
+                        if porcentajeVisitadas == 0
+
+                            inicioRuta = datosP20.fechaHoraLecturaDato(i);  % Guardar el tiempo de inicio
+                        end
+                        if ultimoStopSequence > (stopSequence)
+                            estadoViaje = 0;
+                            paradasVisitadas(:) = false;  % Reiniciar las paradas visitadas para el siguiente viaje
+                            ultimoStopSequence = 0;  % Reiniciar el `stop_sequence` para el siguiente viaje
+
+                            if porcentajeVisitadas >= porcentajeMinimoParadas
+                                finRuta = datosP20.fechaHoraLecturaDato(i);  % Guardar el tiempo de fin
+                                % Registrar el viaje
+                                tiempos = [tiempos; {inicioRuta, finRuta}];
+                                lastTime = finRuta;  % Actualizar la última hora registrada
+                                % Reiniciar el estado del viaje y las paradas visitadas
+                                estadoViaje = 0;
+                                paradasVisitadas(:) = false;  % Reiniciar las paradas visitadas para el siguiente viaje
+                                ultimoStopSequence = 0;  % Reiniciar el `stop_sequence` para el siguiente viaje
+                            end
+
+                            inicioRuta = datosP20.fechaHoraLecturaDato(i);  % Guardar el tiempo de inicio
+                        end
+
                         paradasVisitadas(j) = true;  % Marcar la parada como visitada
+                        ultimoStopSequence = stopSequence;  % Actualizar el último `stop_sequence` visitado
                     end
                 end
-
 
                 % Verificar si se ha pasado por el porcentaje mínimo de paradas
                 porcentajeVisitadas = sum(paradasVisitadas) / height(paradas);
 
-                switch estadoViaje
-                    case 0  % Bus fuera de la ruta (esperando iniciar un nuevo viaje)
-                        if porcentajeVisitadas > porcentajeMinimoParadas && ...
-                                (isempty(tiempos) || (datosP20.fechaHoraLecturaDato(i) - lastTime > tiempoRecarga))
-                            % Iniciar nuevo viaje
-                            inicioRuta = datosP20.fechaHoraLecturaDato(i);  % Guardar el tiempo de inicio
-                            estadoViaje = 1;  % Cambiar el estado a "en viaje"
-                        end
-
-                    case 1  % Bus en la ruta (viajando)
-                        % Verificar si ha pasado por el porcentaje mínimo de paradas
-                        if porcentajeVisitadas >= porcentajeMinimoParadas
-                            finRuta = datosP20.fechaHoraLecturaDato(i);  % Guardar el tiempo de fin
-                            % Registrar el viaje
-                            tiempos = [tiempos; {inicioRuta, finRuta}];
-                            lastTime = finRuta;  % Actualizar la última hora registrada
-                            % Reiniciar el estado del viaje y las paradas visitadas
-                            estadoViaje = 0;
-                            paradasVisitadas(:) = false;  % Reiniciar las paradas visitadas para el siguiente viaje
-                        end
-                end
             end
-
         end
 
 
