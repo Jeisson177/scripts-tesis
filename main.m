@@ -1,5 +1,11 @@
-%% actualizar 
+%% plotear indicadores aceleracion
+Graficar.graficarIndicadoresAcc(datosBuses);
 
+
+
+
+%% actualizar 
+datosBuses = Calcular.llenarIndicadoresAceleracion(datosBuses);
 %% Importar todos los datos
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');

@@ -1,6 +1,85 @@
 classdef Graficar
     methods (Static)
 
+        function graficarIndicadoresAcc(datosBuses)
+            figure;
+            % Obtener los nombres de los buses
+            busesNames = fieldnames(datosBuses);
+
+            % Recorrer cada bus en la estructura datosBuses
+            for i = 1:length(busesNames)
+                busName = busesNames{i};  % Nombre del bus actual
+                busData = datosBuses.(busName);  % Acceder a los datos del bus actual
+
+                % Obtener los nombres de los subcampos dentro de cada bus (por ejemplo: f_03_07_2024)
+                subfields = fieldnames(busData);  % Subcampos dentro del bus
+
+                % Recorrer los subcampos
+                for j = 1:length(subfields)
+                    subfieldName = subfields{j};  % Nombre del subcampo
+                    try
+                          
+                        tiempoRuta = datosBuses.(busName).(subfieldName).tiempoRuta;  % Acceder a datosSensorRuta
+                        numFilas = size(tiempoRuta, 1);  % Asume que tiene filas como una tabla o matriz
+
+                        for f = 1:numFilas
+                            %se toman aceleraciones como positivas y
+                            %frenadas como negativas
+                            aceleracionesKM=datosBuses.(busName).(subfieldName).tiempoRuta.aceleracionesKMIda{f};%positiva
+                            frenadasKM=datosBuses.(busName).(subfieldName).tiempoRuta.frenadasKMIda{f};%negativa
+                            cantidad_frenadas=-1*datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_frenadasIda{f};%las cantidades son positivas pero se multiplica por -1
+                            cantidad_aceleraciones=datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_aceleracionesIda{f};
+                            tiempos_positivos=datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosIda{f};
+                            tiempos_negativos=-1*datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosIda{f};%los tiempos son positivos pero se multiplican por -1
+                            
+                            
+                            if strcmp(datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Sexo,"M") 
+                                scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'r');
+                                hold on;
+                                scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'r');
+                            elseif strcmp(datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Sexo,"F") 
+                                scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'b');
+                                hold on;
+                                scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'b');
+                            else
+                                scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'g');
+                                hold on;
+                                scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'g');
+                            end    
+                            aceleracionesKM=datosBuses.(busName).(subfieldName).tiempoRuta.aceleracionesKMVuelta{f};%positiva
+                            frenadasKM=datosBuses.(busName).(subfieldName).tiempoRuta.frenadasKMVuelta{f};%negativa
+                            cantidad_frenadas=-1*datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_frenadasVuelta{f};%las cantidades son positivas pero se multiplica por -1
+                            cantidad_aceleraciones=datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_aceleracionesvuelta{f};
+                            tiempos_positivos=datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosVuelta{f};
+                            tiempos_negativos=-1*datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosVuelta{f};%los tiempos son positivos pero se multiplican por -1
+                            
+                            if strcmp(datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Sexo,"M") 
+                                scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'r');
+                                hold on;
+                                scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'r');
+                            elseif strcmp(datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Sexo,"F") 
+                                scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'b');
+                                hold on;
+                                scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'b');
+                            else
+                                scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'g');
+                                hold on;
+                                scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'g');
+                            end
+                            
+                        end
+                    catch
+                        fprintf('Error procesando el subcampo %s del bus %s.\n', subfieldName, busName);
+                    end
+                end
+            end
+            % Añadir etiquetas a los ejes y título
+            xlabel('cambios bruscos por KM');
+            ylabel('Cantidad de cambios');
+            zlabel('Tiempo (segundos)');
+            title('Gráfico de aceleraciones y frenadas por Sexo');
+        end
+        
         function graficarVelocidadPorRutas(datosBuses, busID, fecha, indiceRuta)
             % Esta función grafica las velocidades para rutas de un bus en fechas dadas
             % usando los parámetros proporcionados, con manejo de omisiones.
