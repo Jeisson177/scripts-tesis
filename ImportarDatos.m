@@ -553,6 +553,15 @@ classdef ImportarDatos
 
                 % Inicializar tablas para datos
                 datosCordenadasSensor = table([], [], [], 'VariableNames', {'time', 'lat', 'lon'});
+                datosP20 = table(); datosP60 = table();
+                datosEV1 = table(); datosEV2 = table(); datosEV6 = table();
+                datosEV7 = table(); datosEV8 = table(); datosEV12 = table();
+                datosEV13 = table(); datosEV14 = table(); datosEV15 = table();
+                datosEV16 = table(); datosEV17 = table(); datosEV18 = table();
+                datosEV19 = table(); datosEV20 = table(); datosEV21 = table();
+                datosALA1 = table(); datosALA2 = table(); datosALA3 = table();
+                datosALA5 = table(); datosALA8 = table(); datosALA9 = table(); datosALA10 = table();
+
                 % Telefono
                 try
                     % Importar los datos del sensor de la carpeta completa
