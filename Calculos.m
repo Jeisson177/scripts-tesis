@@ -1,6 +1,79 @@
 classdef Calculos
     methods (Static)
-        
+        %%
+          function [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos] = aceleracionPorCuadrosMx(datos)
+    % Aplicar el umbral de aceleración
+    datos.Acc(abs(datos.Acc) <= 0.3) = 0;
+    
+    % Inicializar variables
+    intervalo_inicio = 1;
+    magnitudes_positivas = [];
+    magnitudes_negativas = [];
+    tiempos_positivos = [];
+    tiempos_negativos = [];
+
+    % Recorrer la señal para identificar intervalos positivos, negativos o 0
+    while intervalo_inicio <= length(datos.Acc)
+        if datos.Acc(intervalo_inicio) > 0
+            % Buscar el final del intervalo positivo
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
+            end
+            altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
+
+            % Calcular la duración del intervalo
+            duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+
+            % Guardar magnitud y duración en arreglos separados para intervalos positivos
+            magnitudes_positivas = [magnitudes_positivas; altura];
+            tiempos_positivos = [tiempos_positivos; duracion];
+
+        elseif datos.Acc(intervalo_inicio) < 0
+            % Buscar el final del intervalo negativo
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
+            end
+            altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
+
+            % Calcular la duración del intervalo
+            duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+
+            % Guardar magnitud y duración en arreglos separados para intervalos negativos
+            magnitudes_negativas = [magnitudes_negativas; altura];
+            tiempos_negativos = [tiempos_negativos; duracion];
+
+        else
+            % Para los valores de 0
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
+            end
+        end
+
+        % Actualizar el inicio del siguiente intervalo
+        intervalo_inicio = intervalo_fin + 1;
+    end
+
+    % Eliminar las últimas 2 muestras de los arreglos
+    if length(magnitudes_positivas) > 2
+        magnitudes_positivas(end-1:end) = [];
+    end
+
+    if length(magnitudes_negativas) > 2
+        magnitudes_negativas(end-1:end) = [];
+    end
+
+    if length(tiempos_positivos) > 2
+        tiempos_positivos(end-1:end) = [];
+    end
+
+    if length(tiempos_negativos) > 2
+        tiempos_negativos(end-1:end) = [];
+    end
+end
+
         
         %%
         function velocidad = calcularVelocidadKH(datos)
