@@ -72,6 +72,7 @@ classdef Calculos
     if length(tiempos_negativos) > 2
         tiempos_negativos(end-1:end) = [];
     end
+    sctatter(tiempos_positivos,magnitudes_positivas);
 end
 
         
