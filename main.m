@@ -1,9 +1,6 @@
 %% plotear indicadores aceleracion
 Graficar.graficarIndicadoresAcc(datosBuses);
 
-
-
-
 %% actualizar 
 datosBuses = Calcular.llenarIndicadoresAceleracion(datosBuses);
 %% Importar todos los datos
@@ -24,9 +21,9 @@ Calcular.resumenRecorridosPorRuta(datosBuses);
 % Extrer datos sensor por ruta:
 % Extraer datos P60
 datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
+
 datosBuses = Calculos.extraerP60(datosBuses);
 
-%%
 datosBuses = Calcular.calcularKilometroRutas(datosBuses);
 
 %% Calcular velocidad por ruta
@@ -36,8 +33,6 @@ datosBuses = Calcular.calcularVelocidadPorRutas(datosBuses);
 %% Calcular aceleracion por ruta
 % Calcula la velocidad, solo durante el tiempo de la ruta
 datosBuses = Calcular.AceleracionPorRutas(datosBuses);
-
-
 %% Graficar
 %Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4020", "f_15_04_2024")
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_04_07_2024", 1)

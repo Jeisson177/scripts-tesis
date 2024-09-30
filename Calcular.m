@@ -361,7 +361,7 @@ classdef Calcular
 
                         % Calcular la velocidad para cada ruta completa (ida y vuelta)
                         for k = 1:size(tiempoRuta, 1)
-                            ruta = tiempoRuta{k, end}; % El nombre de la ruta está en la última columna
+                            ruta = tiempoRuta.Ruta{k}; % El nombre de la ruta está en la última columna
 
                             % Trayecto de ida
                             inicioIda = tiempoRuta{k, 1};
@@ -369,14 +369,8 @@ classdef Calcular
                             datosIda = datosSensor(datosSensor{:, 'time'} >= inicioIda & datosSensor{:, 'time'} <= finIda, :);
                             velocidadIda = Calcular.velocidadConFiltro(datosIda, 'time', 'lat', 'lon', 'pendiente');
 
-                            % Trayecto de vuelta
-                            inicioVuelta = tiempoRuta{k, 2};
-                            finVuelta = tiempoRuta{k, 3};
-                            datosVuelta = datosSensor(datosSensor{:, 'time'} >= inicioVuelta & datosSensor{:, 'time'} <= finVuelta, :);
-                            velocidadVuelta = Calcular.velocidadConFiltro(datosVuelta, 'time', 'lat', 'lon', 'pendiente');
-
                             % Guardar las velocidades para la ruta
-                            tiempoVelocidad = {inicioIda, finVuelta, velocidadIda, velocidadVuelta, ruta};
+                            tiempoVelocidad = {inicioIda, velocidadIda, ruta};
 
                             % Concatenar los resultados en el campo velocidadRuta
                             datosBuses.(bus).(fecha).velocidadRuta = [datosBuses.(bus).(fecha).velocidadRuta; tiempoVelocidad];
@@ -429,24 +423,17 @@ classdef Calcular
                         % Calcular la velocidad para cada ruta completa (ida y vuelta)
                         for k = 1:size(tiempoRuta, 1)
 
-                            ruta = tiempoRuta{k, end}; % El nombre de la ruta está en la última columna
+                            ruta = tiempoRuta.Ruta{k}; % El nombre de la ruta está en la última columna
 
                             % Trayecto de ida
                             inicioIda = tiempoRuta{k, 1};
-                            velocidadIda = datosBuses.(bus).(fecha).velocidadRuta{k, 3};
-                            tiempoIda = datosBuses.(bus).(fecha).datosSensorRuta{k, 3}.time;
+                            velocidadIda = datosBuses.(bus).(fecha).velocidadRuta{k, 2};
+                            tiempoIda = datosBuses.(bus).(fecha).datosSensorRuta{k, 2}.time;
                             aceleracionIda = Calcular.aceleracion(velocidadIda, tiempoIda);
 
-                            % Trayecto de vuelta
-                            finVuelta = tiempoRuta{k, 3};
-
-                            velocidadVuelta = datosBuses.(bus).(fecha).velocidadRuta{k, 4};
-                            tiempoVuelta = datosBuses.(bus).(fecha).datosSensorRuta{k, 4}.time;
-
-                            aceleracionVuelta = Calcular.aceleracion(velocidadVuelta, tiempoVuelta);
 
                             % Guardar las velocidades para la ruta
-                            tiempoAceleracion = {inicioIda, finVuelta, aceleracionIda, aceleracionVuelta, ruta};
+                            tiempoAceleracion = {inicioIda, aceleracionIda, ruta};
 
                             % Concatenar los resultados en el campo velocidadRuta
                             datosBuses.(bus).(fecha).aceleracionRuta = [datosBuses.(bus).(fecha).aceleracionRuta; tiempoAceleracion];
@@ -579,13 +566,8 @@ classdef Calcular
                             finIda = tiempoRuta{k, 2};
                             datosIda = datosSensor(datosSensor{:, 'time'} >= inicioIda & datosSensor{:, 'time'} <= finIda, :);
 
-                            % Trayecto de vuelta
-                            inicioVuelta = tiempoRuta{k, 2};
-                            finVuelta = tiempoRuta{k, 3};
-                            datosVuelta = datosSensor(datosSensor{:, 'time'} >= inicioVuelta & datosSensor{:, 'time'} <= finVuelta, :);
-
                             % Almacenar los datos del sensor extraídos
-                            tiempoDatosSensor = {inicioIda, finVuelta, datosIda, datosVuelta, ruta};
+                            tiempoDatosSensor = {inicioIda, datosIda, ruta};
 
                             % Concatenar los resultados en el campo datosSensorRuta
                             datosBuses.(bus).(fecha).datosSensorRuta = [datosBuses.(bus).(fecha).datosSensorRuta; tiempoDatosSensor];
@@ -647,14 +629,12 @@ classdef Calcular
             if ~ismember('Kilometros_Ida', tiemposRutas.Properties.VariableNames)
                 % Agregar columnas vacías con encabezados 'Kilometros_Ida' y 'Kilometros_Vuelta'
                 tiemposRutas.Kilometros_Ida = nan(height(tiemposRutas), 1);
-                tiemposRutas.Kilometros_Vuelta = nan(height(tiemposRutas), 1);
                 datosBuses.tiempoRuta = tiemposRutas; % Actualizar la tabla con las nuevas columnas
             end
 
             % Calcular y asignar los valores para las nuevas columnas
             try
                 datosBuses.tiempoRuta{k, 'Kilometros_Ida'} = datosBuses.segmentoP60{k, 1}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 1}.kilometrosOdometro(1);
-                datosBuses.tiempoRuta{k, 'Kilometros_Vuelta'} = datosBuses.segmentoP60{k, 2}.kilometrosOdometro(end) - datosBuses.segmentoP60{k, 2}.kilometrosOdometro(1);
             catch ME
                 fprintf('Error encontrado: %s\n', ME.message);
             end
@@ -858,8 +838,8 @@ classdef Calcular
                         for f = 1:numFilas
                             try
                                 % Para la ida
-                                tiempoIda=datosSensorRuta{f,3}.time(3:end);
-                                AccIda=datosBuses.(busName).(subfieldName).aceleracionRuta{f,3};
+                                tiempoIda=datosSensorRuta{f,2}.time(3:end);
+                                AccIda=datosBuses.(busName).(subfieldName).aceleracionRuta{f,2};
                                 datos = table(tiempoIda, AccIda  , 'VariableNames', {'Tiempo', 'Acc'});
                                 [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos]=Calculos.aceleracionPorCuadrosMx(datos);
                                 datosBuses.(busName).(subfieldName).tiempoRuta.aceleracionesKMIda{f}=mean(magnitudes_positivas);
@@ -872,21 +852,6 @@ classdef Calcular
                                 fprintf('Error procesando la ida para el bus %s en el subcampo %s, fila %d.\n', busName, subfieldName, f);
                             end
 
-                            try
-                                % Para la vuelta
-                                tiempoIda=datosSensorRuta{f,4}.time(3:end);%vuelta
-                                AccIda=datosBuses.(busName).(subfieldName).aceleracionRuta{f,4};
-                                datos = table(tiempoIda, AccIda  , 'VariableNames', {'Tiempo', 'Acc'});
-                                [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos]=Calculos.aceleracionPorCuadrosMx(datos);
-                                datosBuses.(busName).(subfieldName).tiempoRuta.aceleracionesKMVuelta{f}=mean(magnitudes_positivas);
-                                datosBuses.(busName).(subfieldName).tiempoRuta.frenadasKMVuelta{f}=mean(magnitudes_negativas);
-                                datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_frenadasVuelta{f}=length(magnitudes_negativas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);
-                                datosBuses.(busName).(subfieldName).tiempoRuta.cantidad_aceleracionesvuelta{f}=length(magnitudes_positivas)/datosBuses.(busName).(subfieldName).tiempoRuta.Kilometros_Vuelta(f);      
-                                datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosVuelta{f}=mean(seconds(tiempos_positivos));
-                                datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosVuelta{f}=mean(seconds(tiempos_negativos));
-                            catch
-                                fprintf('Error procesando la vuelta para el bus %s en el subcampo %s, fila %d.\n', busName, subfieldName, f);
-                            end
                         end
                     catch
                         fprintf('Error procesando el subcampo %s del bus %s.\n', subfieldName, busName);

@@ -2046,14 +2046,8 @@ function datosBuses = extraerP60(datosBuses)
                     finIda = tiempoRuta{k, 2};
                     segmentoP60Ida = datosP60(datosP60.fechaHoraLecturaDato >= inicioIda & datosP60.fechaHoraLecturaDato <= finIda, :);
                     
-                    % Trayecto de vuelta
-                    inicioVuelta = tiempoRuta{k, 2};
-                    finVuelta = tiempoRuta{k, 3};
-                    segmentoP60Vuelta = datosP60(datosP60.fechaHoraLecturaDato >= inicioVuelta & datosP60.fechaHoraLecturaDato <= finVuelta, :);
-                    
                     % Almacenar los segmentos P60 en la estructura de datos
                     datosBuses.(fecha).(bus).segmentoP60{k, 1} = segmentoP60Ida;
-                    datosBuses.(fecha).(bus).segmentoP60{k, 2} = segmentoP60Vuelta;
                 end
             end
         end
