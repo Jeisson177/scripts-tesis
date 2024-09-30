@@ -33,11 +33,11 @@ classdef Graficar
                             tiempos_negativos=-1*datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosIda{f};%los tiempos son positivos pero se multiplican por -1
                             
                             
-                            if strcmp(datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Sexo,"M") 
+                            if strcmp(datosBuses.(busName).(subfieldName).tiempoRuta.Sexo,'M') 
                                 scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'r');
                                 hold on;
                                 scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'r');
-                            elseif strcmp(datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Sexo,"F") 
+                            elseif strcmp(datosBuses.(busName).(subfieldName).tiempoRuta.Sexo,'H') 
                                 scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'b');
                                 hold on;
                                 scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'b');
@@ -53,11 +53,11 @@ classdef Graficar
                             tiempos_positivos=datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_positivosVuelta{f};
                             tiempos_negativos=-1*datosBuses.(busName).(subfieldName).tiempoRuta.tiempos_negativosVuelta{f};%los tiempos son positivos pero se multiplican por -1
                             
-                            if strcmp(datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Sexo,"M") 
+                            if strcmp(datosBuses.(busName).(subfieldName).tiempoRuta.Sexo,'M') 
                                 scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'r');
                                 hold on;
                                 scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'r');
-                            elseif strcmp(datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Sexo,"F") 
+                            elseif strcmp(datosBuses(busName).(subfieldName).tiempoRuta.Sexo,'H') 
                                 scatter3(aceleracionesKM,cantidad_aceleraciones,tiempos_positivos,'b');
                                 hold on;
                                 scatter3(frenadasKM,cantidad_frenadas,tiempos_negativos,'b');
