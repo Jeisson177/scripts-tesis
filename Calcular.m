@@ -838,6 +838,7 @@ classdef Calcular
                         for f = 1:numFilas
                             try
                                 % Para la ida
+                                % datosBuses.(BusName).(subfieldName).tiempoRuta.Ruta{f}
                                 tiempoIda=datosSensorRuta{f,2}.time(3:end);
                                 AccIda=datosBuses.(busName).(subfieldName).aceleracionRuta{f,2};
                                 datos = table(tiempoIda, AccIda  , 'VariableNames', {'Tiempo', 'Acc'});

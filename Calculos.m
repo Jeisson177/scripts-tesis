@@ -72,7 +72,24 @@ classdef Calculos
     if length(tiempos_negativos) > 2
         tiempos_negativos(end-1:end) = [];
     end
-    sctatter(tiempos_positivos,magnitudes_positivas);
+    tiempos_ent = floor(seconds(tiempos_positivos));
+mtem = [tiempos_ent, magnitudes_positivas];
+max_time = max(mtem(:,1));
+prom_magnitudes = zeros(max_time+1, 1);
+
+for i = 0:max_time
+    prom_magnitudes(i+1) = mean(mtem(mtem(:,1) == i, 2));
+end
+
+plot(0:max_time, prom_magnitudes);
+
+%scatter(tiempos_positivos, magnitudes_positivas)
+
+xlabel('Segundos');
+ylabel('Promedio de Magnitudes');
+title('Promedio de Magnitudes por Segundo Entero');
+hold on;
+
 end
 
         
