@@ -1,10 +1,8 @@
 %% plotear indicadores aceleracion
 Graficar.graficarIndicadoresAcc(datosBuses);
 
-<<<<<<< Updated upstream
 %% actualizar 
 datosBuses = Calcular.llenarIndicadoresAceleracion(datosBuses);
-=======
 % Recorrer la señal para identificar intervalos positivos, negativos o 0
 while intervalo_inicio <= length(datos.Acc)
     if datos.Acc(intervalo_inicio) > 0
@@ -141,7 +139,6 @@ magnitudes_positivas(end-1:end) = [];
 magnitudes_negativas(end-1:end) = [];
 tiempos_positivos(end-1:end) = [];
 tiempos_negativos(end-1:end) = [];
->>>>>>> Stashed changes
 %% Importar todos los datos
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
