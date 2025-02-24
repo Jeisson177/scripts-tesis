@@ -1,0 +1,10 @@
+versionTrama,idRegistro,idOperador,idVehiculo,idRuta,idConductor,fechaHoraLecturaDato,fechaHoraEnvioDato,tipoBus,latitud,longitud,tipoTrama,tecnologiaMotor,tramaRetransmitida,tipoFreno,codigoEvento,peso,temperaturaCabina,estimacionOcupacionSuben,estimacionOcupacionBajan,estimacionOcupacionAbordo
+E.1.0.0,576778,PB,Z374012,No Disponible,No Disponible,2024-07-23 20:05:58.520,2024-07-23 20:05:58.719,T,4.592497,-74.182225,2,3,False,2,EV1,,21.0,,,
+E.1.0.0,576252,PB,Z374012,No Disponible,No Disponible,2024-07-23 17:06:17.513,2024-07-23 17:06:17.883,T,4.592886,-74.182542,2,3,False,2,EV1,,23.0,,,
+E.1.0.0,576821,PB,Z374012,EM,No Disponible,2024-07-23 20:12:40.866,2024-07-23 20:12:41.206,T,4.592697,-74.182239,2,3,False,2,EV1,,21.0,,,
+E.1.0.0,576468,PB,Z374012,No Disponible,No Disponible,2024-07-23 17:50:59.786,2024-07-23 17:50:59.866,T,4.592886,-74.182542,2,3,False,2,EV1,,23.0,,,
+E.1.0.0,575611,PB,Z374012,No Disponible,No Disponible,2024-07-23 05:55:46.106,2024-07-23 05:55:46.546,T,4.592839,-74.181158,2,3,False,2,EV1,,15.0,,,
+E.1.0.0,576764,PB,Z374012,No Disponible,No Disponible,2024-07-23 20:03:52.229,2024-07-23 20:03:52.779,T,4.592619,-74.182489,2,3,False,2,EV1,,21.0,,,
+E.1.0.0,575647,PB,Z374012,No Disponible,No Disponible,2024-07-23 06:03:09.260,2024-07-23 06:03:10.538,T,4.592553,-74.182486,2,3,False,2,EV1,,15.0,,,
+E.1.0.0,576293,PB,Z374012,No Disponible,No Disponible,2024-07-23 17:13:23.874,2024-07-23 17:13:24.134,T,4.592886,-74.182542,2,3,False,2,EV1,,23.0,,,
+E.1.0.0,576778,PB,Z374012,No Disponible,No Disponible,2024-07-23 20:05:58.520,2024-07-23 20:05:58.719,T,4.592497,-74.182225,2,3,False,2,EV1,,21.0,,,

@@ -553,6 +553,15 @@ classdef ImportarDatos
 
                 % Inicializar tablas para datos
                 datosCordenadasSensor = table([], [], [], 'VariableNames', {'time', 'lat', 'lon'});
+                datosP20 = table(); datosP60 = table();
+                datosEV1 = table(); datosEV2 = table(); datosEV6 = table();
+                datosEV7 = table(); datosEV8 = table(); datosEV12 = table();
+                datosEV13 = table(); datosEV14 = table(); datosEV15 = table();
+                datosEV16 = table(); datosEV17 = table(); datosEV18 = table();
+                datosEV19 = table(); datosEV20 = table(); datosEV21 = table();
+                datosALA1 = table(); datosALA2 = table(); datosALA3 = table();
+                datosALA5 = table(); datosALA8 = table(); datosALA9 = table(); datosALA10 = table();
+
                 % Telefono
                 try
                     % Importar los datos del sensor de la carpeta completa
@@ -840,7 +849,327 @@ classdef ImportarDatos
         end
 
 
+%%
 
+function busesDatos = importarMuestra(basePath, numero, busesDatos)
+            clc;
+            % Esta función importa todos los datos de sensores para cada bus en cada fecha disponible bajo la carpeta base.
+            % basePath es la ruta a la carpeta 'Datos'.
+            % busesDatos es una estructura opcional de entrada que contiene datos previos.
+
+            % Verificar si se proporcionó la estructura busesDatos
+            if nargin < 3
+                busesDatos = struct(); % Crear una nueva estructura si no se proporcionó
+            end
+
+            % Obtener la lista de carpetas de buses con fechas
+            carpetas = ImportarDatos.getFolderList(basePath);
+
+            % Iterar sobre cada carpeta
+            for i = 1:numero
+                carpetaPath = fullfile(basePath, carpetas{i});
+                partes = strsplit(carpetas{i}, '-');
+                busID = partes{1};
+                fecha = strjoin(partes(2:end), '-');
+
+                busFieldName = ['bus_' busID];  % Añadir 'bus_' para hacer el nombre válido
+                fechaFieldName = ['f_' strrep(fecha, '-', '_')];
+
+                % Inicializar la estructura si no existe
+                if ~isfield(busesDatos, busFieldName)
+                    busesDatos.(busFieldName) = struct();
+                end
+                if ~isfield(busesDatos.(busFieldName), fechaFieldName)
+                    busesDatos.(busFieldName).(fechaFieldName) = struct();
+                end
+
+                % Inicializar tablas para datos
+                datosCordenadasSensor = table([], [], [], 'VariableNames', {'time', 'lat', 'lon'});
+                % Telefono
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosSensor = ImportarDatos.Sensor(carpetaPath);
+                    % Verificar si las columnas necesarias existen
+                    if all(ismember({'time', 'lat', 'lon'}, datosSensor.Properties.VariableNames))
+                        datosCordenadasSensor = datosSensor(:, {'time', 'lat', 'lon'});
+                    else
+                        warning('La carpeta %s no contiene las variables requeridas.', carpetaPath);
+                    end
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del telefono de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+                % P20
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosP20 = ImportarDatos.P20(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la trama P20 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+                % P60
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosP60 = ImportarDatos.P60(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la trama P60 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+                % EV1
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV1 = ImportarDatos.Evento1(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento 1 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV2
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV2 = ImportarDatos.Evento2(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento 2 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV6
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV6 = ImportarDatos.Evento6(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento 6 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV7
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV7 = ImportarDatos.Evento7(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento7 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV8
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV8 = ImportarDatos.Evento8(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento8 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV12
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV12 = ImportarDatos.Evento12(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento12 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV13
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV13 = ImportarDatos.Evento13(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento13 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV14
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV14 = ImportarDatos.Evento14(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento14 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV15
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV15 = ImportarDatos.Evento15(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento15 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV16
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV16 = ImportarDatos.Evento16(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento16 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV17
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV17 = ImportarDatos.Evento17(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento17 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV18
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV18 = ImportarDatos.Evento18(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento18 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV19
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV19 = ImportarDatos.Evento19(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento19 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV20
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV20 = ImportarDatos.Evento20(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento20 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % EV21
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosEV21 = ImportarDatos.Evento21(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos del Evento21 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % ALA1
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosALA1 = ImportarDatos.Alarma1(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la alarma 1 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % ALA2
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosALA2 = ImportarDatos.Alarma2(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la alarma 2 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % ALA3
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosALA3 = ImportarDatos.Alarma3(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la alarma 3 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % ALA5
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosALA5 = ImportarDatos.Alarma5(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la alarma 5 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % ALA8
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosALA8 = ImportarDatos.Alarma8(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la alarma 8 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % ALA9
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosALA9 = ImportarDatos.Alarma9(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la alarma 9 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % ALA10
+                try
+                    % Importar los datos del sensor de la carpeta completa
+                    datosALA10 = ImportarDatos.Alarma10(carpetaPath);
+                catch Me
+                    % Si ocurre un error, mostrar advertencia y el mensaje de error
+                    warning('No se pudieron importar datos de la alarma 10 de %s.', carpetaPath);
+                    disp(getReport(Me, 'extended'));
+                end
+
+                % Guardar los datos en la estructura organizada por bus y fecha
+                busesDatos.(busFieldName).(fechaFieldName).datosSensor = datosCordenadasSensor;
+                busesDatos.(busFieldName).(fechaFieldName).P20 = datosP20;
+                busesDatos.(busFieldName).(fechaFieldName).P60 = datosP60;
+
+                busesDatos.(busFieldName).(fechaFieldName).EV1 = datosEV1;
+                busesDatos.(busFieldName).(fechaFieldName).EV2 = datosEV2;
+                busesDatos.(busFieldName).(fechaFieldName).EV6 = datosEV6;
+                busesDatos.(busFieldName).(fechaFieldName).EV7 = datosEV7;
+                busesDatos.(busFieldName).(fechaFieldName).EV8 = datosEV8;
+                busesDatos.(busFieldName).(fechaFieldName).EV12 = datosEV12;
+                busesDatos.(busFieldName).(fechaFieldName).EV13 = datosEV13;
+                busesDatos.(busFieldName).(fechaFieldName).EV14 = datosEV14;
+                busesDatos.(busFieldName).(fechaFieldName).EV15 = datosEV15;
+                busesDatos.(busFieldName).(fechaFieldName).EV16 = datosEV16;
+                busesDatos.(busFieldName).(fechaFieldName).EV17 = datosEV17;
+                busesDatos.(busFieldName).(fechaFieldName).EV18 = datosEV18;
+                busesDatos.(busFieldName).(fechaFieldName).EV19 = datosEV19;
+                busesDatos.(busFieldName).(fechaFieldName).EV20 = datosEV20;
+                busesDatos.(busFieldName).(fechaFieldName).EV21 = datosEV21;
+
+                busesDatos.(busFieldName).(fechaFieldName).ALA1 = datosALA1;
+                busesDatos.(busFieldName).(fechaFieldName).ALA2 = datosALA2;
+                busesDatos.(busFieldName).(fechaFieldName).ALA3 = datosALA3;
+                busesDatos.(busFieldName).(fechaFieldName).ALA5 = datosALA5;
+                busesDatos.(busFieldName).(fechaFieldName).ALA8 = datosALA8;
+                busesDatos.(busFieldName).(fechaFieldName).ALA9 = datosALA9;
+                busesDatos.(busFieldName).(fechaFieldName).ALA10 = datosALA10;
+
+
+            end
+        end
 
 
         %%

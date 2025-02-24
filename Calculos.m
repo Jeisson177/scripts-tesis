@@ -1,6 +1,99 @@
 classdef Calculos
     methods (Static)
         %%
+          function [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos] = aceleracionPorCuadrosMx(datos)
+    % Aplicar el umbral de aceleración
+    datos.Acc(abs(datos.Acc) <= 0.3) = 0;
+    
+    % Inicializar variables
+    intervalo_inicio = 1;
+    magnitudes_positivas = [];
+    magnitudes_negativas = [];
+    tiempos_positivos = [];
+    tiempos_negativos = [];
+
+    % Recorrer la señal para identificar intervalos positivos, negativos o 0
+    while intervalo_inicio <= length(datos.Acc)
+        if datos.Acc(intervalo_inicio) > 0
+            % Buscar el final del intervalo positivo
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
+            end
+            altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
+
+            % Calcular la duración del intervalo
+            duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+
+            % Guardar magnitud y duración en arreglos separados para intervalos positivos
+            magnitudes_positivas = [magnitudes_positivas; altura];
+            tiempos_positivos = [tiempos_positivos; duracion];
+
+        elseif datos.Acc(intervalo_inicio) < 0
+            % Buscar el final del intervalo negativo
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
+            end
+            altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
+
+            % Calcular la duración del intervalo
+            duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
+
+            % Guardar magnitud y duración en arreglos separados para intervalos negativos
+            magnitudes_negativas = [magnitudes_negativas; altura];
+            tiempos_negativos = [tiempos_negativos; duracion];
+
+        else
+            % Para los valores de 0
+            intervalo_fin = find(datos.Acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
+            if isempty(intervalo_fin)
+                intervalo_fin = length(datos.Acc);
+            end
+        end
+
+        % Actualizar el inicio del siguiente intervalo
+        intervalo_inicio = intervalo_fin + 1;
+    end
+
+    % Eliminar las últimas 2 muestras de los arreglos
+    if length(magnitudes_positivas) > 2
+        magnitudes_positivas(end-1:end) = [];
+    end
+
+    if length(magnitudes_negativas) > 2
+        magnitudes_negativas(end-1:end) = [];
+    end
+
+    if length(tiempos_positivos) > 2
+        tiempos_positivos(end-1:end) = [];
+    end
+
+    if length(tiempos_negativos) > 2
+        tiempos_negativos(end-1:end) = [];
+    end
+    tiempos_ent = floor(seconds(tiempos_positivos));
+mtem = [tiempos_ent, magnitudes_positivas];
+max_time = max(mtem(:,1));
+prom_magnitudes = zeros(max_time+1, 1);
+
+for i = 0:max_time
+    prom_magnitudes(i+1) = mean(mtem(mtem(:,1) == i, 2));
+end
+
+plot(0:max_time, prom_magnitudes);
+
+%scatter(tiempos_positivos, magnitudes_positivas)
+
+xlabel('Segundos');
+ylabel('Promedio de Magnitudes');
+title('Promedio de Magnitudes por Segundo Entero');
+hold on;
+
+end
+
+        
+        %%
         function velocidad = calcularVelocidadKH(datos)
             % Asegurarse de que los datos son una tabla
             if ~istable(datos)
@@ -1971,14 +2064,8 @@ function datosBuses = extraerP60(datosBuses)
                     finIda = tiempoRuta{k, 2};
                     segmentoP60Ida = datosP60(datosP60.fechaHoraLecturaDato >= inicioIda & datosP60.fechaHoraLecturaDato <= finIda, :);
                     
-                    % Trayecto de vuelta
-                    inicioVuelta = tiempoRuta{k, 2};
-                    finVuelta = tiempoRuta{k, 3};
-                    segmentoP60Vuelta = datosP60(datosP60.fechaHoraLecturaDato >= inicioVuelta & datosP60.fechaHoraLecturaDato <= finVuelta, :);
-                    
                     % Almacenar los segmentos P60 en la estructura de datos
                     datosBuses.(fecha).(bus).segmentoP60{k, 1} = segmentoP60Ida;
-                    datosBuses.(fecha).(bus).segmentoP60{k, 2} = segmentoP60Vuelta;
                 end
             end
         end
