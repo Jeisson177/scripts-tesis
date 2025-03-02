@@ -172,7 +172,7 @@ classdef Calcular
 
         %%
 
-        function datosBuses = tiemposRutas(datosBuses, rutas)
+        function datosBuses = tiemposRutas(datosBuses, rutas, conductores)
             % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados
             % y almacena los resultados directamente en la estructura de entrada datosBuses.
             % Las rutas se pasan como un parámetro adicional.
@@ -188,6 +188,9 @@ classdef Calcular
                 if strcmp(bus, 'info')
                     continue;
                 end
+
+                % Extraer los últimos 4 caracteres del bus para buscar coincidencia con MOVIL
+                bus_id = extractAfter(bus, 4); % Obtiene "XXXX" de "bus_XXXX"
 
                 % Obtener los campos de las fechas para el bus actual
                 fechas = fieldnames(datosBuses.(bus));
@@ -221,9 +224,13 @@ classdef Calcular
                         continue;
                     end
 
+                    % Convertir la fecha de formato "f_dd_mm_yyyy" a "yyyy-MM-dd"
+                    fechaConvertida = datetime(fecha(3:end), 'InputFormat', 'dd_MM_yyyy', 'Format', 'yyyy-MM-dd');
+    
+
                     % Inicializar el campo tiempoRuta como una tabla vacía con encabezados
-                    headers = {'Inicio_Ruta', 'Fin_Ruta', 'Ruta'};
-                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 3), 'VariableNames', headers);  % Inicializar tabla vacía
+                    headers = {'Inicio_Ruta', 'Fin_Ruta', 'Ruta', 'Genero_Conductor'};
+                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 4), 'VariableNames', headers);  % Inicializar tabla vacía
 
 
 
@@ -234,13 +241,66 @@ classdef Calcular
                         % coincidencias
                         tiempoRutaTemp = Calcular.Ruta(p20, rutas(k).stops, 30, .4);
 
+                        if isempty(tiempoRutaTemp)
+                            continue
+                        end
+
                         % Añadir el nombre de la ruta a cada fila de tiempoRutaTemp
                         nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
                         tiempoRutaTemp = [tiempoRutaTemp, nombreRuta];
 
-                        if isempty(tiempoRutaTemp)
-                            continue
+
+                        % Buscar el género del conductor más adecuado
+                        generoConductor = repmat({"NA"}, size(tiempoRutaTemp, 1), 1); % Default a "NA"
+
+                        % Filtrar los conductores por el mismo MOVIL y fecha
+                        conductoresBusFecha = conductores(strcmp(extractAfter(conductores.MOVIL, 4), bus_id) & conductores.Fecha == fechaConvertida, :);
+
+
+
+
+                for m = 1:size(tiempoRutaTemp, 1)
+                    inicioRuta = tiempoRutaTemp{m, 1}; % Inicio de la ruta
+                    finRuta = tiempoRutaTemp{m, 2}; % Fin de la ruta
+
+                   
+                if ~isempty(conductoresBusFecha)
+                    for m = 1:size(tiempoRutaTemp, 1)
+                        inicioRuta = tiempoRutaTemp{m, 1}; % Inicio de la ruta
+                        finRuta = tiempoRutaTemp{m, 2}; % Fin de la ruta
+
+                        mejorDiferencia = inf;
+                        mejorGenero = "NA";
+
+                        for n = 1:height(conductoresBusFecha)
+                            login = conductoresBusFecha.Login(n);
+                            logout = conductoresBusFecha.Logout(n);
+
+                            inicioRutaTemp = timeofday(inicioRuta);
+                            finRutaTemp = timeofday(finRuta);
+
+                            % Verificar si el tiempo de ruta está dentro del tiempo del conductor
+                            if inicioRutaTemp >= login && finRutaTemp <= logout
+                                diferencia = abs(inicioRutaTemp - login) + abs(finRutaTemp - logout);
+                                if diferencia < mejorDiferencia
+                                    mejorDiferencia = diferencia;
+                                    mejorGenero = conductoresBusFecha.Genero(n);
+                                end
+                            end
                         end
+                        generoConductor{m} = mejorGenero;
+                    end
+                end
+                end
+
+                % Agregar la columna del género del conductor
+                tiempoRutaTemp = [tiempoRutaTemp, generoConductor];
+
+
+
+
+
+                        
                         % Concatenar los resultados en el campo tiempoRuta
                         datosBuses.(bus).(fecha).tiempoRuta = [datosBuses.(bus).(fecha).tiempoRuta; tiempoRutaTemp];
                     end
