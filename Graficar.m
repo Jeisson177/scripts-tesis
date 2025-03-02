@@ -124,11 +124,11 @@ classdef Graficar
                 % Iterar sobre los índices de ruta
                 for k = indicesRutas
                     % Obtener las velocidades y los datos del sensor para el índice de ruta especificado
-                    velocidades = velocidadRutas{k, 3}; % Velocidades calculadas
-                    ruta = velocidadRutas{k, end}; % Nombre de la ruta
+                    velocidades = velocidadRutas{k, 2}; % Velocidades calculadas
+                    ruta = velocidadRutas{k, 3}; % Nombre de la ruta
 
                     % Obtener los tiempos asociados a las velocidades
-                    datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 3}; % Datos del sensor para la ruta
+                    datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 2}; % Datos del sensor para la ruta
                     tiempos = datosSensorRuta.time(2:end-1); % Usar los tiempos del sensor
                     velocidades = velocidades(1:end-1); % cambio porque estaba dando error con lo de arriba
                     % Graficar las velocidades
@@ -194,11 +194,11 @@ classdef Graficar
                 % Iterar sobre los índices de ruta
                 for k = indicesRutas
                     % Obtener las velocidades y los datos del sensor para el índice de ruta especificado
-                    velocidades = aceleracionRutas{k, 3}; % Velocidades calculadas
-                    ruta = aceleracionRutas{k, end}; % Nombre de la ruta
+                    velocidades = aceleracionRutas{k, 2}; % Velocidades calculadas
+                    ruta = aceleracionRutas{k, 3}; % Nombre de la ruta
 
                     % Obtener los tiempos asociados a las velocidades
-                    datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 3}; % Datos del sensor para la ruta
+                    datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 2}; % Datos del sensor para la ruta
                     tiempos = datosSensorRuta.time(2:end-1); % Usar los tiempos del sensor
 
                     % Graficar las velocidades
