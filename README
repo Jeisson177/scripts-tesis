@@ -365,4 +365,75 @@ Los métodos de la clase `Graficas` permiten visualizar y analizar el rendimient
 - Algunas funciones permiten personalizar colores y estilos de gráficos.
 - Los gráficos pueden mostrar múltiples series de datos en una misma visualización.
 
+# README - Clase ImportarDatos
+
+## Descripción
+La clase `ImportarDatos` en MATLAB está diseñada para manejar la importación y filtrado de datos de sensores de autobuses. Facilita la carga y procesamiento de archivos CSV y TXT, proporcionando herramientas para gestionar grandes volúmenes de información de rutas de transporte público.
+
+## Funcionalidades Principales
+
+### 1. `createImportOptions(numVariables, variableNames, variableTypes, dateVars, decimalVars, initLine)`
+Genera opciones de importación para leer archivos de texto delimitados por comas, especificando nombres y tipos de variables.
+
+### 2. `importData(folder, fileName, numVariables, variableNames, variableTypes, dateVars, decimalVars, initLine)`
+Importa datos desde un archivo CSV o TXT, aplicando configuraciones de formato y filtrado.
+
+### 3. `Sensor(nombreCarpeta)`
+Carga datos de sensores de archivos `.txt` dentro de una carpeta específica y los concatena en una única tabla.
+
+### 4. `P20(carpeta)` y `P60(carpeta)`
+Importan datos de los archivos `P20.csv` y `P60.csv`, respectivamente, los cuales contienen información de sensores de velocidad, aceleración y consumo de energía.
+
+### 5. `filtrarDatosPorFechas(datos, fechaInicio, fechaFin)`
+Filtra datos en un rango de fechas específico.
+
+### 6. `EventoX(carpeta)` (X = 1, 2, 6, 7, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)
+Carga datos de eventos específicos registrados en archivos CSV, como cambios en la ocupación, alertas de frenado, consumo de energía, entre otros.
+
+### 7. `AlarmaX(carpeta)` (X = 1, 2, 3, 5, 8, 9, 10)
+Importa datos de alarmas generadas por sensores de los autobuses.
+
+### 8. `Evento19Coordenadas(datos)`
+Filtra datos del evento 19 y organiza la información en tablas separadas según el código de comportamiento anómalo detectado.
+
+### 9. `getFolderList(baseFolder)`
+Obtiene una lista de subcarpetas dentro de un directorio especificado.
+
+### 10. `importarTodosLosDatos(basePath, busesDatos)`
+Carga y estructura datos de todos los sensores disponibles en la carpeta de base, organizándolos por bus y fecha.
+
+### 11. `importarMuestra(basePath, numero, busesDatos)`
+Carga datos de una cantidad limitada de carpetas para pruebas o análisis rápido.
+
+### 12. `agregarCodigoConductor(datosBuses)`
+Agrega información del conductor a la estructura de datos de los autobuses.
+
+### 13. `importarCSV(filename)`
+Carga archivos CSV generales y convierte sus fechas al formato `datetime`.
+
+### 14. `reorganizarDatosBuses(datosBuses)`
+Reorganiza los datos de los buses en función de la fecha y las rutas de ida y vuelta.
+
+### 15. `reorganizarDatosRutas(datosBuses)`
+Reestructura los datos organizándolos por rutas en lugar de por buses, facilitando su análisis por trayecto.
+
+### 16. `clasificarHoras(datos)`
+Clasifica los datos en horarios de **hora pico**, **hora valle** y **flujo libre**, según las horas de operación del sistema de transporte.
+
+### 17. `compareTables(tabla1, tabla2)`
+Compara dos tablas y muestra las diferencias entre sus contenidos.
+
+## Requisitos
+- MATLAB
+- Archivos de datos CSV y TXT con información de sensores
+- Dependencias de `readtable`, `datetime`, y `dir`
+
+## Uso
+Esta clase facilita la importación y organización de grandes volúmenes de datos de sensores de autobuses. Se recomienda usar `importarTodosLosDatos` para procesar toda la información y `filtrarDatosPorFechas` para extraer datos específicos.
+
+## Notas
+- Asegúrese de que los archivos CSV y TXT sigan la estructura esperada antes de importarlos.
+- Algunas funciones generan advertencias en caso de errores de lectura o formatos incorrectos.
+- Puede personalizar los métodos de importación para incluir más variables o formatos según sea necesario.
+
 
