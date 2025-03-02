@@ -7,7 +7,11 @@ datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
 %% Importar una muestra de datos
 clc
 datosBuses = ImportarDatos.importarMuestra('Datos', 3);
-datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
+%%
+datosBuses = Calcular.tiemposRutas(datosBuses, rutas, Conductores);
+
+%%
+Conductores = ImportarDatos.importarCSV("conductores_LaRolita.csv");
 
 %% Muestra un resumen de los datos totales a procesar
 
