@@ -1,4 +1,8 @@
 
+%%
+Conductores = ImportarDatos.importarCSV("conductores_LaRolita.csv");
+
+
 %% Importar todos los datos
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
@@ -10,8 +14,6 @@ datosBuses = ImportarDatos.importarMuestra('Datos', 3);
 %%
 datosBuses = Calcular.tiemposRutas(datosBuses, rutas, Conductores);
 
-%%
-Conductores = ImportarDatos.importarCSV("conductores_LaRolita.csv");
 
 %% Muestra un resumen de los datos totales a procesar
 
@@ -35,7 +37,7 @@ datosBuses = Calcular.calcularVelocidadPorRutas(datosBuses);
 datosBuses = Calcular.AceleracionPorRutas(datosBuses);
 %% Graficar
 %Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4020", "f_15_04_2024")
-Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_04_07_2024", 1)
+Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
 
 %% Aceleracion
 Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1)
@@ -47,9 +49,6 @@ datosBuses = Calcular.ConductoresTemplante(datosBuses);
 
 %% Aceleracion
 
-temp = Calcular.aceleracionPorCuadrosMaximosRutas(datosBuses);
-
-%% 
 datosBuses = Calcular.llenarIndicadoresAceleracion(datosBuses);
 
 %% ---------------Funciones viejas--------------------------

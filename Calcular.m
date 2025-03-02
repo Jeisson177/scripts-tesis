@@ -229,8 +229,8 @@ classdef Calcular
     
 
                     % Inicializar el campo tiempoRuta como una tabla vacía con encabezados
-                    headers = {'Inicio_Ruta', 'Fin_Ruta', 'Ruta', 'Genero_Conductor'};
-                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 4), 'VariableNames', headers);  % Inicializar tabla vacía
+                    headers = {'Inicio_Ruta', 'Fin_Ruta', 'Ruta', 'Genero_Conductor', 'Id'};
+                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 5), 'VariableNames', headers);  % Inicializar tabla vacía
 
 
 
@@ -252,6 +252,7 @@ classdef Calcular
 
                         % Buscar el género del conductor más adecuado
                         generoConductor = repmat({"NA"}, size(tiempoRutaTemp, 1), 1); % Default a "NA"
+                        idConductor = repmat({0}, size(tiempoRutaTemp, 1), 1); 
 
                         % Filtrar los conductores por el mismo MOVIL y fecha
                         conductoresBusFecha = conductores(strcmp(extractAfter(conductores.MOVIL, 4), bus_id) & conductores.Fecha == fechaConvertida, :);
@@ -271,6 +272,7 @@ classdef Calcular
 
                         mejorDiferencia = inf;
                         mejorGenero = "NA";
+                        mejorId = 0;
 
                         for n = 1:height(conductoresBusFecha)
                             login = conductoresBusFecha.Login(n);
@@ -285,16 +287,18 @@ classdef Calcular
                                 if diferencia < mejorDiferencia
                                     mejorDiferencia = diferencia;
                                     mejorGenero = conductoresBusFecha.Genero(n);
+                                    mejorId = conductoresBusFecha.ID_Conductor(n);
                                 end
                             end
                         end
                         generoConductor{m} = mejorGenero;
+                        idConductor{m} = mejorId;
                     end
                 end
                 end
 
                 % Agregar la columna del género del conductor
-                tiempoRutaTemp = [tiempoRutaTemp, generoConductor];
+                tiempoRutaTemp = [tiempoRutaTemp, generoConductor, idConductor];
 
 
 
@@ -422,6 +426,7 @@ classdef Calcular
                         % Calcular la velocidad para cada ruta completa (ida y vuelta)
                         for k = 1:size(tiempoRuta, 1)
                             ruta = tiempoRuta.Ruta{k}; % El nombre de la ruta está en la última columna
+                            genero = tiempoRuta.Genero_Conductor{k};
 
                             % Trayecto de ida
                             inicioIda = tiempoRuta{k, 1};
@@ -430,7 +435,7 @@ classdef Calcular
                             velocidadIda = Calcular.velocidadConFiltro(datosIda, 'time', 'lat', 'lon', 'pendiente');
 
                             % Guardar las velocidades para la ruta
-                            tiempoVelocidad = {inicioIda, velocidadIda, ruta};
+                            tiempoVelocidad = {inicioIda, velocidadIda, ruta, genero};
 
                             % Concatenar los resultados en el campo velocidadRuta
                             datosBuses.(bus).(fecha).velocidadRuta = [datosBuses.(bus).(fecha).velocidadRuta; tiempoVelocidad];
@@ -484,6 +489,7 @@ classdef Calcular
                         for k = 1:size(tiempoRuta, 1)
 
                             ruta = tiempoRuta.Ruta{k}; % El nombre de la ruta está en la última columna
+                            genero = tiempoRuta.Genero_Conductor{k};
 
                             % Trayecto de ida
                             inicioIda = tiempoRuta{k, 1};
@@ -493,7 +499,7 @@ classdef Calcular
 
 
                             % Guardar las velocidades para la ruta
-                            tiempoAceleracion = {inicioIda, aceleracionIda, ruta};
+                            tiempoAceleracion = {inicioIda, aceleracionIda, ruta, genero};
 
                             % Concatenar los resultados en el campo velocidadRuta
                             datosBuses.(bus).(fecha).aceleracionRuta = [datosBuses.(bus).(fecha).aceleracionRuta; tiempoAceleracion];
@@ -619,7 +625,8 @@ classdef Calcular
 
                         % Extraer los datos del sensor para cada ruta completa (ida y vuelta)
                         for k = 1:size(tiempoRuta, 1)
-                            ruta = tiempoRuta{k, end}; % El nombre de la ruta está en la última columna
+                            ruta = tiempoRuta{k, 3}; % El nombre de la ruta está en la última columna
+                            genero = tiempoRuta{k, 4};
 
                             % Trayecto de ida
                             inicioIda = tiempoRuta{k, 1};
@@ -627,7 +634,7 @@ classdef Calcular
                             datosIda = datosSensor(datosSensor{:, 'time'} >= inicioIda & datosSensor{:, 'time'} <= finIda, :);
 
                             % Almacenar los datos del sensor extraídos
-                            tiempoDatosSensor = {inicioIda, datosIda, ruta};
+                            tiempoDatosSensor = {inicioIda, datosIda, ruta, genero};
 
                             % Concatenar los resultados en el campo datosSensorRuta
                             datosBuses.(bus).(fecha).datosSensorRuta = [datosBuses.(bus).(fecha).datosSensorRuta; tiempoDatosSensor];
