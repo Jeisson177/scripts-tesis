@@ -6,8 +6,7 @@ Conductores = ImportarDatos.importarCSV("conductores_LaRolita.csv");
 %% Importar todos los datos
 
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos');
-%%
-datosBuses = Calcular.tiemposRutas(datosBuses, rutas);
+
 %% Importar una muestra de datos
 clc
 datosBuses = ImportarDatos.importarMuestra('Datos', 3);
@@ -50,6 +49,14 @@ datosBuses = Calcular.ConductoresTemplante(datosBuses);
 %% Aceleracion
 
 datosBuses = Calcular.llenarIndicadoresAceleracion(datosBuses);
+
+%%
+
+datosBuses = Calcular.corregirAceleracionPorRutas(datosBuses);
+
+%%
+
+datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 
 %% ---------------Funciones viejas--------------------------
 
@@ -191,7 +198,7 @@ while intervalo_inicio <= length(datos.Acc)
         if isempty(intervalo_fin)
             intervalo_fin = length(datos.Acc);
         end
-        altura = max(datos.Acc(intervalo_inicio:intervalo_fin));
+        altura = mean(datos.Acc(intervalo_inicio:intervalo_fin));
         
         % Calcular la duración del intervalo
         duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
@@ -206,7 +213,7 @@ while intervalo_inicio <= length(datos.Acc)
         if isempty(intervalo_fin)
             intervalo_fin = length(datos.Acc);
         end
-        altura = min(datos.Acc(intervalo_inicio:intervalo_fin));
+        altura = mean(datos.Acc(intervalo_inicio:intervalo_fin));
         
         % Calcular la duración del intervalo
         duracion = datos.Tiempo(intervalo_fin) - datos.Tiempo(intervalo_inicio);
