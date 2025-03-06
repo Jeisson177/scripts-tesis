@@ -114,8 +114,6 @@ classdef Calcular
         end
 
 
-
-
         %%
 
         function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
@@ -389,7 +387,6 @@ classdef Calcular
 
         %%
 
-
         function datosBuses = calcularVelocidadPorRutas(datosBuses)
             % Esta función calcula las velocidades para cada ruta de cada bus,
             % basándose en los tiempos de ruta y los datos del sensor.
@@ -449,6 +446,81 @@ classdef Calcular
                 end
             end
         end
+
+%%
+function nivelBateriaSuavizado = suavizarNivelBateria(nivelBateria)
+    % Suaviza el nivel de batería usando un filtro de Savitzky-Golay.
+
+    ordenPol = 3; % Orden del polinomio
+    ventana = 65; % Longitud de la ventana, debe ser impar
+
+    if length(nivelBateria) >= ventana
+        % Aplicar filtro de Savitzky-Golay si hay suficientes datos
+        nivelBateriaSuavizado = sgolayfilt(nivelBateria, ordenPol, ventana);
+    else
+        % Si no hay suficientes datos, mantener el nivel de batería sin cambios
+        nivelBateriaSuavizado = nivelBateria;
+    end
+end
+
+
+        %%
+        function datosBuses = aproximarNivelBateriaPorRutas(datosBuses)
+    % Esta función suaviza el nivel de batería para cada ruta de cada bus en cada fecha,
+    % asegurando que los datos se ajusten a la estructura de datosBuses.
+
+    % Obtener los nombres de los buses
+    buses = fieldnames(datosBuses);
+
+    % Iterar sobre cada bus
+    for i = 1:numel(buses)
+        bus = buses{i};
+
+        % Saltar el campo 'info'
+        if strcmp(bus, 'info')
+            continue;
+        end
+
+        % Obtener los campos de las fechas para el bus actual
+        fechas = fieldnames(datosBuses.(bus));
+
+        % Iterar sobre cada fecha
+        for j = 1:numel(fechas)
+            fecha = fechas{j};
+
+            % Verificar si existen datos de rutas y nivel de batería
+            if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && isfield(datosBuses.(bus).(fecha), 'P60')
+                
+
+                % Inicializar el campo nivelBateriaSuavizado como celda vacía si no existe
+                if ~isfield(datosBuses.(bus).(fecha), 'nivelBateriaSuavizado') || isempty(datosBuses.(bus).(fecha).nivelBateriaSuavizado)
+                    datosBuses.(bus).(fecha).nivelBateriaSuavizado = {}; % Inicializar como celda vacía
+                end
+
+                rutas = datosBuses.(bus).(fecha).tiempoRuta;
+
+                % Calcular el nivel de batería suavizado para cada ruta
+                for k = 1:size(rutas, 1)
+                    ruta = rutas.Ruta{k}; % Nombre de la ruta
+                    tiempoRuta = datosBuses.(bus).(fecha).datosSensorRuta{k,2}.time;
+                    datosP60 = datosBuses.(bus).(fecha).segmentoP60{k};
+
+
+                    % Aplicar suavizado de batería
+                    nivelBateriaSuavizado = Calcular.suavizarNivelBateria(datosP60.nivelRestanteEnergia);
+
+                    % Guardar el resultado en la estructura de datos
+                    datosBuses.(bus).(fecha).nivelBateriaSuavizado = [datosBuses.(bus).(fecha).nivelBateriaSuavizado; {nivelBateriaSuavizado}];
+
+                    % Mostrar mensaje de confirmación
+                    disp(['Nivel de batería suavizado para la ruta ' ruta ' en el bus ' bus ' en la fecha ' fecha '.']);
+                end
+            else
+                warning("No se encontraron los datos necesarios para suavizar el nivel de batería en el bus " + bus + " para el día " + fecha);
+            end
+        end
+    end
+end
 
         %%
 
@@ -583,7 +655,6 @@ classdef Calcular
 
             resumenRutas = table(rutas', cell2mat(numRecorridos)', 'VariableNames', {'Ruta', 'NumeroRecorridos'});
         end
-
 
 
         %%
@@ -947,45 +1018,6 @@ function datosBuses = corregirAceleracionPorRutasMax(datosBuses)
     end
 end
 
-
-
-
-
-
-        function datosBuses = ConductoresTemplante(datosBuses)
-            % Esta función agrega columnas vacías 'ID_Conductor' y 'Sexo' a la tabla tiempoRuta
-            % para cada ruta utilizando la función iterarSobreBusesYFechas.
-
-            % Usar la función iterarSobreBusesYFechas para aplicar el cambio
-            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.agregarColumnasConductor);
-        end
-
-        function datosFecha = agregarColumnasConductor(datosFecha, k)
-            % Función auxiliar que agrega las columnas 'ID_Conductor' y 'Sexo' a la tabla tiempoRuta para cada ruta.
-
-            % Verificar si la tabla tiempoRuta existe
-            if isfield(datosFecha, 'tiempoRuta')
-                % Obtener la tabla tiempoRuta
-                tiempoRuta = datosFecha.tiempoRuta;
-
-                % Verificar si las columnas 'ID_Conductor' y 'Sexo' ya existen
-                if ~ismember('ID_Conductor', tiempoRuta.Properties.VariableNames)
-                    % Agregar columna 'ID_Conductor' vacía (como NaN)
-                    tiempoRuta.ID_Conductor = NaN(height(tiempoRuta), 1);  % Columna numérica vacía
-                end
-                if ~ismember('Sexo', tiempoRuta.Properties.VariableNames)
-                    % Agregar columna 'Sexo' vacía (como cadenas vacías)
-                    tiempoRuta.Sexo = repmat({''}, height(tiempoRuta), 1);  % Columna de celdas vacía
-                end
-
-                % Actualizar las celdas vacías de 'ID_Conductor' y 'Sexo' en la fila correspondiente 'k'
-                tiempoRuta.ID_Conductor(k) = NaN;  % Deja la celda vacía (NaN)
-                tiempoRuta.Sexo{k} = '';  % Deja la celda vacía (cadena vacía)
-
-                % Actualizar la tabla tiempoRuta en datosFecha
-                datosFecha.tiempoRuta = tiempoRuta;
-            end
-        end
 
 
         function [magnitudes_positivas, magnitudes_negativas, tiempos_positivos, tiempos_negativos] = aceleracionPorCuadrosMx(datos)

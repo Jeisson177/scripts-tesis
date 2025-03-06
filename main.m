@@ -58,6 +58,10 @@ datosBuses = Calcular.corregirAceleracionPorRutas(datosBuses);
 
 datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 
+%%
+
+datosBuses1 = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
+
 %% ---------------Funciones viejas--------------------------
 
 
@@ -67,23 +71,6 @@ datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 
 
 
-
-
-
-
-
-
-
-%%
-datosBuses = Calculos.aproximarNivelBateria(datosBuses);
-
-%% calcula la velocidad
-
-datosBuses = Calculos.calcularAceleracionRutas(datosBuses);
-
-%%
-datosBuses = Calculos.calcularAceleracionRutas2(datosBuses);
-
 %%
 
 datosBuses = Calculos.calcularPorcentajeBateriaRutas(datosBuses);
@@ -91,18 +78,6 @@ datosBuses = Calculos.calcularPorcentajeBateriaRutas(datosBuses);
 %%
 datosBuses = Calculos.calcularConsumoEnergiaRutas(datosBuses);
 
-%%
-
-datosBuses = Calculos.calcularPicosAceleracionRutas(datosBuses);
-%%
-
-datosBuses = Calculos.calcularPosAceleracion(datosBuses);
-
-
-
-%%
-
-datosBuses = Calculos.extraerSegmentosDatos(datosBuses);
 
 %%
 
