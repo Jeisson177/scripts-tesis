@@ -49,7 +49,7 @@ Graficar.rutaPorTiempo(datosBuses,"bus_4012" ,"f_10_07_2024", datetime(2024,7,10
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
 
 %% Aceleracion
-Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1)
+Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
 
 %% Aceleracion
 datosBuses = Calcular.llenarIndicadoresAceleracion(datosBuses);

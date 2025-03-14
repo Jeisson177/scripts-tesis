@@ -138,7 +138,7 @@ classdef Calcular
                         % Convertir los objetos duration a segundos
                         dt = seconds(tiempo(j) - tiempo(j-1));
 
-                        pendiente = (velocidadCorregida(j) - velocidadCorregida(j-1)) / dt;
+                        pendiente = (velocidadCorregida(j) - velocidadCorregida(i)) / dt;
                         j = j + 1;
                     end
 
@@ -662,7 +662,7 @@ classdef Calcular
                             datosBuses.(bus).(fecha).velocidadRuta = {}; % Inicializar como celda vacía si no existe
                         end
 
-                        % Calcular la velocidad para cada ruta completa (ida y vuelta)
+                        % Calcular la velocidad para cada ruta completa 
                         for k = 1:size(tiempoRuta, 1)
                             ruta = tiempoRuta.Ruta{k}; % El nombre de la ruta está en la última columna
                             genero = tiempoRuta.Genero_Conductor{k};
