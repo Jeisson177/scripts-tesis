@@ -51,9 +51,6 @@ Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
 %% Aceleracion
 Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1)
 
-%% Generar conductores
-datosBuses = Calcular.ConductoresTemplante(datosBuses);
-
 %% Aceleracion
 datosBuses = Calcular.llenarIndicadoresAceleracion(datosBuses);
 

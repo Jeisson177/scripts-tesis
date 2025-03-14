@@ -239,7 +239,7 @@ classdef Calcular
 
                         % Busca una ruta especifica y retorna todas las
                         % coincidencias
-                        tiempoRutaTemp = Calcular.RutaP60(p60);
+                        tiempoRutaTemp = Calcular.RutaOptimizada(p60, datosSensor, rutas, 50, .7);
 
                         if isempty(tiempoRutaTemp)
                             continue
@@ -503,6 +503,129 @@ classdef Calcular
                 tiempos = [tiempos; {inicioRuta, datosP60.fechaHoraLecturaDato(end), idRutaActual}];
             end
         end 
+
+        %%
+
+        function tiempos = RutaOptimizada(datosP60p, datosSensor, paradas, distanciaUmbral, porcentajeMinimoParadas)
+            % Esta función ajusta los tiempos de inicio y fin de una ruta basándose en el porcentaje de paradas visitadas.
+        
+
+            datosP60 = datosP60p;
+
+            % Convertir las fechas a datetime sin zona horaria para la comparación
+            datosP60{:, 'fechaHoraLecturaDato'} = datetime(datosP60{:, 'fechaHoraLecturaDato'}, 'TimeZone', '');
+            datosP60 = sortrows(datosP60, 'fechaHoraLecturaDato', 'ascend');
+            datosSensor{:, 'time'} = datetime(datosSensor{:, 'time'}, 'TimeZone', '');
+        
+            % Inicializar matriz de tiempos
+            tiempos = [];
+        
+            % Recorrer las rutas en datosP60
+            i = 1; % Inicializar el índice manualmente
+            while i <= height(datosP60)             
+                idRuta = datosP60.idRuta(i);
+                if strcmp(idRuta, "No Disponible")
+                    i = i + 1; % Pasar al siguiente elemento
+                    continue; % Saltar rutas no disponibles
+                end
+                
+                % Definir inicio de la ruta
+                inicioRuta = datosP60.fechaHoraLecturaDato(i);
+                finRuta = inicioRuta; % Inicializar finRuta con inicioRuta
+        
+                % Buscar el último timestamp donde idRuta sigue siendo la misma
+                for j = i+1:height(datosP60)
+                    if strcmp(datosP60.idRuta(j), idRuta) % Sigue en la misma ruta
+                        finRuta = datosP60.fechaHoraLecturaDato(j);
+                    else
+                        break; % Se terminó la ruta
+                    end
+                end
+        
+                i = j;
+
+                % Filtrar datosSensor en el rango de la ruta
+                indicesSensor = (datosSensor.time >= inicioRuta) & (datosSensor.time <= finRuta);
+                datosSensorRuta = datosSensor(indicesSensor, :);
+                
+                % Si no hay datos en ese rango, pasar a la siguiente iteración
+                if isempty(datosSensorRuta)
+                    continue;
+                end
+                
+                % Inicializar variables de ajuste de tiempo
+                paradasVisitadas = false(height(paradas), 1);
+                tiempoInicioAjustado = inicioRuta;
+                tiempoFinAjustado = finRuta;
+                indiceRuta = find(strcmp(string({paradas.idruta}), string(idRuta)));
+
+                try
+                rutaParadas = paradas(indiceRuta).stops;
+                catch
+                    indiceRuta
+                    idRuta
+                    continue;
+                end
+
+                % Buscar el punto más cercano a la primera y última parada visitada
+                minDistanciaInicio = inf;
+                minDistanciaFin = inf;
+
+                % Obtener la primera y última parada de la ruta
+                latPrimeraParada = rutaParadas.lat(1);
+                lonPrimeraParada = rutaParadas.lon(1);
+                
+                latUltimaParada = rutaParadas.lat(end);
+                lonUltimaParada = rutaParadas.lon(end);
+
+                % Recorrer datos de la ruta y verificar paradas
+                for k = 1:height(rutaParadas)
+                    latParada = rutaParadas.lat(k);
+                    lonParada = rutaParadas.lon(k);
+                    
+                    for j = 1:height(datosSensorRuta)
+                        latBus = datosSensorRuta.lat(j);
+                        lonBus = datosSensorRuta.lon(j);
+                        tiempoActual = datosSensorRuta.time(j);
+                        
+                        distParada = Calculos.geodist(latBus, lonBus, latParada, lonParada);
+                        
+                        if distParada < distanciaUmbral
+                            paradasVisitadas(k) = true;
+                            
+                        end
+
+                        if false
+                            % Calcular distancia a la primera parada
+                            distPrimeraParada = Calculos.geodist(latBus, lonBus, latPrimeraParada, lonPrimeraParada);
+                            
+                            if distPrimeraParada < minDistanciaInicio
+                                minDistanciaInicio = distPrimeraParada;
+                                tiempoInicioAjustado = tiempoActual;
+                            end
+                            
+                            % Calcular distancia a la última parada
+                            distUltimaParada = Calculos.geodist(latBus, lonBus, latUltimaParada, lonUltimaParada);
+                            
+                            if distUltimaParada < minDistanciaFin
+                                minDistanciaFin = distUltimaParada;
+                                tiempoFinAjustado = tiempoActual;
+                            end
+                        end
+
+                    end
+                end
+                
+                % Calcular porcentaje de paradas cubiertas
+                porcentajeVisitadas = sum(paradasVisitadas) / height(paradas(indiceRuta).stops);
+                
+                % Si cumple el porcentaje mínimo, guardar la ruta ajustada
+                if porcentajeVisitadas >= porcentajeMinimoParadas
+                    tiempos = [tiempos; {tiempoInicioAjustado, tiempoFinAjustado, idRuta}];
+                end
+            end
+        end
+
 
         %%
 
