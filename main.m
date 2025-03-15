@@ -56,9 +56,10 @@ datosBuses = Calcular.llenarIndicadoresAceleracion(datosBuses);
 
 %%
 datosBuses = Calcular.corregirAceleracionPorRutas(datosBuses);
+datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 
 %%
-datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
+Graficar.graficarMagnitudesVsDuraciones(datosBuses, 'bus_4012', 'f_03_07_2024', 6);
 
 %%
 datosBuses1 = Calcular.aproximarNivelBateriaPorRutas(datosBuses);

@@ -1,6 +1,6 @@
 %% Gráfico de magnitudes vs duraciones de aceleraciones y desaceleraciones
 figure
-i = 8;
+i = 6;
 scatter(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 3},datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 1})
 hold on, grid
 scatter(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 4},datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 2})

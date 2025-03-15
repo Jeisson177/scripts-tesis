@@ -119,8 +119,16 @@ classdef Calcular
         function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
             tiempo = datos.time;
             velocidad = Calculos.calcularVelocidadMS(datos);
+
+
+            Acele = Calcular.aceleracion(velocidad, tiempo);
+
+            plot(tiempo(1:end-1), velocidad)
+            hold on
             n = length(velocidad);
             velocidadCorregida = velocidad;
+
+
 
             i = 1;
             while i < n - 1
@@ -129,18 +137,20 @@ classdef Calcular
 
                 % Calcular la pendiente entre dos puntos consecutivos
                 %%pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
-                pendiente = (velocidad(i+1) - velocidad(i)) / dt;
+                pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
                 % Si la pendiente supera el umbral, encontrar un punto donde no lo haga
                 if abs(pendiente) > umbral
                     j = i + 2; % Iniciar con el siguiente punto
 
                     while j < n && abs(pendiente) > umbral
                         % Convertir los objetos duration a segundos
-                        dt = seconds(tiempo(j) - tiempo(j-1));
+                        dt = seconds(tiempo(j) - tiempo(i));
 
                         pendiente = (velocidadCorregida(j) - velocidadCorregida(i)) / dt;
                         j = j + 1;
                     end
+
+                    j = j -1;
 
                     % Si encontramos un punto donde la pendiente es menor al umbral
                     if abs(pendiente) <= umbral
@@ -162,6 +172,12 @@ classdef Calcular
                     i = i + 1;
                 end
             end
+
+            
+
+
+            Acele = Calcular.aceleracion(velocidadCorregida, tiempo);
+            plot(tiempo(1:end-1), velocidadCorregida)
 
             % Retornar el vector de velocidad corregida
             return;

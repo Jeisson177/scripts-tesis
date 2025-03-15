@@ -352,5 +352,65 @@ classdef Graficar
             hold off;
         end
 
+        function graficarMagnitudesVsDuraciones(datosBuses, busID, fecha, indiceRuta)
+            % Esta función grafica las magnitudes vs. duraciones de aceleraciones y desaceleraciones
+            % para una ruta específica de un bus en una fecha dada.
+        
+            % Comprobar si el bus existe
+            if ~isfield(datosBuses, busID)
+                error('El bus especificado no existe en los datos.');
+            end
+        
+            % Comprobar si la fecha existe
+            if ~isfield(datosBuses.(busID), fecha)
+                error('La fecha especificada no existe para el bus dado.');
+            end
+        
+            % Obtener los datos de aceleración
+            if isfield(datosBuses.(busID).(fecha), 'indicesAceleracionRuta')
+                indicesAceleracion = datosBuses.(busID).(fecha).indicesAceleracionRuta;
+            else
+                error('No hay datos de aceleración para la fecha %s.', fecha);
+            end
+        
+            % Validar el índice de ruta
+            if indiceRuta < 1 || indiceRuta > size(indicesAceleracion, 1)
+                error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(indicesAceleracion, 1));
+            end
+        
+            % Extraer los datos de magnitudes y duraciones
+            magnitudes = { ...
+                indicesAceleracion{indiceRuta, 3}, ...
+                indicesAceleracion{indiceRuta, 4}, ...
+                indicesAceleracion{indiceRuta, 7}, ...
+                indicesAceleracion{indiceRuta, 8} ...
+            };
+        
+            duraciones = { ...
+                indicesAceleracion{indiceRuta, 1}, ...
+                indicesAceleracion{indiceRuta, 2}, ...
+                indicesAceleracion{indiceRuta, 5}, ...
+                indicesAceleracion{indiceRuta, 6} ...
+            };
+        
+            % Crear la gráfica
+            figure;
+            hold on;
+            grid on;
+        
+            colores = {'b', 'r', 'g', 'y'}; % Colores para diferenciar los datos
+            etiquetas = {'Magnitud aceleración promedio', 'Magnitud desaceleración promedio', 'Magnitud aceleración max', 'Magnitud desaceleración max'};
+        
+            for i = 1:4
+                scatter(magnitudes{i}, duraciones{i}, 'filled', 'MarkerEdgeColor', colores{i}, 'MarkerFaceColor', colores{i});
+            end
+        
+            xlabel('Duración');
+            ylabel('Magnitud');
+            title(sprintf('Magnitudes vs Duraciones para el Bus %s en %s (Ruta %d)', strrep(busID, '_', '\_'), strrep(fecha, '_', '\_'), indiceRuta));
+            legend(etiquetas);
+            hold off;
+        end
+
     end
 end
