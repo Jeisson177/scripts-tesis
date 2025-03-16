@@ -119,8 +119,16 @@ classdef Calcular
         function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
             tiempo = datos.time;
             velocidad = Calculos.calcularVelocidadMS(datos);
+
+
+            Acele = Calcular.aceleracion(velocidad, tiempo);
+
+            plot(tiempo(1:end-1), velocidad)
+            hold on
             n = length(velocidad);
             velocidadCorregida = velocidad;
+
+
 
             i = 1;
             while i < n - 1
@@ -129,18 +137,20 @@ classdef Calcular
 
                 % Calcular la pendiente entre dos puntos consecutivos
                 %%pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
-                pendiente = (velocidad(i+1) - velocidad(i)) / dt;
+                pendiente = (velocidadCorregida(i+1) - velocidadCorregida(i)) / dt;
                 % Si la pendiente supera el umbral, encontrar un punto donde no lo haga
                 if abs(pendiente) > umbral
                     j = i + 2; % Iniciar con el siguiente punto
 
                     while j < n && abs(pendiente) > umbral
                         % Convertir los objetos duration a segundos
-                        dt = seconds(tiempo(j) - tiempo(j-1));
+                        dt = seconds(tiempo(j) - tiempo(i));
 
-                        pendiente = (velocidadCorregida(j) - velocidadCorregida(j-1)) / dt;
+                        pendiente = (velocidadCorregida(j) - velocidadCorregida(i)) / dt;
                         j = j + 1;
                     end
+
+                    j = j -1;
 
                     % Si encontramos un punto donde la pendiente es menor al umbral
                     if abs(pendiente) <= umbral
@@ -162,6 +172,12 @@ classdef Calcular
                     i = i + 1;
                 end
             end
+
+            
+
+
+            Acele = Calcular.aceleracion(velocidadCorregida, tiempo);
+            plot(tiempo(1:end-1), velocidadCorregida)
 
             % Retornar el vector de velocidad corregida
             return;
@@ -207,10 +223,12 @@ classdef Calcular
 
                     try
                     p20 = datosBuses.(bus).(fecha).P20;
+                    p60 = datosBuses.(bus).(fecha).P60;
                     p20 = sortrows(p20,"fechaHoraLecturaDato","ascend");
                     catch
                         2+2;
                     end
+
 
                     if isempty(datosSensor)
                         warning("No se encontraron los datos del telefono para " + bus +  " para el dia " + fecha)
@@ -232,20 +250,20 @@ classdef Calcular
 
 
 
-                    for k = 1:numel(rutas)
+                    for k = 1:numel(1)
                         ruta = rutas(k).idruta;
 
                         % Busca una ruta especifica y retorna todas las
                         % coincidencias
-                        tiempoRutaTemp = Calcular.Ruta(p20, rutas(k).stops, 30, .4);
+                        tiempoRutaTemp = Calcular.RutaOptimizada(p60, datosSensor, rutas, 50, .7);
 
                         if isempty(tiempoRutaTemp)
                             continue
                         end
 
                         % Añadir el nombre de la ruta a cada fila de tiempoRutaTemp
-                        nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
-                        tiempoRutaTemp = [tiempoRutaTemp, nombreRuta];
+                        % nombreRuta = repmat({ruta}, size(tiempoRutaTemp, 1), 1);
+                        % tiempoRutaTemp = [tiempoRutaTemp, nombreRuta];
 
 
                         % Buscar el género del conductor más adecuado
@@ -280,14 +298,22 @@ classdef Calcular
                             finRutaTemp = timeofday(finRuta);
 
                             % Verificar si el tiempo de ruta está dentro del tiempo del conductor
-                            if inicioRutaTemp >= login && finRutaTemp <= logout
-                                diferencia = abs(inicioRutaTemp - login) + abs(finRutaTemp - logout);
-                                if diferencia < mejorDiferencia
-                                    mejorDiferencia = diferencia;
-                                    mejorGenero = conductoresBusFecha.Genero(n);
-                                    mejorId = conductoresBusFecha.ID_Conductor(n);
+                            if (inicioRutaTemp < logout && finRutaTemp > login)  % Hay algún solapamiento
+                                % Calcular el porcentaje de solapamiento
+                                duracionRuta = finRutaTemp - inicioRutaTemp;
+                                duracionSolapada = min(finRutaTemp, logout) - max(inicioRutaTemp, login);
+                                porcentajeSolapamiento = duracionSolapada / duracionRuta;
+                            
+                                if porcentajeSolapamiento > 0.65  %  es el valor mínimo aceptado
+                                    diferencia = abs(inicioRutaTemp - login) + abs(finRutaTemp - logout);
+                                    if diferencia < mejorDiferencia
+                                        mejorDiferencia = diferencia;
+                                        mejorGenero = conductoresBusFecha.Genero(n);
+                                        mejorId = conductoresBusFecha.ID_Conductor(n);
+                                    end
                                 end
                             end
+
                         end
                         generoConductor{m} = mejorGenero;
                         idConductor{m} = mejorId;
@@ -384,6 +410,238 @@ classdef Calcular
         end
 
 
+        %%
+        function tiempos = RutaSensor(datosSensor, paradas, distanciaUmbral, porcentajeMinimoParadas)
+            % Esta función devuelve un array con los tiempos de salida, llegada al punto de regreso,
+            % y regreso al punto de inicio para cada viaje.
+        
+            % Convertir las fechas en 'datosSensor' a datetimes sin zona horaria para la comparación
+            datosSensor{:, 'time'} = datetime(datosSensor{:, 'time'}, 'TimeZone', '');
+        
+            % Inicializar variables
+            tiempos = [];  % Inicializar una matriz para guardar los tiempos de cada viaje
+            estadoViaje = 0;  % 0 = fuera de la ruta, 1 = en la ruta
+            paradasVisitadas = false(height(paradas), 1);  % Marcador para saber si se ha pasado por la parada
+            ultimoStopSequence = 0;  % Inicializar el último `stop_sequence` visitado
+            tiempoRecarga = minutes(1);  % Tiempo mínimo de recarga antes de iniciar una nueva ruta
+            lastTime = datetime('0000-01-01', 'TimeZone', '');  % Inicializar la última hora registrada
+            inicioRuta = datetime('0000-01-01', 'TimeZone', '');  % Inicializar tiempo de inicio de ruta
+            porcentajeVisitadas = 0;
+        
+            % Recorrer todos los puntos de datos de datosSensor
+            for i = 1:height(datosSensor)
+                % Obtener la posición actual del bus
+                latBus = datosSensor.lat(i);
+                lonBus = datosSensor.lon(i);
+        
+                % Verificar la distancia a cada parada en orden de `stop_sequence`
+                for j = 1:height(paradas)
+                    latParada = paradas.lat(j);
+                    lonParada = paradas.lon(j);
+                    stopSequence = paradas.stop_sequence(j);  % Obtener el stop_sequence actual
+        
+                    % Calcular la distancia entre el bus y la parada actual
+                    distParada = Calculos.geodist(latBus, lonBus, latParada, lonParada);
+        
+                    % Si la distancia es menor que el umbral, se marca como visitada
+                    if distParada < distanciaUmbral
+                        if porcentajeVisitadas == 0
+                            inicioRuta = datosSensor.time(i);  % Guardar el tiempo de inicio
+                        end
+                        if ultimoStopSequence > stopSequence
+                            estadoViaje = 0;
+                            paradasVisitadas(:) = false;  % Reiniciar las paradas visitadas para el siguiente viaje
+                            ultimoStopSequence = 0;  % Reiniciar el `stop_sequence` para el siguiente viaje
+        
+                            if porcentajeVisitadas >= porcentajeMinimoParadas
+                                finRuta = datosSensor.time(i);  % Guardar el tiempo de fin
+                                % Registrar el viaje
+                                tiempos = [tiempos; {inicioRuta, finRuta}];
+                                lastTime = finRuta;  % Actualizar la última hora registrada
+                                % Reiniciar el estado del viaje y las paradas visitadas
+                                estadoViaje = 0;
+                                paradasVisitadas(:) = false;
+                                ultimoStopSequence = 0;
+                            end
+        
+                            inicioRuta = datosSensor.time(i);  % Guardar el tiempo de inicio
+                        end
+        
+                        paradasVisitadas(j) = true;  % Marcar la parada como visitada
+                        ultimoStopSequence = stopSequence;  % Actualizar el último `stop_sequence` visitado
+                    end
+                end
+        
+                % Verificar si se ha pasado por el porcentaje mínimo de paradas
+                porcentajeVisitadas = sum(paradasVisitadas) / height(paradas);
+            end
+        end
+
+        %%
+        function tiempos = RutaP60(datosP60)
+            % Esta función devuelve un array con los tiempos de inicio y fin de cada ruta recorrida.
+        
+            % Convertir las fechas en 'datosP60' a datetimes sin zona horaria para la comparación
+            datosP60{:, 'fechaHoraLecturaDato'} = datetime(datosP60{:, 'fechaHoraLecturaDato'}, 'TimeZone', '');
+        
+            % Inicializar variables
+            tiempos = [];  % Inicializar una matriz para guardar los tiempos de cada viaje
+            estadoRuta = false;  % Indica si se está en una ruta
+            inicioRuta = datetime('0000-01-01', 'TimeZone', '');  % Inicializar tiempo de inicio de ruta
+            idRutaActual = "";  % Ruta en curso
+        
+            % Recorrer todos los puntos de datos de datosP60
+            for i = 1:height(datosP60)
+                idRuta = datosP60.idRuta(i);
+                tiempoActual = datosP60.fechaHoraLecturaDato(i);
+        
+                if ~strcmp(idRuta, "No Disponible") % Si hay una ruta activa
+                    if ~estadoRuta  % Si no estamos en una ruta, iniciamos una
+                        inicioRuta = tiempoActual;
+                        idRutaActual = idRuta;
+                        estadoRuta = true;
+                    elseif ~strcmp(idRuta, idRutaActual) % Si la ruta cambia, cerramos la ruta anterior
+                        tiempos = [tiempos; {inicioRuta, tiempoActual, idRutaActual}];
+                        inicioRuta = tiempoActual;
+                        idRutaActual = idRuta;
+                    end
+                else % Si el valor es "no disponible", significa que la ruta terminó
+                    if estadoRuta
+                        tiempos = [tiempos; {inicioRuta, tiempoActual, idRutaActual}];
+                        estadoRuta = false;
+                        idRutaActual = "";
+                    end
+                end
+            end
+            
+            % Si quedó una ruta abierta al final de los datos, cerrarla
+            if estadoRuta
+                tiempos = [tiempos; {inicioRuta, datosP60.fechaHoraLecturaDato(end), idRutaActual}];
+            end
+        end 
+
+        %%
+
+        function tiempos = RutaOptimizada(datosP60p, datosSensor, paradas, distanciaUmbral, porcentajeMinimoParadas)
+            % Esta función ajusta los tiempos de inicio y fin de una ruta basándose en el porcentaje de paradas visitadas.
+        
+
+            datosP60 = datosP60p;
+
+            % Convertir las fechas a datetime sin zona horaria para la comparación
+            datosP60{:, 'fechaHoraLecturaDato'} = datetime(datosP60{:, 'fechaHoraLecturaDato'}, 'TimeZone', '');
+            datosP60 = sortrows(datosP60, 'fechaHoraLecturaDato', 'ascend');
+            datosSensor{:, 'time'} = datetime(datosSensor{:, 'time'}, 'TimeZone', '');
+        
+            % Inicializar matriz de tiempos
+            tiempos = [];
+        
+            % Recorrer las rutas en datosP60
+            i = 1; % Inicializar el índice manualmente
+            while i <= height(datosP60)             
+                idRuta = datosP60.idRuta(i);
+                if strcmp(idRuta, "No Disponible")
+                    i = i + 1; % Pasar al siguiente elemento
+                    continue; % Saltar rutas no disponibles
+                end
+                
+                % Definir inicio de la ruta
+                inicioRuta = datosP60.fechaHoraLecturaDato(i);
+                finRuta = inicioRuta; % Inicializar finRuta con inicioRuta
+        
+                % Buscar el último timestamp donde idRuta sigue siendo la misma
+                for j = i+1:height(datosP60)
+                    if strcmp(datosP60.idRuta(j), idRuta) % Sigue en la misma ruta
+                        finRuta = datosP60.fechaHoraLecturaDato(j);
+                    else
+                        break; % Se terminó la ruta
+                    end
+                end
+        
+                i = j;
+
+                % Filtrar datosSensor en el rango de la ruta
+                indicesSensor = (datosSensor.time >= inicioRuta) & (datosSensor.time <= finRuta);
+                datosSensorRuta = datosSensor(indicesSensor, :);
+                
+                % Si no hay datos en ese rango, pasar a la siguiente iteración
+                if isempty(datosSensorRuta)
+                    continue;
+                end
+                
+                % Inicializar variables de ajuste de tiempo
+                paradasVisitadas = false(height(paradas), 1);
+                tiempoInicioAjustado = inicioRuta;
+                tiempoFinAjustado = finRuta;
+                indiceRuta = find(strcmp(string({paradas.idruta}), string(idRuta)));
+
+                try
+                rutaParadas = paradas(indiceRuta).stops;
+                catch
+                    indiceRuta
+                    idRuta
+                    continue;
+                end
+
+                % Buscar el punto más cercano a la primera y última parada visitada
+                minDistanciaInicio = inf;
+                minDistanciaFin = inf;
+
+                % Obtener la primera y última parada de la ruta
+                latPrimeraParada = rutaParadas.lat(1);
+                lonPrimeraParada = rutaParadas.lon(1);
+                
+                latUltimaParada = rutaParadas.lat(end);
+                lonUltimaParada = rutaParadas.lon(end);
+
+                % Recorrer datos de la ruta y verificar paradas
+                for k = 1:height(rutaParadas)
+                    latParada = rutaParadas.lat(k);
+                    lonParada = rutaParadas.lon(k);
+                    
+                    for j = 1:height(datosSensorRuta)
+                        latBus = datosSensorRuta.lat(j);
+                        lonBus = datosSensorRuta.lon(j);
+                        tiempoActual = datosSensorRuta.time(j);
+                        
+                        distParada = Calculos.geodist(latBus, lonBus, latParada, lonParada);
+                        
+                        if distParada < distanciaUmbral
+                            paradasVisitadas(k) = true;
+                            
+                        end
+
+                        if false
+                            % Calcular distancia a la primera parada
+                            distPrimeraParada = Calculos.geodist(latBus, lonBus, latPrimeraParada, lonPrimeraParada);
+                            
+                            if distPrimeraParada < minDistanciaInicio
+                                minDistanciaInicio = distPrimeraParada;
+                                tiempoInicioAjustado = tiempoActual;
+                            end
+                            
+                            % Calcular distancia a la última parada
+                            distUltimaParada = Calculos.geodist(latBus, lonBus, latUltimaParada, lonUltimaParada);
+                            
+                            if distUltimaParada < minDistanciaFin
+                                minDistanciaFin = distUltimaParada;
+                                tiempoFinAjustado = tiempoActual;
+                            end
+                        end
+
+                    end
+                end
+                
+                % Calcular porcentaje de paradas cubiertas
+                porcentajeVisitadas = sum(paradasVisitadas) / height(paradas(indiceRuta).stops);
+                
+                % Si cumple el porcentaje mínimo, guardar la ruta ajustada
+                if porcentajeVisitadas >= porcentajeMinimoParadas
+                    tiempos = [tiempos; {tiempoInicioAjustado, tiempoFinAjustado, idRuta}];
+                end
+            end
+        end
+
 
         %%
 
@@ -420,7 +678,7 @@ classdef Calcular
                             datosBuses.(bus).(fecha).velocidadRuta = {}; % Inicializar como celda vacía si no existe
                         end
 
-                        % Calcular la velocidad para cada ruta completa (ida y vuelta)
+                        % Calcular la velocidad para cada ruta completa 
                         for k = 1:size(tiempoRuta, 1)
                             ruta = tiempoRuta.Ruta{k}; % El nombre de la ruta está en la última columna
                             genero = tiempoRuta.Genero_Conductor{k};

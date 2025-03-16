@@ -149,7 +149,6 @@ classdef Graficar
             end
         end
 
-
         function aceleracionPorRutas(datosBuses, busID, fecha, indiceRuta)
             % Esta función grafica las velocidades para rutas de un bus en fechas dadas
             % usando los parámetros proporcionados, con manejo de omisiones.
@@ -219,6 +218,199 @@ classdef Graficar
             end
         end
 
+        function rutaMapa(datosBuses, busID, fecha, indiceRuta)
+            % Esta función grafica la ruta de un bus en una fecha y ruta específicas
+            % sobre un mapa con coordenadas geográficas.
+        
+            % Verificar si el bus existe
+            if ~isfield(datosBuses, busID)
+                error('El bus especificado no existe en los datos.');
+            end
+        
+            % Obtener todas las fechas si no se especifica una
+            if nargin < 3 || isempty(fecha)
+                fechas = fieldnames(datosBuses.(busID));
+            else
+                if ~isfield(datosBuses.(busID), fecha)
+                    error('La fecha especificada no existe para el bus dado.');
+                end
+                fechas = {fecha};
+            end
+        
+            % Iterar sobre las fechas
+            for j = 1:numel(fechas)
+                fechaActual = fechas{j};
+        
+                % Comprobar si existen datos de la ruta
+                if isfield(datosBuses.(busID).(fechaActual), 'datosSensorRuta')
+                    rutas = datosBuses.(busID).(fechaActual).datosSensorRuta;
+                else
+                    warning('No hay datos de ruta disponibles para la fecha %s.', fechaActual);
+                    continue;
+                end
+        
+                % Obtener todos los índices si no se especifica uno
+                if nargin < 4 || isempty(indiceRuta)
+                    indicesRutas = 1:size(rutas, 1);
+                else
+                    if indiceRuta < 1 || indiceRuta > size(rutas, 1)
+                        error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(rutas, 1));
+                    end
+                    indicesRutas = indiceRuta;
+                end
+        
+                % Iterar sobre los índices de ruta
+                for k = indicesRutas
+                    % Crear una nueva figura para cada ruta
+                    figure;
+        
+                    % Configurar el mapa base
+                    geobasemap('streets-light'); % Puedes cambiar a 'satellite', 'topographic', etc.
+                    hold on;
+        
+                    % Obtener las coordenadas de la ruta
+                    latitudes = rutas{k, 2}.lat;
+                    longitudes = rutas{k, 2}.lon;
+        
+                    if isempty(latitudes) || isempty(longitudes)
+                        warning('No hay datos de coordenadas para la ruta %d en la fecha %s.', k, fechaActual);
+                        continue;
+                    end
+        
+                    % Graficar la ruta en el mapa
+                    geoplot(latitudes, longitudes, '-o', 'MarkerSize', 1, 'LineWidth', 0.5, 'Color', 'b');
+        
+                    % Marcar el punto de inicio y final
+                    geoscatter(latitudes(1), longitudes(1), 100, 'g', 'filled'); % Inicio (verde)
+                    geoscatter(latitudes(end), longitudes(end), 100, 'r', 'filled'); % Fin (rojo)
+        
+                    % Agregar título
+                    title(sprintf('Ruta %d del bus %s en la fecha %s', k, busID, fechaActual), 'Interpreter', 'none');
+        
+                    hold off;
+                end
+            end
+        end
+
+        function rutaPorTiempo(datosBuses, busID, fecha, tiempoInicio, tiempoFin, paradas)
+            % Graficar la ruta de un bus en un rango de tiempo específico y opcionalmente sus paradas.
+            
+            % Verificar si el bus existe
+            if ~isfield(datosBuses, busID)
+                error('El bus especificado no existe en los datos.');
+            end
+            
+            % Verificar si la fecha existe
+            if ~isfield(datosBuses.(busID), fecha)
+                error('La fecha especificada no existe para el bus dado.');
+            end
+            
+            % Obtener los datos de la ruta para la fecha especificada
+            if isfield(datosBuses.(busID).(fecha), 'datosSensorRuta')
+                rutaDatos = datosBuses.(busID).(fecha).datosSensor;
+            else
+                warning('No hay datos de ruta disponibles para la fecha %s.', fecha);
+                return;
+            end
+        
+            % Filtrar los datos dentro del rango de tiempo
+            tiempos = rutaDatos.time;
+            indicesFiltrados = (tiempos >= tiempoInicio) & (tiempos <= tiempoFin);
+            
+            if sum(indicesFiltrados) == 0
+                warning('No hay datos disponibles en el rango de tiempo seleccionado.');
+                return;
+            end
+        
+            % Extraer coordenadas de la ruta filtrada
+            latitudes = rutaDatos.lat(indicesFiltrados);
+            longitudes = rutaDatos.lon(indicesFiltrados);
+        
+            % Crear figura para la ruta
+            figure;
+            geobasemap('streets-light');
+            hold on;
+        
+            % Graficar la ruta del bus
+            geoplot(latitudes, longitudes, '-o', 'MarkerSize', 3, 'LineWidth', 1, 'Color', 'b');
+        
+            % Marcar el inicio y el final de la ruta
+            geoscatter(latitudes(1), longitudes(1), 100, 'g', 'filled'); % Inicio en verde
+            geoscatter(latitudes(end), longitudes(end), 100, 'r', 'filled'); % Fin en rojo
+        
+            % Si se proporcionan paradas, graficarlas
+            if nargin == 6 && ~isempty(paradas)
+                geoscatter(paradas.lat, paradas.lon, 50, 'm', 'filled', 'Marker', 's'); % Paradas en magenta
+                legend({'Ruta', 'Inicio', 'Fin', 'Paradas'}, 'Location', 'best');
+            else
+                legend({'Ruta', 'Inicio', 'Fin'}, 'Location', 'best');
+            end
+        
+            % Configurar título
+            title(sprintf('Ruta del bus %s el %s de %s a %s', busID, fecha, datestr(tiempoInicio), datestr(tiempoFin)), 'Interpreter', 'none');
+        
+            hold off;
+        end
+
+        function graficarMagnitudesVsDuraciones(datosBuses, busID, fecha, indiceRuta)
+            % Esta función grafica las magnitudes vs. duraciones de aceleraciones y desaceleraciones
+            % para una ruta específica de un bus en una fecha dada.
+        
+            % Comprobar si el bus existe
+            if ~isfield(datosBuses, busID)
+                error('El bus especificado no existe en los datos.');
+            end
+        
+            % Comprobar si la fecha existe
+            if ~isfield(datosBuses.(busID), fecha)
+                error('La fecha especificada no existe para el bus dado.');
+            end
+        
+            % Obtener los datos de aceleración
+            if isfield(datosBuses.(busID).(fecha), 'indicesAceleracionRuta')
+                indicesAceleracion = datosBuses.(busID).(fecha).indicesAceleracionRuta;
+            else
+                error('No hay datos de aceleración para la fecha %s.', fecha);
+            end
+        
+            % Validar el índice de ruta
+            if indiceRuta < 1 || indiceRuta > size(indicesAceleracion, 1)
+                error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(indicesAceleracion, 1));
+            end
+        
+            % Extraer los datos de magnitudes y duraciones
+            magnitudes = { ...
+                indicesAceleracion{indiceRuta, 3}, ...
+                indicesAceleracion{indiceRuta, 4}, ...
+                indicesAceleracion{indiceRuta, 7}, ...
+                indicesAceleracion{indiceRuta, 8} ...
+            };
+        
+            duraciones = { ...
+                indicesAceleracion{indiceRuta, 1}, ...
+                indicesAceleracion{indiceRuta, 2}, ...
+                indicesAceleracion{indiceRuta, 5}, ...
+                indicesAceleracion{indiceRuta, 6} ...
+            };
+        
+            % Crear la gráfica
+            figure;
+            hold on;
+            grid on;
+        
+            colores = {'b', 'r', 'g', 'y'}; % Colores para diferenciar los datos
+            etiquetas = {'Magnitud aceleración promedio', 'Magnitud desaceleración promedio', 'Magnitud aceleración max', 'Magnitud desaceleración max'};
+        
+            for i = 1:4
+                scatter(magnitudes{i}, duraciones{i}, 'filled', 'MarkerEdgeColor', colores{i}, 'MarkerFaceColor', colores{i});
+            end
+        
+            xlabel('Duración');
+            ylabel('Magnitud');
+            title(sprintf('Magnitudes vs Duraciones para el Bus %s en %s (Ruta %d)', strrep(busID, '_', '\_'), strrep(fecha, '_', '\_'), indiceRuta));
+            legend(etiquetas);
+            hold off;
+        end
 
     end
 end
