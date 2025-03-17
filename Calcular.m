@@ -1038,9 +1038,37 @@ end
 
         function datosBuses = calcularKilometroRutas(datosBuses)
             % Esta función iterará sobre los buses y las fechas para calcular los kilómetros recorridos
-            % y agregar las columnas "Kilometros_Ida" y "Kilometros_Vuelta" a la tabla tiempoRuta.
+            % y agregar las columnas "Kilometros_Ida" a la tabla tiempoRuta.
 
             datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutasWrapper);
+        end
+
+        function datosBuses = AceleracionKilometrosWrapper(datosBuses, k)
+            % Esta función calcula la relación entre la longitud de cada celda en indicesAceleracionRuta
+            % y los kilómetros recorridos en Kilometros_Ida para la fila k.
+        
+            % Obtener los datos de índices de aceleración
+            nAceleracionesPositivas = size (datosBuses.indicesAceleracionRuta{k, 1});
+            nAceleracionesNegativas = size(datosBuses.indicesAceleracionRuta{k, 2});
+        
+            % Obtener los kilómetros recorridos en la ida
+            kilometrosIda = datosBuses.tiempoRuta.Kilometros_Ida(k);
+        
+            % Verificar si los datos existen
+            if isempty(nAceleracionesPositivas) || isempty(kilometrosIda) || isempty(nAceleracionesNegativas)
+                error('No hay datos suficientes para calcular la relación.');
+            end
+        
+            
+        
+            datosBuses.tiempoRuta.AceleKiloPosi(k) = nAceleracionesPositivas(1) / kilometrosIda;
+            datosBuses.tiempoRuta.AceleKiloNega(k) = nAceleracionesNegativas(1) / kilometrosIda;
+        end
+
+
+        function datosBuses = aceleracionesKilometroRutas(datosBuses)
+            
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.AceleracionKilometrosWrapper);
         end
 
 
@@ -1048,117 +1076,117 @@ end
 
 
         function datosBuses = corregirAceleracionPorRutas(datosBuses)
-    % Esta función corrige los valores de aceleración de cada ruta en cada bus
-    % eliminando ruido y estableciendo segmentos de aceleración constantes.
-
-    % Obtener los nombres de los buses
-    buses = fieldnames(datosBuses);
-
-    % Iterar sobre cada bus
-    for i = 1:numel(buses)
-        bus = buses{i};
-
-        % Saltar el campo 'info'
-        if strcmp(bus, 'info')
-            continue;
-        end
-
-        % Obtener las fechas disponibles para el bus
-        fechas = fieldnames(datosBuses.(bus));
-
-        % Iterar sobre cada fecha
-        for j = 1:numel(fechas)
-            fecha = fechas{j};
-
-            % Verificar si existen datos de rutas en la fecha
-            if isfield(datosBuses.(bus).(fecha), 'aceleracionRuta') && isfield(datosBuses.(bus).(fecha), 'tiempoRuta')
-                
-                % Obtener las rutas disponibles
-                numRutas = size(datosBuses.(bus).(fecha).aceleracionRuta, 1);
-
-                % Iterar sobre cada ruta en la fecha
-                for k = 1:numRutas
-                    % Extraer datos de aceleración y tiempo de la ruta actual
-                    acc = datosBuses.(bus).(fecha).aceleracionRuta{k,2}; % Aceleración en la segunda columna
-                    tiempo = datosBuses.(bus).(fecha).datosSensorRuta{k,2}.time; % Tiempo en la segunda columna
-
-                    % Filtrar valores pequeños (ruido)
-                    acc(abs(acc) <= 0.3) = 0;
-
-                    % Inicializar variables
-                    intervalo_inicio = 1;
-                    tiempo_constante = [];
-                    valor_constante = [];
-
-                    % Arreglos para intervalos positivos y negativos
-                    magnitudes_positivas = [];
-                    magnitudes_negativas = [];
-                    tiempos_positivos = [];
-                    tiempos_negativos = [];
-
-                    % Recorrer la señal de aceleración
-                    while intervalo_inicio <= length(acc)
-                        if acc(intervalo_inicio) > 0
-                            % Buscar el final del intervalo positivo
-                            intervalo_fin = find(acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
-                            if isempty(intervalo_fin)
-                                intervalo_fin = length(acc);
-                            end
-                            altura = mean(acc(intervalo_inicio:intervalo_fin));
-                            duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
-
-                            % Guardar los valores en los arreglos
-                            magnitudes_positivas = [magnitudes_positivas; altura];
-                            tiempos_positivos = [tiempos_positivos; duracion];
-
-                        elseif acc(intervalo_inicio) < 0
-                            % Buscar el final del intervalo negativo
-                            intervalo_fin = find(acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
-                            if isempty(intervalo_fin)
-                                intervalo_fin = length(acc);
-                            end
-                            altura = mean(acc(intervalo_inicio:intervalo_fin));
-                            duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
-
-                            % Guardar los valores en los arreglos
-                            magnitudes_negativas = [magnitudes_negativas; altura];
-                            tiempos_negativos = [tiempos_negativos; duracion];
-
-                        else
-                            % Intervalo con aceleración 0
-                            intervalo_fin = find(acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
-                            if isempty(intervalo_fin)
-                                intervalo_fin = length(acc);
-                            end
-                            altura = 0;
-                        end
-
-                        % Construir la señal corregida
-                        tiempo_constante = [tiempo_constante; tiempo(intervalo_inicio:intervalo_fin)];
-                        valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
-
-                        % Actualizar el inicio del siguiente intervalo
-                        intervalo_inicio = intervalo_fin + 1;
-                    end
-
-                    % Guardar la aceleración corregida en la estructura de datos
-                    datosBuses.(bus).(fecha).aceleracionRuta{k,5} = tiempo_constante;
-                    datosBuses.(bus).(fecha).aceleracionRuta{k,6} = valor_constante;
-
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta{k,1} = magnitudes_positivas;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta{k,2} = magnitudes_negativas;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta{k,3} = tiempos_positivos;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta{k,4} = tiempos_negativos;
+            % Esta función corrige los valores de aceleración de cada ruta en cada bus
+            % eliminando ruido y estableciendo segmentos de aceleración constantes.
+        
+            % Obtener los nombres de los buses
+            buses = fieldnames(datosBuses);
+        
+            % Iterar sobre cada bus
+            for i = 1:numel(buses)
+                bus = buses{i};
+        
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
                 end
-
-                % Mostrar mensaje de confirmación por fecha
-                disp(['Corrección de aceleración realizada para el bus ' bus ' en la fecha ' fecha '.']);
-            else
-                warning("No se encontraron los datos de aceleración para el bus " + bus + " en la fecha " + fecha);
+        
+                % Obtener las fechas disponibles para el bus
+                fechas = fieldnames(datosBuses.(bus));
+        
+                % Iterar sobre cada fecha
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+        
+                    % Verificar si existen datos de rutas en la fecha
+                    if isfield(datosBuses.(bus).(fecha), 'aceleracionRuta') && isfield(datosBuses.(bus).(fecha), 'tiempoRuta')
+                        
+                        % Obtener las rutas disponibles
+                        numRutas = size(datosBuses.(bus).(fecha).aceleracionRuta, 1);
+        
+                        % Iterar sobre cada ruta en la fecha
+                        for k = 1:numRutas
+                            % Extraer datos de aceleración y tiempo de la ruta actual
+                            acc = datosBuses.(bus).(fecha).aceleracionRuta{k,2}; % Aceleración en la segunda columna
+                            tiempo = datosBuses.(bus).(fecha).datosSensorRuta{k,2}.time; % Tiempo en la segunda columna
+        
+                            % Filtrar valores pequeños (ruido)
+                            acc(abs(acc) <= 0.3) = 0;
+        
+                            % Inicializar variables
+                            intervalo_inicio = 1;
+                            tiempo_constante = [];
+                            valor_constante = [];
+        
+                            % Arreglos para intervalos positivos y negativos
+                            magnitudes_positivas = [];
+                            magnitudes_negativas = [];
+                            tiempos_positivos = [];
+                            tiempos_negativos = [];
+        
+                            % Recorrer la señal de aceleración
+                            while intervalo_inicio <= length(acc)
+                                if acc(intervalo_inicio) > 0
+                                    % Buscar el final del intervalo positivo
+                                    intervalo_fin = find(acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+                                    if isempty(intervalo_fin)
+                                        intervalo_fin = length(acc);
+                                    end
+                                    altura = mean(acc(intervalo_inicio:intervalo_fin));
+                                    duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
+        
+                                    % Guardar los valores en los arreglos
+                                    magnitudes_positivas = [magnitudes_positivas; altura];
+                                    tiempos_positivos = [tiempos_positivos; duracion];
+        
+                                elseif acc(intervalo_inicio) < 0
+                                    % Buscar el final del intervalo negativo
+                                    intervalo_fin = find(acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
+                                    if isempty(intervalo_fin)
+                                        intervalo_fin = length(acc);
+                                    end
+                                    altura = mean(acc(intervalo_inicio:intervalo_fin));
+                                    duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
+        
+                                    % Guardar los valores en los arreglos
+                                    magnitudes_negativas = [magnitudes_negativas; altura];
+                                    tiempos_negativos = [tiempos_negativos; duracion];
+        
+                                else
+                                    % Intervalo con aceleración 0
+                                    intervalo_fin = find(acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
+                                    if isempty(intervalo_fin)
+                                        intervalo_fin = length(acc);
+                                    end
+                                    altura = 0;
+                                end
+        
+                                % Construir la señal corregida
+                                tiempo_constante = [tiempo_constante; tiempo(intervalo_inicio:intervalo_fin)];
+                                valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
+        
+                                % Actualizar el inicio del siguiente intervalo
+                                intervalo_inicio = intervalo_fin + 1;
+                            end
+        
+                            % Guardar la aceleración corregida en la estructura de datos
+                            datosBuses.(bus).(fecha).aceleracionRuta{k,5} = tiempo_constante;
+                            datosBuses.(bus).(fecha).aceleracionRuta{k,6} = valor_constante;
+        
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta{k,1} = magnitudes_positivas;
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta{k,2} = magnitudes_negativas;
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta{k,3} = tiempos_positivos;
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta{k,4} = tiempos_negativos;
+                        end
+        
+                        % Mostrar mensaje de confirmación por fecha
+                        disp(['Corrección de aceleración realizada para el bus ' bus ' en la fecha ' fecha '.']);
+                    else
+                        warning("No se encontraron los datos de aceleración para el bus " + bus + " en la fecha " + fecha);
+                    end
+                end
             end
         end
-    end
-end
 
 
 
