@@ -108,7 +108,7 @@ function [lambda, alpha] = ajustarDecayModel(datos)
     fprintf('Ley de Potencia: α = %.4f\n', alpha);
 end
 
-[lambda_magnitud, alpha_magnitud] = ajustarDecayModel(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{1, 1});
+% [lambda_magnitud, alpha_magnitud] = ajustarDecayModel(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{1, 1});
 
 
 %%
@@ -159,4 +159,4 @@ function reconstruirDistribucion(datos, lambda, alpha)
     sgtitle('Comparación de Modelos con Datos Originales');
 end
 
-reconstruirDistribucion(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{1, 1}, 1.5092, 1.7141);
+% reconstruirDistribucion(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{1, 1}, 1.5092, 1.7141);

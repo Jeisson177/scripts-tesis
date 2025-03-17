@@ -1,4 +1,5 @@
 %% Gráfico de magnitudes vs duraciones de aceleraciones y desaceleraciones
+
 figure
 i = 8;
 hold on, grid
@@ -58,3 +59,40 @@ end
 resultados = table(edges(1:end-1), N(:), promedios, ...
                    'VariableNames', {'TiempoInicio', 'ConteoAceleraciones', 'PromedioAceleracion'});
 
+%% Funciones
+
+function TABLA = iterarSobreBusesYFechas(datosBuses)
+            % Obtener los campos de los buses
+            buses = fieldnames(datosBuses);
+
+            % Iterar sobre cada bus
+            for i = 1:numel(buses)  
+                bus = buses{i};
+
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
+                end
+
+                % Obtener los campos de las fechas para el bus actual
+                fechas = fieldnames(datosBuses.(bus));
+
+                % Iterar sobre cada fecha
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+
+
+                    try
+                        for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
+                            % datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
+
+                            TABLA = [TABLA; sum(datosBuses.bus_4012.f_04_07_2024.indicesAceleracionRuta{i, 1}>2)/sum(datosBuses.bus_4012.f_04_07_2024.indicesAceleracionRuta{i, 1}>0)] 
+
+                        end
+                    catch ME
+                        fprintf('Error encontrado: %s\n', ME.message);
+                    end
+
+                end
+            end
+        end
