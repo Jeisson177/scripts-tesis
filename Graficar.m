@@ -412,5 +412,104 @@ classdef Graficar
             hold off;
         end
 
+        function HistogramasMagnitudesVsDuraciones(datosBuses, busID, fecha, indiceRuta)
+ % Esta función genera dos figuras con histogramas separados para:
+    %   - Figura 1: Duraciones (Mean, Min, Max)
+    %   - Figura 2: Magnitudes (Mean, Min, Max)
+
+    % Verificar si el bus y la fecha existen
+    if ~isfield(datosBuses, busID)
+        error('El bus especificado no existe en los datos.');
+    end
+    if ~isfield(datosBuses.(busID), fecha)
+        error('La fecha especificada no existe para el bus dado.');
+    end
+
+    % Obtener los datos de aceleración
+    if isfield(datosBuses.(busID).(fecha), 'indicesAceleracionRuta')
+        indicesAceleracion = datosBuses.(busID).(fecha).indicesAceleracionRuta;
+    else
+        error('No hay datos de aceleración para la fecha %s.', fecha);
+    end
+
+    % Validar el índice de ruta
+    if indiceRuta < 1 || indiceRuta > size(indicesAceleracion, 1)
+        error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(indicesAceleracion, 1));
+    end
+
+    % Extraer y convertir datos de duraciones
+    duraciones = { ...
+        Graficar.convertirADouble(indicesAceleracion{indiceRuta, 1}), ... % Duración aceleración promedio
+        Graficar.convertirADouble(indicesAceleracion{indiceRuta, 2}), ... % Duración desaceleración promedio
+        Graficar.convertirADouble(indicesAceleracion{indiceRuta, 5}), ... % Duración aceleración máxima
+        Graficar.convertirADouble(indicesAceleracion{indiceRuta, 6})  ... % Duración desaceleración máxima
+    };
+
+    % Extraer y convertir datos de magnitudes
+    magnitudes = { ...
+        Graficar.convertirADouble(indicesAceleracion{indiceRuta, 3}), ... % Magnitud aceleración promedio
+        Graficar.convertirADouble(indicesAceleracion{indiceRuta, 4}), ... % Magnitud desaceleración promedio
+        Graficar.convertirADouble(indicesAceleracion{indiceRuta, 7}), ... % Magnitud aceleración máxima
+        Graficar.convertirADouble(indicesAceleracion{indiceRuta, 8})  ... % Magnitud desaceleración máxima
+    };
+
+    % Definir etiquetas para los gráficos
+    titulos_duraciones = { ...
+        'Duración (Aceleración Promedio)', ...
+        'Duración (Desaceleración Promedio)', ...
+        'Duración (Aceleración Máxima)', ...
+        'Duración (Desaceleración Máxima)' ...
+    };
+
+    titulos_magnitudes = { ...
+        'Magnitud (Aceleración Promedio)', ...
+        'Magnitud (Desaceleración Promedio)', ...
+        'Magnitud (Aceleración Máxima)', ...
+        'Magnitud (Desaceleración Máxima)' ...
+    };
+
+    % ---- FIGURA 1: Histogramas de Duraciones ----
+    figure;
+    for i = 1:4
+        subplot(2,2,i);
+        histogram(duraciones{i}, 'FaceColor', 'b', 'EdgeColor', 'k'); % Histograma de duración
+        xlabel('Segundos');
+        ylabel('Frecuencia');
+        title(titulos_duraciones{i});
+        grid on;
+    end
+    sgtitle(sprintf('Histogramas de Duraciones para el Bus %s en %s (Ruta %d)', ...
+        strrep(busID, '_', '\_'), strrep(fecha, '_', '\_'), indiceRuta));
+
+    % ---- FIGURA 2: Histogramas de Magnitudes ----
+    figure;
+    for i = 1:4
+        subplot(2,2,i);
+        histogram(magnitudes{i}, 'FaceColor', 'r', 'EdgeColor', 'k'); % Histograma de magnitud
+        xlabel('m/s²'); % Ajusta la unidad si es diferente
+        ylabel('Frecuencia');
+        title(titulos_magnitudes{i});
+        grid on;
+    end
+    sgtitle(sprintf('Histogramas de Magnitudes para el Bus %s en %s (Ruta %d)', ...
+        strrep(busID, '_', '\_'), strrep(fecha, '_', '\_'), indiceRuta));
+end
+
+%% ---- Función auxiliar para convertir a valores numéricos ----
+function valoresNumericos = convertirADouble(datos)
+    if iscell(datos) && ~isempty(datos)
+        datos = datos{:}; % Extraer contenido de la celda si es necesario
+    end
+    if isa(datos, 'duration')
+        valoresNumericos = seconds(datos); % Convertir duration a segundos
+    elseif isa(datos, 'datetime')
+        valoresNumericos = datenum(datos); % Convertir datetime a números seriales
+    elseif isnumeric(datos)
+        valoresNumericos = datos; % Si ya es numérico, dejarlo igual
+    else
+        error('Tipo de dato no reconocido: %s', class(datos));
+    end
+end
+
     end
 end

@@ -1103,6 +1103,11 @@ end
                         
                         % Obtener las rutas disponibles
                         numRutas = size(datosBuses.(bus).(fecha).aceleracionRuta, 1);
+
+                        if ~isfield(datosBuses.(bus).(fecha), 'indicesAceleracionRuta')
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta = table([], [], [], [], ...
+                                'VariableNames', {'MagnitudesPositivas', 'MagnitudesNegativas', 'TiemposPositivos', 'TiemposNegativos'});
+                        end
         
                         % Iterar sobre cada ruta en la fecha
                         for k = 1:numRutas
@@ -1173,10 +1178,12 @@ end
                             datosBuses.(bus).(fecha).aceleracionRuta{k,5} = tiempo_constante;
                             datosBuses.(bus).(fecha).aceleracionRuta{k,6} = valor_constante;
         
-                            datosBuses.(bus).(fecha).indicesAceleracionRuta{k,1} = magnitudes_positivas;
-                            datosBuses.(bus).(fecha).indicesAceleracionRuta{k,2} = magnitudes_negativas;
-                            datosBuses.(bus).(fecha).indicesAceleracionRuta{k,3} = tiempos_positivos;
-                            datosBuses.(bus).(fecha).indicesAceleracionRuta{k,4} = tiempos_negativos;
+                            % Crear una nueva fila de la tabla con los datos de índices
+                            nuevaFila = table({magnitudes_positivas}, {magnitudes_negativas}, {tiempos_positivos}, {tiempos_negativos}, ...
+                                'VariableNames', {'MagnitudesPositivas', 'MagnitudesNegativas', 'TiemposPositivos', 'TiemposNegativos'});
+        
+                            % Agregar la nueva fila a la tabla existente
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta = [datosBuses.(bus).(fecha).indicesAceleracionRuta; nuevaFila];
                         end
         
                         % Mostrar mensaje de confirmación por fecha
@@ -1219,6 +1226,8 @@ function datosBuses = corregirAceleracionPorRutasMax(datosBuses)
                 
                 % Obtener las rutas disponibles
                 numRutas = size(datosBuses.(bus).(fecha).aceleracionRuta, 1);
+
+              
 
                 % Iterar sobre cada ruta en la fecha
                 for k = 1:numRutas
@@ -1289,10 +1298,10 @@ function datosBuses = corregirAceleracionPorRutasMax(datosBuses)
                     datosBuses.(bus).(fecha).aceleracionRuta{k,7} = tiempo_constante;
                     datosBuses.(bus).(fecha).aceleracionRuta{k,8} = valor_constante;
 
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta{k,5} = magnitudes_positivas;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta{k,6} = magnitudes_negativas;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta{k,7} = tiempos_positivos;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta{k,8} = tiempos_negativos;
+                    datosBuses.(bus).(fecha).indicesAceleracionRuta.magnitudes_positivas_max{k} = magnitudes_positivas;
+                    datosBuses.(bus).(fecha).indicesAceleracionRuta.magnitudes_negativas_max{k} = magnitudes_negativas;
+                    datosBuses.(bus).(fecha).indicesAceleracionRuta.tiempos_positivos_max{k} = tiempos_positivos;
+                    datosBuses.(bus).(fecha).indicesAceleracionRuta.tiempos_negativos_max{k} = tiempos_negativos;
                 end
 
                 % Mostrar mensaje de confirmación por fecha
