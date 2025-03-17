@@ -61,7 +61,17 @@ resultados = table(edges(1:end-1), N(:), promedios, ...
 
 %% Funciones
 
-function TABLA = iterarSobreBusesYFechas(datosBuses)
+function TABLA = superTabla(datosBuses)
+
+
+    % Crear la tabla vacía con los nombres de columna adecuados
+    TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], ...
+    'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
+                      'AcelePorcen1', 'AcelePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
+                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax'});
+
+
+
             % Obtener los campos de los buses
             buses = fieldnames(datosBuses);
 
@@ -80,14 +90,36 @@ function TABLA = iterarSobreBusesYFechas(datosBuses)
                 % Iterar sobre cada fecha
                 for j = 1:numel(fechas)
                     fecha = fechas{j};
+                    rutadato = datosBuses.(bus).(fecha);
+                    
 
 
                     try
+                        indicesAceleracion = rutadato.indicesAceleracionRuta;
                         for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
                             % datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
 
-                            TABLA = [TABLA; sum(datosBuses.bus_4012.f_04_07_2024.indicesAceleracionRuta{i, 1}>2)/sum(datosBuses.bus_4012.f_04_07_2024.indicesAceleracionRuta{i, 1}>0)] 
+                            id = rutadato.tiempoRuta.Id(k);
+                            sexo = rutadato.tiempoRuta.Genero_Conductor(k);
+                            hora_inicio = rutadato.tiempoRuta.Inicio_Ruta(k);
+                            hora_final = rutadato.tiempoRuta.Fin_Ruta(k);
+                            acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
+                            acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
 
+
+                            % Definir los datos de una nueva fila
+                            nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, ...
+                                indicesAceleracion(1), indicesAceleracion(2), indicesAceleracion(3), indicesAceleracion(4), ...
+                                indicesAceleracion(5), indicesAceleracion(6), indicesAceleracion(7), indicesAceleracion(8) , ...
+                                'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
+                                'MagPosMean', 'MagNegMean', 'DurPosMean', ...
+                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax'});
+                            
+                            
+                            % Agregar la nueva fila a la tabla
+                            TABLA = [TABLA; nuevaFila];
+
+                         
                         end
                     catch ME
                         fprintf('Error encontrado: %s\n', ME.message);
@@ -95,4 +127,7 @@ function TABLA = iterarSobreBusesYFechas(datosBuses)
 
                 end
             end
-        end
+end
+
+
+Tabla = superTabla(datosBuses);

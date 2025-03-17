@@ -39,6 +39,9 @@ datosBuses = Calcular.aceleracionesKilometroRutas(datosBuses);
 %%
 datosBuses1 = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
 
+%%
+tabla = analisis_acelerac
+
 
 
 %% Graficar----------------------------------------------------------------
