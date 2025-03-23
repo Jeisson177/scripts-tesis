@@ -65,10 +65,10 @@ function TABLA = superTabla(datosBuses)
 
 
     % Crear la tabla vacía con los nombres de columna adecuados
-    TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], ...
+    TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[], ...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
                       'AcelePorcen1', 'AcelePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax'});
+                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax','Ruta'});
 
 
 
@@ -103,6 +103,7 @@ function TABLA = superTabla(datosBuses)
                             sexo = rutadato.tiempoRuta.Genero_Conductor(k);
                             hora_inicio = rutadato.tiempoRuta.Inicio_Ruta(k);
                             hora_final = rutadato.tiempoRuta.Fin_Ruta(k);
+                            ruta=rutadato.tiempoRuta.Ruta(k);
                             acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
                             acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
 
@@ -110,10 +111,10 @@ function TABLA = superTabla(datosBuses)
                             % Definir los datos de una nueva fila
                             nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, ...
                                 indicesAceleracion(1), indicesAceleracion(2), indicesAceleracion(3), indicesAceleracion(4), ...
-                                indicesAceleracion(5), indicesAceleracion(6), indicesAceleracion(7), indicesAceleracion(8) , ...
+                                indicesAceleracion(5), indicesAceleracion(6), indicesAceleracion(7), indicesAceleracion(8) , ruta, ...
                                 'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                                 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax'});
+                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax','Ruta'});
                             
                             
                             % Agregar la nueva fila a la tabla
@@ -131,3 +132,20 @@ end
 
 
 Tabla = superTabla(datosBuses);
+
+
+%% sexo
+
+diagonal
+hombres=Tabla(Tabla.Sexo=="H",:);
+mujeres=Tabla(Tabla.Sexo=="M",:);
+
+%% horario
+antes9am = Tabla(timeofday(Tabla.HoraInicio) < duration(9, 0, 0), :);
+entre9y2 = Tabla(timeofday(Tabla.HoraInicio) >= duration(9, 0, 0) & timeofday(Tabla.HoraInicio) < duration(14, 0, 0), :);
+entre2y7 = Tabla(timeofday(Tabla.HoraInicio) >= duration(14, 0, 0) & timeofday(Tabla.HoraInicio) < duration(19, 0, 0), :);
+despues7pm = Tabla(timeofday(Tabla.HoraInicio) >= duration(19, 0, 0), :);
+%% ruta
+
+soloA617 = entre2y7(entre2y7.Ruta == "A617", :);
+soloH617 = entre2y7(entre2y7.Ruta == "H617", :);
