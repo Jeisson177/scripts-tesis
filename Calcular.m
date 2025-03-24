@@ -1043,6 +1043,19 @@ end
             datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.calcularKilometroRutasWrapper);
         end
 
+        function datosBuses = PorcentajesAceleracionW(datosBuses, k)
+            acelepercent1 = sum(datosBuses.indicesAceleracionRuta{k, 1}>1)/sum(datosBuses.indicesAceleracionRuta{k, 1}>0);
+            acelepercent2 = sum(datosBuses.indicesAceleracionRuta{k, 1}>2)/sum(datosBuses.indicesAceleracionRuta{k, 1}>0);
+
+            datosBuses.tiempoRuta.PorcentajeAceleracion1(k) = acelepercent1;
+            datosBuses.tiempoRuta.PorcentajeAceleracion2(k) = acelepercent2;
+        end
+
+        function datosBuses = PorcentajesAceleracion(datosBuses)
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.PorcentajesAceleracionW);
+        end
+
+
         function datosBuses = AceleracionKilometrosWrapper(datosBuses, k)
             % Esta función calcula la relación entre la longitud de cada celda en indicesAceleracionRuta
             % y los kilómetros recorridos en Kilometros_Ida para la fila k.
@@ -1071,6 +1084,51 @@ end
             datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.AceleracionKilometrosWrapper);
         end
 
+
+        function datosBuses = ClasificarHorarioRuta(datosBuses)
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.ClasificarHorarioRutaW);
+        end
+
+
+        function datosBuses = ClasificarHorarioRutaW(datosBuses, k)
+    % Convierte las horas de inicio y fin a minutos desde medianoche
+    inicio = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Inicio_Ruta(k));
+    fin = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Fin_Ruta(k));
+
+    % Duraciones por tipo de horario
+    duraciones = struct('P', 0, 'V', 0, 'F', 0);
+
+    % Evaluar minuto a minuto el tipo de horario
+    for t = inicio:fin-1
+        tipo = Calcular.ClasificarHorario(mod(t,1440)); % mod para mantener dentro de 24h
+        duraciones.(tipo) = duraciones.(tipo) + 1;
+    end
+
+    % Determinar horario predominante
+    [~, idx] = max([duraciones.P, duraciones.V, duraciones.F]);
+    tipos = ['P', 'V', 'F'];
+    horarioPredominante = tipos(idx);
+
+    % Guardar el resultado
+    datosBuses.tiempoRuta.HorarioRuta(k) = horarioPredominante;
+end
+
+function minutos = HoraEnMinutos(horaStr)
+    % Convierte 'HH:mm' a minutos
+    tiempo = datetime(horaStr, 'InputFormat', 'HH:mm');
+    minutos = hour(tiempo) * 60 + minute(tiempo);
+end
+
+function tipo = ClasificarHorario(minutos)
+    % Clasifica según los rangos definidos
+    if (minutos >= 330 && minutos < 390) || (minutos >= 1020 && minutos < 1080)
+        tipo = 'P'; % Pico
+    elseif (minutos >= 390 && minutos < 1020) || (minutos >= 1080 && minutos < 1320)
+        tipo = 'V'; % Valle
+    else
+        tipo = 'F'; % Flujo libre
+    end
+end
 
 
 

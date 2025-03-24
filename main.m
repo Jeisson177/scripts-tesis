@@ -38,11 +38,11 @@ datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 datosBuses = Calcular.aceleracionesKilometroRutas(datosBuses);
 %%
 datosBuses1 = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
+%%
+datosBuses2 = Calcular.PorcentajesAceleracion(datosBuses);
 
 %%
-tabla = analisis_acelerac
-
-
+datosBuses2 = Calcular.ClasificarHorarioRuta(datosBuses);
 
 %% Graficar----------------------------------------------------------------
 
