@@ -1,7 +1,7 @@
 %% Gráfico de magnitudes vs duraciones de aceleraciones y desaceleraciones
 
 figure
-i = 8;
+i = 6;
 hold on, grid
 scatter(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 3},datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 1})
 scatter(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 4},datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 2})
@@ -65,10 +65,10 @@ function TABLA = superTabla(datosBuses)
 
 
     % Crear la tabla vacía con los nombres de columna adecuados
-    TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[], ...
+    TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[], ...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
                       'AcelePorcen1', 'AcelePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta'});
+                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta'});
 
 
 
@@ -111,10 +111,10 @@ function TABLA = superTabla(datosBuses)
                             nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, ...
                                 indicesAceleracion(1), indicesAceleracion(2), indicesAceleracion(3), indicesAceleracion(4), ...
                                 indicesAceleracion(5), indicesAceleracion(6), indicesAceleracion(7), indicesAceleracion(8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
-                                rutadato.tiempoRuta.Kilometros_Ida(k), ...
+                                rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), ...
                                 'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                                 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta'});
+                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta'});
                             
                             
                             % Agregar la nueva fila a la tabla
@@ -131,4 +131,10 @@ function TABLA = superTabla(datosBuses)
 end
 
 
-Tabla = superTabla(datosBuses2);
+Tabla = superTabla(datosBuses);
+
+%%
+histogram(Tabla.AcelePorcen1, 20, 'FaceAlpha', 0.5, 'EdgeColor', 'none');  % 20 bins
+hold on
+solo_mujeres = Tabla.NombreRuta == 'A617';
+histogram(Tabla.AcelePorcen1(solo_mujeres), 20, 'FaceAlpha', 0.5, 'EdgeColor', 'none');

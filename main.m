@@ -39,10 +39,10 @@ datosBuses = Calcular.aceleracionesKilometroRutas(datosBuses);
 %%
 datosBuses1 = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
 %%
-datosBuses2 = Calcular.PorcentajesAceleracion(datosBuses);
+datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 
 %%
-datosBuses2 = Calcular.ClasificarHorarioRuta(datosBuses);
+datosBuses = Calcular.ClasificarHorarioRuta(datosBuses);
 
 %% Graficar----------------------------------------------------------------
 
