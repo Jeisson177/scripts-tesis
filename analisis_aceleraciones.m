@@ -138,3 +138,73 @@ histogram(Tabla.AcelePorcen1, 20, 'FaceAlpha', 0.5, 'EdgeColor', 'none');  % 20 
 hold on
 solo_mujeres = Tabla.NombreRuta == 'A617';
 histogram(Tabla.AcelePorcen1(solo_mujeres), 20, 'FaceAlpha', 0.5, 'EdgeColor', 'none');
+%%
+%Tabla=Tabla(Tabla.ID>0)
+
+% for i=1:length(Tabla.ID)
+%     Tabla.DurPosMax{i}=seconds(mean(Tabla.DurPosMax{i}));
+%     Tabla.DurNegMax{i} =seconds(mean(Tabla.DurNegMax{i}));
+% end
+
+% Tabla.MagPosMax = cell2mat(Tabla.MagPosMax);  % Convierte {[0.9535]} a 0.9535
+% Tabla.DurPosMax = cell2mat(Tabla.DurPosMax);  % Convierte {[1.4789]} a 1.4789
+% 
+
+%Tabla=Tabla(Tabla.KilometrosRuta>0,:);
+rutas = unique(Tabla.NombreRuta);
+figure;
+hold on;
+colores = lines(length(rutas));
+
+for i = 1:length(rutas)
+    idx = strcmp(Tabla.NombreRuta, rutas{i});  % Comparación para celdas de texto
+    scatter(Tabla.DurPosMax(idx),Tabla.MagPosMax(idx),  10, ...
+           'MarkerFaceColor', colores(i,:), ...
+           'DisplayName', rutas{i});
+end
+xlabel('MagPosMax');
+ylabel('DurPosMax');
+title('Dispersión por NombreRuta');
+legend('Location', 'bestoutside');
+grid on;
+hold off;
+%%
+horarios = unique(Tabla.HorarioRuta);  % Cambio clave: Usar HorarioRuta
+colores = lines(length(horarios));
+
+figure;
+hold on;
+
+for i = 1:length(horarios)
+    idx = strcmp(Tabla.HorarioRuta, horarios{i});  % Comparación por HorarioRuta
+    scatter(Tabla.MagPosMax(idx), Tabla.DurPosMax(idx), 10, ...
+           'MarkerFaceColor', colores(i,:), ...
+           'DisplayName', horarios{i});  % Leyenda muestra horarios
+end
+
+xlabel('MagPosMax');
+ylabel('DurPosMax');
+title('Dispersión por HorarioRuta');  % Título actualizado
+legend('Location', 'bestoutside');
+grid on;
+hold off;
+%%
+grupo1 = (startsWith(Tabla.NombreRuta, {'A', 'L', 'K'})) & (hour(Tabla.HoraInicio) < 8);
+grupo2 = (startsWith(Tabla.NombreRuta, 'H')) & (hour(Tabla.HoraInicio) >= 17);
+grupo3 = ~(grupo1 | grupo2);
+colores = zeros(height(Tabla), 3);  % Matriz de colores RGB
+colores(grupo1, :) = repmat([0.2 0.6 1], sum(grupo1), 1);    % Azul (buses A/L/K antes de 9am)
+colores(grupo2, :) = repmat([1 0.5 0], sum(grupo2), 1);      % Naranja (buses H después de 5pm)
+colores(grupo3, :) = repmat([0.5 0.5 0.5], sum(grupo3), 1);  % Gris (resto)
+figure;
+hold on;
+scatter(Tabla.MagPosMax(grupo1), Tabla.DurPosMax(grupo1), 30, colores(grupo1, :), 'filled', 'DisplayName', 'Buses A/L/K (mañana)');
+scatter(Tabla.MagPosMax(grupo2), Tabla.DurPosMax(grupo2), 30, colores(grupo2, :), 'filled', 'DisplayName', 'Buses H (tarde/noche)');
+scatter(Tabla.MagPosMax(grupo3), Tabla.DurPosMax(grupo3), 30, colores(grupo3, :), 'filled', 'DisplayName', 'Otros buses');
+
+xlabel('MagPosMax');
+ylabel('DurPosMax');
+title('Dispersión por tipo de bus y horario');
+legend('Location', 'bestoutside');
+grid on;
+hold off;
