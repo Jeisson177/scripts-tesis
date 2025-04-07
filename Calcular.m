@@ -1012,7 +1012,7 @@ end
 
                 % Iterar sobre cada fecha
                 for j = 1:numel(fechas)
-                    fecha = fechas{j};
+                    fecha = fechas{j};                    
 
 
                     try
@@ -1028,6 +1028,7 @@ end
             end
         end
         function datosBuses = calcularKilometroRutasWrapper(datosBuses, k)
+            datosBuses.segmentoP60{k} = sortrows(datosBuses.segmentoP60{k},'fechaHoraLecturaDato','ascend');
 
             kilometrosOdometro = datosBuses.segmentoP60;
             tiemposRutas = datosBuses.tiempoRuta;
