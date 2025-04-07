@@ -858,6 +858,21 @@ end
             aceleracion = dv ./ dt;
         end
 
+        %%
+        function datosBuses = tiempoEntrePuntos(datosBuses)
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.tiempoEntrePuntosWrapper);
+        end
+        function deltaTiempo = diferenciaTiempoRuta(datos, etiquetaTiempo)
+            deltaTiempo = [0; seconds(diff(datos.(etiquetaTiempo)))];
+        end
+
+
+        function datosBuses = tiempoEntrePuntosWrapper(datosBuses, k)
+            deltaTiempo = Calcular.diferenciaTiempoRuta(datosBuses.datosSensorRuta{k, 2}, 'time');
+            datosBuses.datosSensorRuta{k, 2}.deltaTiempo = deltaTiempo;
+        end
+
+
 
         %%
 
@@ -1083,6 +1098,32 @@ end
             
             datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.AceleracionKilometrosWrapper);
         end
+
+        function datosBuses = velocidadVsDistancia(datosBuses)
+            
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.velocidadVsDistanciaWrapper);
+        end
+
+        function datosBuses = velocidadVsDistanciaWrapper(datosBuses, k)
+            
+        
+            % Obtener latitud y longitud
+            lat = datosBuses.datosSensorRuta{k, 2}.lat;
+            lon = datosBuses.datosSensorRuta{k, 2}.lon;
+        
+            % Inicializar vector de distancias
+            n = length(lat);
+            distancias = zeros(n, 1); % Mismo tamaño que lat/lon
+        
+            % Calcular distancia entre puntos consecutivos
+            for i = 1:n - 1
+                distancias(i + 1) = distance(lat(i), lon(i), lat(i+1), lon(i+1), wgs84Ellipsoid('meters'));
+            end
+        
+            % Guardar el vector de distancias en la subtabla
+            datosBuses.datosSensorRuta{k, 2}.distancia = distancias;
+        end
+
 
 
         function datosBuses = ClasificarHorarioRuta(datosBuses)

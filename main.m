@@ -36,6 +36,12 @@ datosBuses = Calcular.corregirAceleracionPorRutas(datosBuses);
 datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 %% Aceleraciones por kilometro
 datosBuses = Calcular.aceleracionesKilometroRutas(datosBuses);
+
+%%
+datosBuses = Calcular.velocidadVsDistancia(datosBuses);
+
+%%
+datosBuses = Calcular.tiempoEntrePuntos(datosBuses);
 %%
 datosBuses1 = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
 %%
