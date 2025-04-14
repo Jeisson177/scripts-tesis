@@ -52,7 +52,7 @@ datosBuses = Calcular.ClasificarHorarioRuta(datosBuses);
 
 %% Graficar----------------------------------------------------------------
 
-Graficar.rutaMapa(datosBuses,"bus_4012" ,"f_10_07_2024", 2)
+Graficar.rutaMapa(datosBuses,"bus_4012" ,"f_03_07_2024")
 
 %%
 Graficar.rutaPorTiempo(datosBuses,"bus_4012" ,"f_10_07_2024", datetime(2024,7,10,14,25,0), datetime(2024,7,10,15,42,0), rutas(12).stops)
@@ -67,6 +67,9 @@ Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
 Graficar.graficarMagnitudesVsDuraciones(datosBuses, 'bus_4012', 'f_03_07_2024', 6);
 %%
 Graficar.HistogramasMagnitudesVsDuraciones(datosBuses, 'bus_4012', 'f_03_07_2024', 1);
+
+%%
+Graficar.velocidadvsdistancia(datosBuses, 'bus_4012', 'f_03_07_2024');
 
 %% ---------------Funciones viejas--------------------------
 

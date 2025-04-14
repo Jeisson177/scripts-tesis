@@ -495,6 +495,83 @@ classdef Graficar
         strrep(busID, '_', '\_'), strrep(fecha, '_', '\_'), indiceRuta));
 end
 
+function velocidadvsdistancia(datosBuses, busID, fecha, indiceRuta)
+            % Esta función grafica las velocidades para rutas de un bus en fechas dadas
+            % usando los parámetros proporcionados, con manejo de omisiones.
+
+            % Comprobar si el bus existe
+            if ~isfield(datosBuses, busID)
+                error('El bus especificado no existe en los datos.');
+            end
+
+            % Obtener todas las fechas si no se especifica una
+            if nargin < 3 || isempty(fecha)
+                fechas = fieldnames(datosBuses.(busID));
+            else
+                if ~isfield(datosBuses.(busID), fecha)
+                    error('La fecha especificada no existe para el bus dado.');
+                end
+                fechas = {fecha};
+            end
+
+            % Iterar sobre las fechas
+            for j = 1:numel(fechas)
+                fechaActual = fechas{j};
+
+                % Obtener los datos de velocidad para la fecha especificada
+                if isfield(datosBuses.(busID).(fechaActual), 'velocidadRuta')
+                    aceleracionRutas = datosBuses.(busID).(fechaActual).aceleracionRuta;
+                else
+                    warning('No hay datos de velocidad disponibles para la fecha %s.', fechaActual);
+                    continue;
+                end
+
+                % Obtener todos los índices si no se especifica uno
+                if nargin < 4 || isempty(indiceRuta)
+                    indicesRutas = 1:size(aceleracionRutas, 1);
+                else
+                    if indiceRuta < 1 || indiceRuta > size(aceleracionRutas, 1)
+                        error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(aceleracionRutas, 1));
+                    end
+                    indicesRutas = indiceRuta;
+                end
+
+                % Iterar sobre los índices de ruta
+                for k = indicesRutas
+                    % Obtener las velocidades y los datos del sensor para el índice de ruta especificado
+                    ruta = aceleracionRutas{k, 3}; % Nombre de la ruta
+
+                    % Obtener los tiempos asociados a las velocidades
+                    datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 2}; % Datos del sensor para la ruta
+                    P60 = (datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro - datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro(1))/...
+                        (datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro(numel(datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro)) - datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro(1));
+                    velocidadP60 = datosBuses.(busID).(fechaActual).segmentoP60{k}.velocidadVehiculo;
+                    deltaDistancia = cumsum(datosSensorRuta.deltaTiempo(2:end-1)); % Usar los tiempos del sensor
+                    deltaDistanciaNorm = (deltaDistancia - min(deltaDistancia)) / ...
+                     (max(deltaDistancia) - min(deltaDistancia));
+
+                    
+
+                    velocidad = datosBuses.(busID).(fechaActual).velocidadRuta{k, 2};
+
+                    % Graficar las velocidades
+                    figure;
+                    plot(deltaDistanciaNorm, velocidad(1:end-1), '-'); %(1:end-1)
+
+                    % Ajustar el título de la gráfica para evitar subíndices
+                    ruta = strrep(ruta, '_', '\_'); % Escapar guiones bajos
+                    fechaActualEscapada = strrep(fechaActual, '_', '\_'); % Escapar guiones bajos
+                    busIDEscapado = strrep(busID, '_', '\_'); % Escapar guiones bajos
+
+                    % Crear el título usando sprintf para evitar problemas de formato
+                    title(sprintf('Velocidades para la ruta %s (Índice: %d) en el bus %s en la fecha %s', ruta, k, busIDEscapado, fechaActualEscapada));
+                    xlabel('Distancia');
+                    ylabel('Velocidad (m/s)');
+                    grid on;
+                end
+            end
+        end
+
 %% ---- Función auxiliar para convertir a valores numéricos ----
 function valoresNumericos = convertirADouble(datos)
     if iscell(datos) && ~isempty(datos)
