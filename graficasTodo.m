@@ -291,3 +291,5 @@ function out = extractScalarOrNaN(val)
         out = NaN;
     end
 end
+
+%% commit
