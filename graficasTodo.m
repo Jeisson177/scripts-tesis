@@ -135,12 +135,15 @@
 
 %%
 
+% Filtrar la tabla para excluir el Bus "bus_4012"
+Tabla = Tabla(~strcmp(Tabla.Bus, 'bus_4012'), :);
+
 % Lista de conductores únicos
 ids = unique(Tabla.ID);
 
 % Variables de interés para graficar
-xVars = {'AcelePorcen1', 'Velocidad', 'DurPosMean', 'Velocidad', 'MagPosMean', 'DurPosMax', 'Velocidad', 'MagPosMax'};
-yVars = {'AcelePorcen2', 'meanMagPosMax', 'DurNegMean', 'KilometrosRuta', 'MagNegMean', 'DurNegMax', 'MagPosMean', 'MagNegMax'};
+xVars = {'AcelePorcen1', 'Velocidad', 'DurPosMean', 'MagPosMax', 'DurNegMean', 'DurNegMax', 'DurPosMean', ''};
+yVars = {'AcelePorcen2', 'MagPosMax', 'DurNegMean', 'AcelePorcen2', 'MagNegMean', 'MagNegMax', 'MagPosMean', ''};
 
 % Preparar datos: calcular el promedio por conductor
 numConductores = length(ids);
@@ -164,6 +167,9 @@ for i = 1:numConductores
     
     % Procesar cada variable
     for j = 1:length(xVars)
+        if isempty(xVars{j}) % Saltar si la variable está vacía (octavo subplot)
+            continue;
+        end
         x = T_c.(xVars{j});
         % Si la columna contiene arreglos (como Nx1 double), calcular el mean
         if iscell(x) && all(cellfun(@(v) isnumeric(v) && isvector(v), x))
@@ -185,6 +191,9 @@ for i = 1:numConductores
     end
     
     for j = 1:length(yVars)
+        if isempty(yVars{j}) % Saltar si la variable está vacía (octavo subplot)
+            continue;
+        end
         y = T_c.(yVars{j});
         % Si la columna contiene arreglos (como Nx1 double), calcular el mean
         if iscell(y) && all(cellfun(@(v) isnumeric(v) && isvector(v), y))
@@ -236,6 +245,13 @@ for j = 1:8
     nexttile;
     hold on; % Permitir múltiples scatter en el mismo subplot
 
+    % Saltar el octavo subplot
+    if j == 8
+        title('Nulo', 'Interpreter', 'none');
+        hold off;
+        continue;
+    end
+
     x = dataX(:, j);
     y = dataY(:, j);
 
@@ -248,6 +264,7 @@ for j = 1:8
     % Verificar si hay datos válidos para graficar
     if isempty(x) || isempty(y)
         title(sprintf('%s vs %s (No valid data)', yVars{j}, xVars{j}), 'Interpreter', 'none');
+        hold off;
         continue;
     end
 
@@ -291,5 +308,3 @@ function out = extractScalarOrNaN(val)
         out = NaN;
     end
 end
-
-%% commit
