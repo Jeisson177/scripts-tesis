@@ -556,7 +556,7 @@ function velocidadvsdistancia(datosBuses, busID, fecha, indiceRuta)
 
                     % Graficar las velocidades
                     figure;
-                    plot(deltaDistanciaNorm, velocidad(1:end-1), '-'); %(1:end-1)
+                    plot(deltaDistancia, velocidad(1:end-1), '-'); %(1:end-1)
 
                     % Ajustar el título de la gráfica para evitar subíndices
                     ruta = strrep(ruta, '_', '\_'); % Escapar guiones bajos

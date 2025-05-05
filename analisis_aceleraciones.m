@@ -105,7 +105,7 @@ function TABLA = superTabla(datosBuses)
                             hora_inicio = rutadato.tiempoRuta.Inicio_Ruta(k);
                             hora_final = rutadato.tiempoRuta.Fin_Ruta(k);
                             distancia = {rutadato.datosSensorRuta{k, 2}.distancia};
-                            acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
+                            acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>0);
                             acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
                             tiempo = {rutadato.datosSensorRuta{k,2}.deltaTiempo};
                             velocidad = rutadato.velocidadRuta(k,2);
@@ -140,12 +140,15 @@ Tabla = superTabla(datosBuses);
 %%
 histogram(Tabla.AcelePorcen1, 20, 'FaceAlpha', 0.5, 'EdgeColor', 'none');  % 20 bins
 hold on
-solo_mujeres = Tabla.Bus == 'bus_4025';
+solo_mujeres = Tabla.Bus == 'bus_4020';
 histogram(Tabla.AcelePorcen1(solo_mujeres), 20, 'FaceAlpha', 0.5, 'EdgeColor', 'none');
 
 %%
 Tabla.DesacePorcen1 = cellfun(@(x) sum(x < -1) / sum(x < 0), Tabla.MagNegMean);
 Tabla.meanMagNegMax = cellfun(@mean, Tabla.MagNegMax);
+
+%%
+Tabla.meanMagPosMax = cellfun(@mean, Tabla.MagPosMax);
 
 %%
 %Tabla=Tabla(Tabla.ID>0)

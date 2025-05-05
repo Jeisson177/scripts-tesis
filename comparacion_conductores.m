@@ -7,32 +7,32 @@ figure, axes
 hold on
 
 IDs_ = unique(Tabla.ID); % Arreglo de IDs de cada conductor
-IDs_(IDs_==0)=[]; % Borrar IDs == 0 
+% IDs_(IDs_==0)=[]; % Borrar IDs == 0 
 
 % Ciclo
 for i = 1:numel(IDs_)
     idx = Tabla.ID == IDs_(i);
     scatter(Tabla.meanMagPosMax(idx),Tabla.AcelePorcen1(idx))
     % % Extraer las coordenadas (x, y) de ese ID
-    % xData = Tabla.meanMagPosMax(idx);
-    % yData = Tabla.AcelePorcen1(idx);
-    % 
-    % % Calcular extremos
-    % xMin = min(xData);
-    % xMax = max(xData);
-    % yMin = min(yData);
-    % yMax = max(yData);
-    % 
-    % % Calcular ancho y alto
-    % ancho = xMax - xMin;
-    % alto  = yMax - yMin;
-    % 
-    % % Trazar un rectángulo
-    % rectangle('Position', [xMin, yMin, ancho, alto], ...
-    %           'EdgeColor', 'r', ...
-    %           'LineWidth', 2);
+    xData = Tabla.meanMagPosMax(idx);
+    yData = Tabla.AcelePorcen1(idx);
 
-     %scatter(Tabla.meanMagPosMax(idx),cellfun(@numel,Tabla.MagPosMax(idx))./Tabla.KilometrosRuta(idx))
+    % Calcular extremos
+    xMin = min(xData);
+    xMax = max(xData);
+    yMin = min(yData);
+    yMax = max(yData);
+
+    % Calcular ancho y alto
+    ancho = xMax - xMin;
+    alto  = yMax - yMin;
+
+    % Trazar un rectángulo
+    rectangle('Position', [xMin, yMin, ancho, alto], ...
+              'EdgeColor', 'r', ...
+              'LineWidth', 2);
+
+     % scatter(Tabla.meanMagPosMax(idx),cellfun(@numel,Tabla.MagPosMax(idx))./Tabla.KilometrosRuta(idx))
     
     % disp(IDs_(i))
     % pause
