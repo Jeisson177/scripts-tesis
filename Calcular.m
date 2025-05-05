@@ -929,6 +929,10 @@ end
             resumenRutas = table(rutas', cell2mat(numRecorridos)', 'VariableNames', {'Ruta', 'NumeroRecorridos'});
         end
 
+        %%
+        function datos = NormalizarRuta()
+            
+        end
 
         %%
         function datosBuses = extraerDatosSensorPorRutas(datosBuses)

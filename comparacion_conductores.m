@@ -1,51 +1,48 @@
 % Script para comparación de conductores
 % load('Tabla.mat')
 
-%% Figura 1
-% figure, axes
+figure, axes
+% Figura 1
 % scatter(mean(Tabla.MagPosMax{1}),Tabla.AcelePorcen1(1))
-% hold on
+hold on
 
 IDs_ = unique(Tabla.ID); % Arreglo de IDs de cada conductor
-IDs_(IDs_==0)=[]; % Borrar IDs == 0 
+% IDs_(IDs_==0)=[]; % Borrar IDs == 0 
 
-%% Agregar promedios de MagPosMax y otros, a la tabla
-for i = 1:size(Tabla,1)
-    Tabla.meanMagPosMax(i) = mean(Tabla.MagPosMax{i});
-end
-
-%% Ciclo
+% Ciclo
 for i = 1:numel(IDs_)
-    % idx = Tabla.ID == IDs_(i);
-    idx = find(Tabla.ID == IDs_(i)); %
+    idx = Tabla.ID == IDs_(i);
+    scatter(Tabla.meanMagPosMax(idx),Tabla.AcelePorcen1(idx))
+    % % Extraer las coordenadas (x, y) de ese ID
+    xData = Tabla.meanMagPosMax(idx);
+    yData = Tabla.AcelePorcen1(idx);
 
-    figure, axes, grid, hold on
-    title(strcat(Tabla.NombreRuta(i), " ", Tabla.Sexo(i), " ", string(Tabla.HoraInicio(i))))
-    for j = 1:numel(idx)        
-        scatter(seconds(Tabla.DurPosMax{idx(j)}),Tabla.MagPosMax{idx(j)})
-        scatter(seconds(Tabla.DurNegMax{idx(j)}),Tabla.MagNegMax{idx(j)})
-    end
+    % Calcular extremos
+    xMin = min(xData);
+    xMax = max(xData);
+    yMin = min(yData);
+    yMax = max(yData);
 
-    % scatter(Tabla.meanMagPosMax(idx),Tabla.AcelePorcen2(idx))
-    % scatter(Tabla.meanMagPosMax(idx),Tabla.AcelePorcen2(idx))
-    % scatter(Tabla.meanMagPosMax(idx),Tabla.AcelePorcen1(idx))
+    % Calcular ancho y alto
+    ancho = xMax - xMin;
+    alto  = yMax - yMin;
 
-    % scatter(Tabla.meanMagPosMax(idx),cellfun(@numel,Tabla.MagPosMax(idx))./Tabla.KilometrosRuta(idx))
+    % Trazar un rectángulo
+    rectangle('Position', [xMin, yMin, ancho, alto], ...
+              'EdgeColor', 'r', ...
+              'LineWidth', 2);
+
+     % scatter(Tabla.meanMagPosMax(idx),cellfun(@numel,Tabla.MagPosMax(idx))./Tabla.KilometrosRuta(idx))
     
     % disp(IDs_(i))
-    pause
+    % pause
 end
 grid
-
 % xlabel 'Mean MagPosMax'
-% ylabel 'Porctaje de Acel > 2 m/s2'
+% ylabel 'Porctaje de Acel > 1 m/s2'
 
-% xlabel 'Mean MagNegMax'
-% ylabel 'Porctaje de Acel < -1 m/s2'
-
-% 
-% xlabel 'Mean MagPosMax'
-% ylabel 'AccPos por km'
+xlabel 'Mean MagPosMax'
+ylabel 'AccPos por km'
 
 % Al final del ciclo, se ven dos clusters claros
 
