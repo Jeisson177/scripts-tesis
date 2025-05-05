@@ -154,35 +154,26 @@ for j = 1:8
     end
 end
 
-function out = extractScalarOrNaN(val)
-    try
-        if isnumeric(val) && isscalar(val)
-            out = double(val);
-        elseif isduration(val)
-            out = seconds(val);
-        elseif ischar(val) || isstring(val)
-            out = str2double(val);
-            if isnan(out), out = NaN; end
-        elseif isnumeric(val) && isvector(val)
-            out = mean(val, 'omitnan'); % Tomar la media si es un vector
-        else
-            out = NaN;
-        end
-    catch
-        out = NaN;
-    end
-end
 
 %% grafico importante, correlación entre variables
-numericVars = {'AcelePorcen1', 'AcelePorcen2', 'MagPosMean', 'MagNegMean', ...
-               'DurPosMean', 'DurNegMean', 'MagPosMax', 'MagNegMax', ...
-               'DurPosMax', 'DurNegMax', 'Velocidad', 'meanMagPosMax'};
+Tabla_4012 = Tabla(strcmp(Tabla.Bus,"bus_4012"),:);
+Tabla_no_4012 = Tabla(~strcmp(Tabla.Bus,"bus_4012"),:);
+
+% ESCOGER TABLA
+% T = Tabla; 
+T = Tabla_no_4012;
+% T = Tabla_4012;
+
+numericVars = {'AcelePorcen1', 'AcelePorcen2', 'MagPosMean', 'MagPosMax', ...
+               'MagNegMean', 'MagNegMax', ...
+               'DurPosMean', 'DurNegMean', ...
+               'Acc_km','Fre_km','Velocidad'};
 numNumericVars = length(numericVars);
-dataMatrix = zeros(height(Tabla), numNumericVars);
+dataMatrix = zeros(height(T), numNumericVars);
 
 % Convertir y procesar datos
 for i = 1:numNumericVars
-    varData = Tabla.(numericVars{i});
+    varData = T.(numericVars{i});
     if iscell(varData)
         if all(cellfun(@(x) isnumeric(x) && isvector(x), varData))
             varData = cellfun(@(x) mean(x, 'omitnan'), varData, 'UniformOutput', false);
@@ -335,3 +326,21 @@ for h = 1:length(uniqueHorarios)
     grid on;
 end
 %%
+function out = extractScalarOrNaN(val)
+    try
+        if isnumeric(val) && isscalar(val)
+            out = double(val);
+        elseif isduration(val)
+            out = seconds(val);
+        elseif ischar(val) || isstring(val)
+            out = str2double(val);
+            if isnan(out), out = NaN; end
+        elseif isnumeric(val) && isvector(val)
+            out = mean(val, 'omitnan'); % Tomar la media si es un vector
+        else
+            out = NaN;
+        end
+    catch
+        out = NaN;
+    end
+end
