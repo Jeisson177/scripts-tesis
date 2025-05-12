@@ -37,8 +37,15 @@ datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 %% Aceleraciones por kilometro
 datosBuses = Calcular.aceleracionesKilometroRutas(datosBuses);
 
+
+
+
 %%
 datosBuses = Calcular.velocidadVsDistancia(datosBuses);
+
+
+
+
 
 %%
 datosBuses = Calcular.tiempoEntrePuntos(datosBuses);
@@ -49,6 +56,8 @@ datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 
 %%
 datosBuses = Calcular.ClasificarHorarioRuta(datosBuses);
+
+
 
 %% Graficar----------------------------------------------------------------
 
@@ -172,3 +181,78 @@ function reconstruirDistribucion(datos, lambda, alpha)
 end
 
 % reconstruirDistribucion(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{1, 1}, 1.5092, 1.7141);
+
+
+%% Velocidad acum ruta
+% Bins del 1% (100 tramos)
+edges = linspace(0, 1, 101);
+centros = edges(1:end-1) + 0.005;
+
+rutas = unique(Tabla.NombreRuta);
+resultado = struct();
+
+for r = 1:numel(rutas)
+    ruta_actual = rutas(r);
+    
+    idx = Tabla.NombreRuta == ruta_actual;
+    velocidades_ruta = Tabla.Velocidad(idx);
+    dist_norm_ruta = Tabla.distanciaAcumNorm(idx);
+
+    suma = zeros(1, 100);
+    conteo = zeros(1, 100);
+
+    for i = 1:numel(velocidades_ruta)
+        v = velocidades_ruta{i};
+        d = dist_norm_ruta{i};
+        
+        % Validar consistencia
+        if numel(d) ~= numel(v)+1
+            continue  % o lanzar advertencia
+        end
+        
+        d = d(1:end-1);  % emparejar con v
+
+        for b = 1:100
+            in_bin = d >= edges(b) & d < edges(b+1);
+            valores = v(in_bin);
+            suma(b) = suma(b) + sum(valores);
+            conteo(b) = conteo(b) + numel(valores);
+        end
+    end
+
+    promedio = suma ./ max(conteo, 1);  % evitar división por cero
+
+    resultado(r).Ruta = ruta_actual;
+    resultado(r).Progreso = centros;
+    resultado(r).VelocidadMedia = promedio;
+end
+
+
+%%
+
+function graficarCurvasVelocidad(resultado)
+% GRAFICARCURVASVELOCIDAD Grafica las curvas promedio de velocidad normalizada por ruta
+%
+% Entrada:
+%   resultado: estructura con campos:
+%       - Ruta: nombre de la ruta (categorical o string)
+%       - Progreso: vector de progreso normalizado [0–1]
+%       - VelocidadMedia: vector de velocidad promedio correspondiente
+
+    if nargin < 1 || isempty(resultado)
+        error('Se debe proporcionar la estructura de resultados.');
+    end
+
+    figure; hold on; grid on;
+    for i = 1:numel(resultado)
+        plot(resultado(i).Progreso, resultado(i).VelocidadMedia, 'LineWidth', 1.5, ...
+             'DisplayName', string(resultado(i).Ruta));
+    end
+
+    xlabel('Progreso normalizado de la ruta (0–1)');
+    ylabel('Velocidad promedio');
+    title('Curvas promedio de velocidad por ruta');
+    legend('Location', 'best');
+end
+
+graficarCurvasVelocidad(resultado)

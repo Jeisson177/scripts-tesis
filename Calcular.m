@@ -870,6 +870,11 @@ end
         function datosBuses = tiempoEntrePuntosWrapper(datosBuses, k)
             deltaTiempo = Calcular.diferenciaTiempoRuta(datosBuses.datosSensorRuta{k, 2}, 'time');
             datosBuses.datosSensorRuta{k, 2}.deltaTiempo = deltaTiempo;
+
+            deltaDistancia = cumsum(deltaTiempo); % Usar los tiempos del sensor
+            deltaDistanciaNorm = (deltaDistancia - min(deltaDistancia)) / ...
+                (max(deltaDistancia) - min(deltaDistancia));
+            datosBuses.datosSensorRuta{k, 2}.deltaTiempoAcum
         end
 
 
@@ -1127,6 +1132,19 @@ end
         
             % Guardar el vector de distancias en la subtabla
             datosBuses.datosSensorRuta{k, 2}.distancia = distancias;
+
+            acumuladoDistancia =  cumsum(distancias);
+
+            datosBuses.datosSensorRuta{k, 2}.distanciaAcum = acumuladoDistancia;
+
+            deltaDistanciaNorm = (acumuladoDistancia - min(acumuladoDistancia)) / ...
+                (max(acumuladoDistancia) - min(acumuladoDistancia));
+
+            datosBuses.datosSensorRuta{k, 2}.distanciaAcumNorm = deltaDistanciaNorm;
+
+            deltaDistanciaNormP60 = (datosBuses.segmentoP60{k}.kilometrosOdometro - datosBuses.segmentoP60{k}.kilometrosOdometro(1))/...
+                (datosBuses.segmentoP60{k}.kilometrosOdometro(numel(datosBuses.segmentoP60{k}.kilometrosOdometro)) - datosBuses.segmentoP60{k}.kilometrosOdometro(1));
+            datosBuses.segmentoP60{k}.distanciaAcumNormP60 = deltaDistanciaNormP60;
         end
 
 
