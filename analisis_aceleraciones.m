@@ -71,8 +71,7 @@ Tabla.DesacePorcen1 = cellfun(@(x) sum(x < -1) / sum(x < 0), Tabla.MagNegMean);
 Tabla.meanMagNegMax = cellfun(@mean, Tabla.MagNegMax);
 
 %%
-Tabla.meanMagPosMax = cellfun(@mean, Tabla.MagPosMax.("magnitudes_positivas_max"));
-
+Tabla.meanMagPosMax = cellfun(@mean, Tabla.MagPosMax);
 
 %%
 %Tabla=Tabla(Tabla.ID>0)
@@ -146,7 +145,7 @@ grid on;
 hold off;
 
 %% Funciones
-%%Tabla = superTabla(datosBuses);
+Tabla = superTabla(datosBuses);
 
 function TABLA = superTabla(datosBuses)
 
@@ -154,9 +153,8 @@ function TABLA = superTabla(datosBuses)
     % Crear la tabla vacía con los nombres de columna adecuados
     TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], ...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
-                      'AcelePorcen1', 'AcelePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', ...
-                      'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', 'distanciaAcumNormP60', 'distanciaAcumNorm'});
+                      'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
+                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km'});
 
 
 
@@ -192,28 +190,28 @@ function TABLA = superTabla(datosBuses)
                             hora_inicio = rutadato.tiempoRuta.Inicio_Ruta(k);
                             hora_final = rutadato.tiempoRuta.Fin_Ruta(k);
                             distancia = {rutadato.datosSensorRuta{k, 2}.distancia};
-                            acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>0);
-                            acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}{1}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}{1}>0);
+                            acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
+                            acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
+                            frepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<-1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<0);
+                            frepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<-2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<0);
                             tiempo = {rutadato.datosSensorRuta{k,2}.deltaTiempo};
                             velocidad = rutadato.velocidadRuta(k,2);
-                            num_Acc = cell2mat(cellfun(@size, indicesAceleracion{k,1}, 'UniformOutput', false));
-                            num_Fre = cell2mat(cellfun(@size, indicesAceleracion{k,2}, 'UniformOutput', false));
+                            num_Acc = cell2mat(cellfun(@size, indicesAceleracion(k,1), 'UniformOutput', false));
+                            num_Fre = cell2mat(cellfun(@size, indicesAceleracion(k,2), 'UniformOutput', false));
                             Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                             Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
-                            distanciaAcumNormP60 = {rutadato.segmentoP60{k}.distanciaAcumNormP60};
-                            distanciaAcumNorm = {rutadato.datosSensorRuta{k, 2}.distanciaAcumNorm};
                             
 
 
                             % Definir los datos de una nueva fila
-                            nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, ...
+                            nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
                                 indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
                                 indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
-                                rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, distanciaAcumNormP60, distanciaAcumNorm,  ...
+                                rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km,  ...
                                 'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
-                                'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km' ...
-                      , 'distanciaAcumNormP60', 'distanciaAcumNorm'});
+                                'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
+                                'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
+                                'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km'});
 
 
                             % Agregar la nueva fila a la tabla
@@ -230,4 +228,4 @@ function TABLA = superTabla(datosBuses)
 end
 
 
-Tabla = superTabla(datosBuses);
+% Tabla = superTabla(datosBuses);
