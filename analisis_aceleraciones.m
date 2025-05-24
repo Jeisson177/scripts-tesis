@@ -143,6 +143,57 @@ title('Dispersión por tipo de bus y horario');
 legend('Location', 'bestoutside');
 grid on;
 hold off;
+%% agregar curvas
+
+if ~ismember('Curvas', Tabla.Properties.VariableNames)
+    Tabla.Curvas = cell(height(Tabla), 1);
+end
+
+% Inicializar contador de fila
+fila = 1;
+
+% Recorrer la estructura datosBuses
+buses = fieldnames(datosBuses);
+
+for i = 1:numel(buses)
+    bus = buses{i};
+
+    if strcmp(bus, 'info')
+        continue;
+    end
+
+    fechas = fieldnames(datosBuses.(bus));
+
+    for j = 1:numel(fechas)
+        fecha = fechas{j};
+        rutadato = datosBuses.(bus).(fecha);
+        try
+        numRutas = size(rutadato.tiempoRuta, 1);
+
+        for k = 1:numRutas
+            
+                % Calcular curva y asignarla si hay fila correspondiente
+                if fila <= height(Tabla)
+                    curvas = Calculos.riesgoCurva( ...
+                        rutadato.datosSensorRuta{k, 2}, ...
+                        rutadato.tiempoRuta.Inicio_Ruta(k), ...
+                        rutadato.tiempoRuta.Fin_Ruta(k));
+
+                    %curvaProm = {cellfun(@(mat) mean(mat(:)), curvas)};
+                    Tabla.Curvas{fila} = curvas;
+                end
+            
+
+            fila = fila + 1;
+        end
+        catch ME
+                fprintf("Error en bus %s, fecha %s, recorrido %s\n", ...
+                    bus, fecha, ME.message);
+            end
+    end
+end
+
+
 
 %% Funciones
 Tabla = superTabla(datosBuses);
@@ -151,10 +202,11 @@ function TABLA = superTabla(datosBuses)
 
 
     % Crear la tabla vacía con los nombres de columna adecuados
-    TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], ...
+    TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [],...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
                       'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km'});
+                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
+                      'Curvas'});
 
 
 
@@ -200,18 +252,19 @@ function TABLA = superTabla(datosBuses)
                             num_Fre = cell2mat(cellfun(@size, indicesAceleracion(k,2), 'UniformOutput', false));
                             Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                             Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
-                            
+                            c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
+                            curvas = {cellfun(@(mat) mean(mat(:)), c)};
 
 
                             % Definir los datos de una nueva fila
                             nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
                                 indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
                                 indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
-                                rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km,  ...
+                                rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, curvas, ...
                                 'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                                 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                                 'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
-                                'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km'});
+                                'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas'});
 
 
                             % Agregar la nueva fila a la tabla

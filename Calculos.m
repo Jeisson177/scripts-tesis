@@ -1554,12 +1554,12 @@ end
                     curva = 0;
                 end
             end
-            mapita=Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFin,'titulo');
-            hold on
-            geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
-            geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
-            tam=size(datos);%cantidad de curvas
-            cantidadN=1;
+            % mapita=Map.Curvatura(datosCordenadasSensor, fechaInicio, fechaFin,'titulo');
+            % hold on
+            % geoscatter(marcador(:, 1), marcador(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Posiciones', 'SizeData', 200);
+            % geoscatter(marcador2(:, 1), marcador2(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Posiciones', 'SizeData', 100);
+             tam=size(datos);%cantidad de curvas
+             cantidadN=1;
             
             for i=1:tam(2)
                 tamaC=size(datos{1,i});%cantidad de puntos por curva, se dice que debe haber almenos 3 puntos por cuva
