@@ -180,7 +180,7 @@ for i = 1:numel(buses)
                         rutadato.tiempoRuta.Fin_Ruta(k));
 
                     %curvaProm = {cellfun(@(mat) mean(mat(:)), curvas)};
-                    Tabla.Curvas{fila} = curvas;
+                    Tabla.Curvas{fila} = vertcat(curvas{:});  % une todas las curvas en una sola matriz
                 end
             
 
