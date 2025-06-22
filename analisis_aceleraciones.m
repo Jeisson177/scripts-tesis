@@ -144,6 +144,60 @@ legend('Location', 'bestoutside');
 grid on;
 hold off;
 %% agregar curvas
+PosCurvas = llamarFuncionesLcurvas(datosBuses);
+
+function PosCurvas = llamarFuncionesLcurvas(datosBuses)
+    PosCurvas = struct();  % Inicializar estructura vacía
+
+    try
+        PosCurvas.ida4020 = Calculos.Lcurvasida4020(datosBuses);
+    end
+    try
+        PosCurvas.vuelta4020 = Calculos.LcurvasVuelta4020(datosBuses);
+    end
+    try
+        PosCurvas.ida4104s2 = Calculos.Lcurvasida4104s2(datosBuses);
+    end
+    try
+        PosCurvas.vuelta4104s2 = Calculos.LcurvasVuelta4104s2(datosBuses);
+    end
+    try
+        PosCurvas.ida4020s2 = Calculos.Lcurvasida4020s2(datosBuses);
+    end
+    try
+        PosCurvas.vuelta4020s2 = Calculos.LcurvasVuelta4020s2(datosBuses);
+    end
+    try
+        PosCurvas.ida4104 = Calculos.Lcurvasida4104(datosBuses);
+    end
+    try
+        PosCurvas.vuelta4104 = Calculos.LcurvasVuelta4104(datosBuses);
+    end
+    try 
+        PosCurvas.A617 = Calculos.LcurvasA617(datosBuses);
+    end
+    try
+        PosCurvas.H617 = Calculos.LcurvasH617(datosBuses);
+    end
+    try
+        PosCurvas.A601 = Calculos.LcurvasA601(datosBuses);
+    end
+    try
+        PosCurvas.H601 = Calculos.LcurvasH601(datosBuses);
+    end
+    try
+        PosCurvas.H613 = Calculos.LcurvasH613(datosBuses);
+    end
+    try
+        PosCurvas.L613 = Calculos.LcurvasL613(datosBuses);
+    end
+    try
+        PosCurvas.A618 = Calculos.LcurvasA618(datosBuses);
+    end
+    try
+        PosCurvas.H618 = Calculos.LcurvasH618(datosBuses);
+    end
+end
 
 if ~ismember('Curvas', Tabla.Properties.VariableNames)
     Tabla.Curvas = cell(height(Tabla), 1);
