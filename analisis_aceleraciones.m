@@ -8,10 +8,10 @@ scatter(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 4},datosBuses
 scatter(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 7},datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 5})
 scatter(datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 8},datosBuses.bus_4012.f_03_07_2024.indicesAceleracionRuta{i, 6})
 legend("Aceleraciones positivas promedio", ...
-       "Aceleraciones negativas promedio", ...
-       "Aceleraciones positivas máximas", ...
-       "Aceleraciones negativas mínimas", ...
-       'Location', 'best');
+    "Aceleraciones negativas promedio", ...
+    "Aceleraciones positivas máximas", ...
+    "Aceleraciones negativas mínimas", ...
+    'Location', 'best');
 %% Cálculo de aceleraciones y desaceleraciones por km
 cellfun(@length,datosBuses.bus_4012.f_04_07_2024.indicesAceleracionRuta)./repmat(datosBuses.bus_4012.f_04_07_2024.tiempoRuta.Kilometros_Ida,1,8)
 
@@ -19,12 +19,12 @@ cellfun(@length,datosBuses.bus_4012.f_04_07_2024.indicesAceleracionRuta)./repmat
 
 %% indicadores aceleración
 
-%hacer un conteo de las aceleraciones por intervalo de tiempo, además de eso 
-% sacar un promedio de cada una de ellas. (pensar si se pueden obviar las 
+%hacer un conteo de las aceleraciones por intervalo de tiempo, además de eso
+% sacar un promedio de cada una de ellas. (pensar si se pueden obviar las
 % que son muy bajas)
 
-%sirve para comparar cada conductor si las aceleraciones que hace por un 
-% tiempo considerable son mas agresivas que las de los demás, teniendo eso 
+%sirve para comparar cada conductor si las aceleraciones que hace por un
+% tiempo considerable son mas agresivas que las de los demás, teniendo eso
 % se puede hacer un ranking y determinar cuales conducen mejor.
 
 j = 1; % Conductor
@@ -57,7 +57,7 @@ end
 
 % Crear una tabla con los resultados (asegurar que todas las variables sean columnas)
 resultados = table(edges(1:end-1), N(:), promedios, ...
-                   'VariableNames', {'TiempoInicio', 'ConteoAceleraciones', 'PromedioAceleracion'});
+    'VariableNames', {'TiempoInicio', 'ConteoAceleraciones', 'PromedioAceleracion'});
 
 
 %%
@@ -83,7 +83,7 @@ Tabla.meanMagPosMax = cellfun(@mean, Tabla.MagPosMax);
 
 % Tabla.MagPosMax = cell2mat(Tabla.MagPosMax);  % Convierte {[0.9535]} a 0.9535
 % Tabla.DurPosMax = cell2mat(Tabla.DurPosMax);  % Convierte {[1.4789]} a 1.4789
-% 
+%
 
 %Tabla=Tabla(Tabla.KilometrosRuta>0,:);
 rutas = unique(Tabla.NombreRuta);
@@ -94,8 +94,8 @@ colores = lines(length(rutas));
 for i = 1:length(rutas)
     idx = strcmp(Tabla.NombreRuta, rutas{i});  % Comparación para celdas de texto
     scatter(Tabla.DurPosMax(idx),Tabla.MagPosMax(idx),  10, ...
-           'MarkerFaceColor', colores(i,:), ...
-           'DisplayName', rutas{i});
+        'MarkerFaceColor', colores(i,:), ...
+        'DisplayName', rutas{i});
 end
 xlabel('MagPosMax');
 ylabel('DurPosMax');
@@ -113,8 +113,8 @@ hold on;
 for i = 1:length(horarios)
     idx = strcmp(Tabla.HorarioRuta, horarios{i});  % Comparación por HorarioRuta
     scatter(Tabla.MagPosMax(idx), Tabla.DurPosMax(idx), 10, ...
-           'MarkerFaceColor', colores(i,:), ...
-           'DisplayName', horarios{i});  % Leyenda muestra horarios
+        'MarkerFaceColor', colores(i,:), ...
+        'DisplayName', horarios{i});  % Leyenda muestra horarios
 end
 
 xlabel('MagPosMax');
@@ -147,43 +147,43 @@ hold off;
 PosCurvas = llamarFuncionesLcurvas(datosBuses);
 
 function PosCurvas = llamarFuncionesLcurvas(datosBuses)
-    PosCurvas = struct();  % Inicializar estructura vacía
-    try
-        PosCurvas.K629 = Calculos.Lcurvasida4020s2(datosBuses);
-    end
-    try
-        PosCurvas.H629 = Calculos.LcurvasVuelta4020s2(datosBuses);
-    end
-    try
-        PosCurvas.L636 = Calculos.Lcurvasida4104(datosBuses);
-    end
-    try
-        PosCurvas.H636 = Calculos.LcurvasVuelta4104(datosBuses);
-    end
-    try 
-        PosCurvas.A617 = Calculos.LcurvasA617(datosBuses);
-    end
-    try
-        PosCurvas.H617 = Calculos.LcurvasH617(datosBuses);
-    end
-    try
-        PosCurvas.A601 = Calculos.LcurvasA601(datosBuses);
-    end
-    try
-        PosCurvas.H601 = Calculos.LcurvasH601(datosBuses);
-    end
-    try
-        PosCurvas.H613 = Calculos.LcurvasH613(datosBuses);
-    end
-    try
-        PosCurvas.L613 = Calculos.LcurvasL613(datosBuses);
-    end
-    try
-        PosCurvas.A618 = Calculos.LcurvasA618(datosBuses);
-    end
-    try
-        PosCurvas.H618 = Calculos.LcurvasH618(datosBuses);
-    end
+PosCurvas = struct();  % Inicializar estructura vacía
+try
+    PosCurvas.K629 = Calculos.Lcurvasida4020s2(datosBuses);
+end
+try
+    PosCurvas.H629 = Calculos.LcurvasVuelta4020s2(datosBuses);
+end
+try
+    PosCurvas.L636 = Calculos.Lcurvasida4104(datosBuses);
+end
+try
+    PosCurvas.H636 = Calculos.LcurvasVuelta4104(datosBuses);
+end
+try
+    PosCurvas.A617 = Calculos.LcurvasA617(datosBuses);
+end
+try
+    PosCurvas.H617 = Calculos.LcurvasH617(datosBuses);
+end
+try
+    PosCurvas.A601 = Calculos.LcurvasA601(datosBuses);
+end
+try
+    PosCurvas.H601 = Calculos.LcurvasH601(datosBuses);
+end
+try
+    PosCurvas.H613 = Calculos.LcurvasH613(datosBuses);
+end
+try
+    PosCurvas.L613 = Calculos.LcurvasL613(datosBuses);
+end
+try
+    PosCurvas.A618 = Calculos.LcurvasA618(datosBuses);
+end
+try
+    PosCurvas.H618 = Calculos.LcurvasH618(datosBuses);
+end
 end
 %%
 if ~ismember('Curvas', Tabla.Properties.VariableNames)
@@ -209,45 +209,45 @@ for i = 1:numel(buses)
         fecha = fechas{j};
         rutadato = datosBuses.(bus).(fecha);
         try
-        numRutas = size(rutadato.tiempoRuta, 1);
+            numRutas = size(rutadato.tiempoRuta, 1);
 
-        for k = 1:numRutas
-            if fila <= height(Tabla)
-                nombreRuta = strrep(rutadato.tiempoRuta.Ruta{k}, '"', '');  % eliminar comillas si existen
-                try
-                    pCurvas = PosCurvas.(nombreRuta);  % acceder dinámicamente
-                    riesgo = Calculos.riesgoCurva2( ...
-                        rutadato.datosSensorRuta{k, 2}, ...
-                        rutadato.tiempoRuta.Inicio_Ruta(k), ...
-                        rutadato.tiempoRuta.Fin_Ruta(k), ...
-                        pCurvas);
-        
-                    Tabla.Curvas{fila} = riesgo;
-                    if numel(riesgo) ~= size(pCurvas{1}, 1)
-                        fprintf('⚠️ Diferencia en número de curvas en fila %d: riesgo=%d, pCurvas=%d\n', ...
-                            fila, numel(riesgo), size(pCurvas{1},1));
-                        pause
+            for k = 1:numRutas
+                if fila <= height(Tabla)
+                    nombreRuta = strrep(rutadato.tiempoRuta.Ruta{k}, '"', '');  % eliminar comillas si existen
+                    try
+                        pCurvas = PosCurvas.(nombreRuta);  % acceder dinámicamente
+                        riesgo = Calculos.riesgoCurva2( ...
+                            rutadato.datosSensorRuta{k, 2}, ...
+                            rutadato.tiempoRuta.Inicio_Ruta(k), ...
+                            rutadato.tiempoRuta.Fin_Ruta(k), ...
+                            pCurvas);
+
+                        Tabla.Curvas{fila} = riesgo;
+                        if numel(riesgo) ~= size(pCurvas{1}, 1)
+                            fprintf('⚠️ Diferencia en número de curvas en fila %d: riesgo=%d, pCurvas=%d\n', ...
+                                fila, numel(riesgo), size(pCurvas{1},1));
+                            pause
+                        end
+
+                    catch ME_inner
+                        fprintf("Error en ruta '%s' (bus %s, fecha %s): %s\n", ...
+                            nombreRuta, bus, fecha, ME_inner.message);
+                        Tabla.Curvas{fila} = [];  % en caso de error, se asigna vacío
                     end
-
-                catch ME_inner
-                    fprintf("Error en ruta '%s' (bus %s, fecha %s): %s\n", ...
-                        nombreRuta, bus, fecha, ME_inner.message);
-                    Tabla.Curvas{fila} = [];  % en caso de error, se asigna vacío
                 end
+                fila = fila + 1;
             end
-            fila = fila + 1;
-        end
 
         catch ME
-                fprintf("Error en bus %s, fecha %s, recorrido %s\n", ...
-                    bus, fecha, ME.message);
-            end
+            fprintf("Error en bus %s, fecha %s, recorrido %s\n", ...
+                bus, fecha, ME.message);
+        end
     end
 end
 
 %%
 riesgo = Calculos.riesgoCurva2( datosBuses.bus_4012.f_11_07_2024.datosSensorRuta{6,2},datosBuses.bus_4012.f_11_07_2024.tiempoRuta.Inicio_Ruta(6), datosBuses.bus_4012.f_11_07_2024.tiempoRuta.Fin_Ruta(6),...
-                       PosCurvas.A617);
+    PosCurvas.A617);
 
 %% Funciones
 Tabla = superTabla(datosBuses);
@@ -255,83 +255,88 @@ Tabla = superTabla(datosBuses);
 function TABLA = superTabla(datosBuses)
 
 
-    % Crear la tabla vacía con los nombres de columna adecuados
-    TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [],...
+% Crear la tabla vacía con los nombres de columna adecuados
+TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
-                      'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                      'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
-                      'Curvas'});
+    'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
+    'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
+    'Curvas', 'Consumo'});
 
 
 
-            % Obtener los campos de los buses
-            buses = fieldnames(datosBuses);
+% Obtener los campos de los buses
+buses = fieldnames(datosBuses);
 
-            % Iterar sobre cada bus
-            for i = 1:numel(buses)  
-                bus = buses{i};
+% Iterar sobre cada bus
+for i = 1:numel(buses)
+    bus = buses{i};
 
-                % Saltar el campo 'info'
-                if strcmp(bus, 'info')
-                    continue;
+    % Saltar el campo 'info'
+    if strcmp(bus, 'info')
+        continue;
+    end
+
+    % Obtener los campos de las fechas para el bus actual
+    fechas = fieldnames(datosBuses.(bus));
+
+    % Iterar sobre cada fecha
+    for j = 1:numel(fechas)
+        fecha = fechas{j};
+        rutadato = datosBuses.(bus).(fecha);
+
+
+
+        try
+            indicesAceleracion = rutadato.indicesAceleracionRuta;
+            for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
+                % datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
+
+                id = rutadato.tiempoRuta.Id(k);
+                sexo = rutadato.tiempoRuta.Genero_Conductor(k);
+                hora_inicio = rutadato.tiempoRuta.Inicio_Ruta(k);
+                hora_final = rutadato.tiempoRuta.Fin_Ruta(k);
+                distancia = {rutadato.datosSensorRuta{k, 2}.distancia};
+                acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
+                acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
+                frepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<-1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<0);
+                frepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<-2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<0);
+                tiempo = {rutadato.datosSensorRuta{k,2}.deltaTiempo};
+                velocidad = rutadato.velocidadRuta(k,2);
+                num_Acc = cell2mat(cellfun(@size, indicesAceleracion(k,1), 'UniformOutput', false));
+                num_Fre = cell2mat(cellfun(@size, indicesAceleracion(k,2), 'UniformOutput', false));
+                Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
+                Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
+                %c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
+                curvas = {cellfun(@(mat) mean(mat(:)), datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva)};
+                if ismember('consumo_kWh', datosBuses.(bus).(fecha).segmentoP60{k}.Properties.VariableNames)
+                    consumo_recorrido = sum(datosBuses.(bus).(fecha).segmentoP60{k}.consumo_kWh(2:end));
+                else
+                    consumo_recorrido = NaN; % O cualquier valor/fórmula por defecto
+                    warning('No existe la columna "consumo" en P60 para %s - %s.', bus, fecha);
                 end
 
-                % Obtener los campos de las fechas para el bus actual
-                fechas = fieldnames(datosBuses.(bus));
-
-                % Iterar sobre cada fecha
-                for j = 1:numel(fechas)
-                    fecha = fechas{j};
-                    rutadato = datosBuses.(bus).(fecha);
-
-
-
-                    try
-                        indicesAceleracion = rutadato.indicesAceleracionRuta;
-                        for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
-                            % datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
-
-                            id = rutadato.tiempoRuta.Id(k);
-                            sexo = rutadato.tiempoRuta.Genero_Conductor(k);
-                            hora_inicio = rutadato.tiempoRuta.Inicio_Ruta(k);
-                            hora_final = rutadato.tiempoRuta.Fin_Ruta(k);
-                            distancia = {rutadato.datosSensorRuta{k, 2}.distancia};
-                            acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
-                            acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 1}>0);
-                            frepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<-1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<0);
-                            frepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<-2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 2}<0);
-                            tiempo = {rutadato.datosSensorRuta{k,2}.deltaTiempo};
-                            velocidad = rutadato.velocidadRuta(k,2);
-                            num_Acc = cell2mat(cellfun(@size, indicesAceleracion(k,1), 'UniformOutput', false));
-                            num_Fre = cell2mat(cellfun(@size, indicesAceleracion(k,2), 'UniformOutput', false));
-                            Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
-                            Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
-                            c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
-                            curvas = {cellfun(@(mat) mean(mat(:)), c)};
+                % Definir los datos de una nueva fila
+                nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
+                    indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
+                    indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
+                    rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, curvas, consumo_recorrido,...
+                    'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
+                    'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
+                    'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
+                    'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas', 'Consumo'});
 
 
-                            % Definir los datos de una nueva fila
-                            nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
-                                indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
-                                indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
-                                rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, curvas, ...
-                                'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
-                                'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
-                                'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
-                                'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas'});
+                % Agregar la nueva fila a la tabla
+                TABLA = [TABLA; nuevaFila];
 
 
-                            % Agregar la nueva fila a la tabla
-                            TABLA = [TABLA; nuevaFila];
-
-
-                        end
-                    catch ME
-                        fprintf('Error encontrado: %s\n', ME.message);
-                    end
-
-                end
             end
+        catch ME
+            fprintf('Error encontrado: %s\n', ME.message);
+        end
+
+    end
+end
 end
 
 

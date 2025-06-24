@@ -149,6 +149,84 @@ classdef Graficar
             end
         end
 
+
+        function graficarRutasPorBus(datosBuses, busID, fecha, indicesRuta)
+    % Graficar las rutas (trayectorias GPS) de los segmentos para un bus y una fecha
+
+    % Verificar bus
+    if nargin < 2 || isempty(busID)
+        buses = fieldnames(datosBuses);
+        buses(strcmp(buses, 'info')) = [];
+    else
+        buses = {busID};
+    end
+
+    for i = 1:numel(buses)
+        bus = buses{i};
+        if ~isfield(datosBuses, bus)
+            warning('El bus %s no está presente.', bus);
+            continue;
+        end
+
+        % Seleccionar fechas
+        if nargin < 3 || isempty(fecha)
+            fechas = fieldnames(datosBuses.(bus));
+        else
+            fechas = {fecha};
+        end
+
+        for j = 1:numel(fechas)
+            fechaActual = fechas{j};
+            if ~isfield(datosBuses.(bus), fechaActual)
+                warning('La fecha %s no está presente para el bus %s.', fechaActual, bus);
+                continue;
+            end
+
+            if ~isfield(datosBuses.(bus).(fechaActual), 'datosSensorRuta')
+                warning('No hay datos de sensor de ruta para %s - %s.', bus, fechaActual);
+                continue;
+            end
+            datosSensorRuta = datosBuses.(bus).(fechaActual).datosSensorRuta;
+
+            % Determinar cuáles rutas (segmentos) graficar
+            if nargin < 4 || isempty(indicesRuta)
+                indices = 1:size(datosSensorRuta,1);
+            else
+                indices = indicesRuta;
+            end
+
+            figure;
+            hold on;
+            legendEntries = {};
+            colores = lines(length(indices));
+
+            for k = indices
+                sensorData = datosSensorRuta{k,2};
+                if isempty(sensorData) || ~isfield(sensorData, 'lat') || ~isfield(sensorData, 'lon')
+                    continue;
+                end
+                plot(sensorData.lon, sensorData.lat, '-', 'Color', colores(k,:), 'LineWidth', 1.5);
+                if size(datosSensorRuta,2) >= 3 && ~isempty(datosSensorRuta{k,3})
+                    leyenda = datosSensorRuta{k,3};
+                else
+                    leyenda = sprintf('Ruta %d', k);
+                end
+                legendEntries{end+1} = leyenda;
+            end
+
+            xlabel('Longitud');
+            ylabel('Latitud');
+            title(sprintf('Trayectorias de rutas - Bus %s - Fecha %s', strrep(bus,'_','\_'), strrep(fechaActual,'_','\_')));
+            legend(legendEntries, 'Interpreter','none', 'Location', 'best');
+            grid on;
+            axis equal;
+            hold off;
+        end
+    end
+end
+
+
+
         function aceleracionPorRutas(datosBuses, busID, fecha, indiceRuta)
             % Esta función grafica las velocidades para rutas de un bus en fechas dadas
             % usando los parámetros proporcionados, con manejo de omisiones.
