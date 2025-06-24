@@ -1060,7 +1060,7 @@ end
 
 %%
 
-
+%a617
 function marcadores = Lcurvasida4020(datosBuses)
 
   
@@ -1115,7 +1115,7 @@ function marcadores = Lcurvasida4020(datosBuses)
     marcadores{1,1} = marcador;
     marcadores{1,2} = marcador2;
 end
-
+%a601
 function marcadores = Lcurvasida4104s2(datosBuses)
     datosCordenadasSensor = datosBuses.bus_4104.f_23_04_2024.datosSensorRuta{1,2};
     fechaInicio = datetime('2024-04-23 03:30:23.434', 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -1154,7 +1154,7 @@ function marcadores = Lcurvasida4104s2(datosBuses)
     marcadores{1,2} = marcador2;
 end
 
-
+%h601
 function marcadores = LcurvasVuelta4104s2(datosBuses)
     datosCordenadasSensor = datosBuses.bus_4104.f_23_04_2024.datosSensorRuta{2,2};
     fechaInicio = datetime('2024-04-23 05:00:23.434', 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -1193,7 +1193,7 @@ function marcadores = LcurvasVuelta4104s2(datosBuses)
     marcadores{1,2} = marcador2;
 end
 
-
+%k629
 function marcadores = Lcurvasida4020s2(datosBuses)
     datosCordenadasSensor = datosBuses.bus_4020.f_23_04_2024.datosSensorRuta{1,2};
     fechaInicio = datetime('2024-04-23 04:47:00.434', 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -1232,7 +1232,7 @@ function marcadores = Lcurvasida4020s2(datosBuses)
     marcadores{1,2} = marcador2;
 end
 
-
+%h629
 function marcadores = LcurvasVuelta4020s2(datosBuses)
     datosCordenadasSensor = datosBuses.bus_4020.f_23_04_2024.datosSensorRuta{2,2};
     fechaInicio = datetime('2024-04-23 06:39:00.434', 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -1271,7 +1271,7 @@ function marcadores = LcurvasVuelta4020s2(datosBuses)
     marcadores{1,2} = marcador2;
 end
 
-
+%l636
 function marcadores = Lcurvasida4104(datosBuses)
     datosCordenadasSensor = datosBuses.bus_4104.f_16_04_2024.datosSensorRuta{1,2};
     fechaInicio = datetime('2024-04-16 03:31:19.000', 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -1310,7 +1310,7 @@ function marcadores = Lcurvasida4104(datosBuses)
     marcadores{1,2} = marcador2;
 end
 
-
+%h636
 function marcadores = LcurvasVuelta4104(datosBuses)
     datosCordenadasSensor = datosBuses.bus_4104.f_16_04_2024.datosSensorRuta{2,2};
     fechaInicio = datetime('2024-04-16 04:35:56.000', 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -1349,7 +1349,7 @@ function marcadores = LcurvasVuelta4104(datosBuses)
     marcadores{1,2} = marcador2;
 end
 
-
+%h617
 function marcadores = LcurvasVuelta4020(datosBuses)
     datosCordenadasSensor = datosBuses.bus_4020.f_15_04_2024.datosSensorRuta{2,2};
     fechaInicio = datetime('2024-04-15 03:30:23.434', 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
@@ -1954,11 +1954,11 @@ end
         distanciaFin = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), finCurva(1), finCurva(2));
 
         if distanciaInicio < 10 % Si estamos cerca del inicio de la curva
-            % Guardar los datos de velocidad, radio y relación velocidad/radio
+            % Guardar los datos de velocidad, radio y relación velocidad^2 / radio
             if ~isnan(radio(i)) && radio(i) ~= -1 % Verificar que radio sea un valor válido
                 datosCurva(j, 2) = radio(i);
                 datosCurva(j, 1) = velocidad(i);
-                datosCurva(j, 3) = velocidad(i) / radio(i);
+                datosCurva(j, 3) = (velocidad(i)^2) / radio(i);
 
                 if velocidad(i) < 1.5
                     radio(i) = 1;
@@ -1984,7 +1984,8 @@ end
         % Calcular el máximo de la columna 3 (relación velocidad/radio) de esta curva
         %if ~isempty(datosCurva) % Verificar si datosCurva no está vacío
         try    
-        maximos(Ncurva,1) = mean(datosCurva(:, 3));
+            percentil80 = prctile(datosCurva(:, 3), 80);
+            maximos(Ncurva,1) = percentil80;
         catch
            maximos(Ncurva,1)=0; 
         end

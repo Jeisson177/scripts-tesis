@@ -148,30 +148,17 @@ PosCurvas = llamarFuncionesLcurvas(datosBuses);
 
 function PosCurvas = llamarFuncionesLcurvas(datosBuses)
     PosCurvas = struct();  % Inicializar estructura vacía
-
     try
-        PosCurvas.ida4020 = Calculos.Lcurvasida4020(datosBuses);
+        PosCurvas.K629 = Calculos.Lcurvasida4020s2(datosBuses);
     end
     try
-        PosCurvas.vuelta4020 = Calculos.LcurvasVuelta4020(datosBuses);
+        PosCurvas.H629 = Calculos.LcurvasVuelta4020s2(datosBuses);
     end
     try
-        PosCurvas.ida4104s2 = Calculos.Lcurvasida4104s2(datosBuses);
+        PosCurvas.L636 = Calculos.Lcurvasida4104(datosBuses);
     end
     try
-        PosCurvas.vuelta4104s2 = Calculos.LcurvasVuelta4104s2(datosBuses);
-    end
-    try
-        PosCurvas.ida4020s2 = Calculos.Lcurvasida4020s2(datosBuses);
-    end
-    try
-        PosCurvas.vuelta4020s2 = Calculos.LcurvasVuelta4020s2(datosBuses);
-    end
-    try
-        PosCurvas.ida4104 = Calculos.Lcurvasida4104(datosBuses);
-    end
-    try
-        PosCurvas.vuelta4104 = Calculos.LcurvasVuelta4104(datosBuses);
+        PosCurvas.H636 = Calculos.LcurvasVuelta4104(datosBuses);
     end
     try 
         PosCurvas.A617 = Calculos.LcurvasA617(datosBuses);
@@ -198,7 +185,7 @@ function PosCurvas = llamarFuncionesLcurvas(datosBuses)
         PosCurvas.H618 = Calculos.LcurvasH618(datosBuses);
     end
 end
-
+%%
 if ~ismember('Curvas', Tabla.Properties.VariableNames)
     Tabla.Curvas = cell(height(Tabla), 1);
 end
@@ -225,21 +212,32 @@ for i = 1:numel(buses)
         numRutas = size(rutadato.tiempoRuta, 1);
 
         for k = 1:numRutas
-            
-                % Calcular curva y asignarla si hay fila correspondiente
-                if fila <= height(Tabla)
-                    curvas = Calculos.riesgoCurva( ...
+            if fila <= height(Tabla)
+                nombreRuta = strrep(rutadato.tiempoRuta.Ruta{k}, '"', '');  % eliminar comillas si existen
+                try
+                    pCurvas = PosCurvas.(nombreRuta);  % acceder dinámicamente
+                    riesgo = Calculos.riesgoCurva2( ...
                         rutadato.datosSensorRuta{k, 2}, ...
                         rutadato.tiempoRuta.Inicio_Ruta(k), ...
-                        rutadato.tiempoRuta.Fin_Ruta(k));
+                        rutadato.tiempoRuta.Fin_Ruta(k), ...
+                        pCurvas);
+        
+                    Tabla.Curvas{fila} = riesgo;
+                    if numel(riesgo) ~= size(pCurvas{1}, 1)
+                        fprintf('⚠️ Diferencia en número de curvas en fila %d: riesgo=%d, pCurvas=%d\n', ...
+                            fila, numel(riesgo), size(pCurvas{1},1));
+                        pause
+                    end
 
-                    %curvaProm = {cellfun(@(mat) mean(mat(:)), curvas)};
-                    Tabla.Curvas{fila} = vertcat(curvas{:});  % une todas las curvas en una sola matriz
+                catch ME_inner
+                    fprintf("Error en ruta '%s' (bus %s, fecha %s): %s\n", ...
+                        nombreRuta, bus, fecha, ME_inner.message);
+                    Tabla.Curvas{fila} = [];  % en caso de error, se asigna vacío
                 end
-            
-
+            end
             fila = fila + 1;
         end
+
         catch ME
                 fprintf("Error en bus %s, fecha %s, recorrido %s\n", ...
                     bus, fecha, ME.message);
@@ -247,7 +245,9 @@ for i = 1:numel(buses)
     end
 end
 
-
+%%
+riesgo = Calculos.riesgoCurva2( datosBuses.bus_4012.f_11_07_2024.datosSensorRuta{6,2},datosBuses.bus_4012.f_11_07_2024.tiempoRuta.Inicio_Ruta(6), datosBuses.bus_4012.f_11_07_2024.tiempoRuta.Fin_Ruta(6),...
+                       PosCurvas.A617);
 
 %% Funciones
 Tabla = superTabla(datosBuses);
