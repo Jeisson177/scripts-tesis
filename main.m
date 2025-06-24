@@ -69,7 +69,14 @@ datosBuses = Calcular.velocidadVsDistancia(datosBuses);
 %%
 datosBuses = Calcular.tiempoEntrePuntos(datosBuses);
 %%
-datosBuses1 = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
+datosBuses = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
+
+%%
+datosBuses = Calcular.ConsumoPorRuta(datosBuses, 280);
+
+%%
+datosBuses = Calcular.RiesgoCurvaTodasRutas(datosBuses);
+
 %%
 datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 

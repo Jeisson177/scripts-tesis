@@ -1922,6 +1922,67 @@ end
             
         end
         
+
+        %%
+
+        function datosn = riesgoCurvaSinGrafico(datosCordenadasSensor, fechaInicio, fechaFin)
+    if ischar(fechaInicio) || isstring(fechaInicio)
+        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    if ischar(fechaFin) || isstring(fechaFin)
+        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
+    end
+    datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
+
+    radio = Calculos.calcularCurvatura(datosCordenadasSensor, 75);
+    velocidad = Calculos.corregirVelocidadPendiente(datosCordenadasSensor, 3);
+    curva = 0;
+    Ncurva = 1;
+    j = 1;
+    datos = {};
+
+    for i = 1:length(radio)
+        distancia2puntos = Calculos.geodist(datosCordenadasSensor.lat(i+1), datosCordenadasSensor.lon(i+1), ...
+                                            datosCordenadasSensor.lat(i+2), datosCordenadasSensor.lon(i+2));
+        if i >= (length(radio) - 4)
+            d2 = 3;
+            d3 = 3;
+        else
+            d2 = Calculos.geodist(datosCordenadasSensor.lat(i+2), datosCordenadasSensor.lon(i+2), ...
+                                  datosCordenadasSensor.lat(i+3), datosCordenadasSensor.lon(i+3));
+            d3 = Calculos.geodist(datosCordenadasSensor.lat(i+3), datosCordenadasSensor.lon(i+3), ...
+                                  datosCordenadasSensor.lat(i+4), datosCordenadasSensor.lon(i+4));
+            r1 = radio(i);
+            r2 = radio(i+1);
+            r3 = radio(i+2);
+        end
+
+        if (r1 > 1 && r2 > 1 && curva == 0 && velocidad(i) > 1.5 && distancia2puntos > 2.5 && d2 > 2.5 && d3 > 2.5)
+            curva = 1;
+        elseif (curva == 1 && (r1 > 1 || r2 > 1 || r3 > 1))
+            datos{Ncurva}(j, 1) = velocidad(i);
+            datos{Ncurva}(j, 2) = radio(i);
+            datos{Ncurva}(j, 3) = velocidad(i) / radio(i);
+            j = j + 1;
+        elseif (r1 < 1 && curva == 1)
+            Ncurva = Ncurva + 1;
+            j = 1;
+            curva = 0;
+        end
+    end
+
+    tam = size(datos);
+    cantidadN = 1;
+    datosn = {};
+    for i = 1:tam(2)
+        tamaC = size(datos{1, i});
+        if tamaC(1) > 3
+            datosn{cantidadN} = datos{1, i};
+            cantidadN = cantidadN + 1;
+        end
+    end
+end
+
     %%
     
     function datosn = riesgoCurva2(datosCordenadasSensor, fechaInicio, fechaFin, pCurvas)
