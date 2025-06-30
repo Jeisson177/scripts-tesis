@@ -13,7 +13,6 @@
 
 %% pruebas para ver curvas 
 % faltan 4012 y 4025
-%a617 h617 a601 h601 h613 L613 a618, falta   h618
 curva4012=Calculos.riesgoCurva(datosBuses.bus_4012.f_03_07_2024.datosSensorRuta{5,2},datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Inicio_Ruta(5), datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Fin_Ruta(5));
 %marcador=Calculos.LcurvasH617(datosBuses);
 
