@@ -173,7 +173,7 @@ classdef Calcular
                 end
             end
 
-            
+
 
 
             Acele = Calcular.aceleracion(velocidadCorregida, tiempo);
@@ -222,9 +222,9 @@ classdef Calcular
                     end
 
                     try
-                    p20 = datosBuses.(bus).(fecha).P20;
-                    p60 = datosBuses.(bus).(fecha).P60;
-                    p20 = sortrows(p20,"fechaHoraLecturaDato","ascend");
+                        p20 = datosBuses.(bus).(fecha).P20;
+                        p60 = datosBuses.(bus).(fecha).P60;
+                        p20 = sortrows(p20,"fechaHoraLecturaDato","ascend");
                     catch
                         2+2;
                     end
@@ -242,7 +242,7 @@ classdef Calcular
 
                     % Convertir la fecha de formato "f_dd_mm_yyyy" a "yyyy-MM-dd"
                     fechaConvertida = datetime(fecha(3:end), 'InputFormat', 'dd_MM_yyyy', 'Format', 'yyyy-MM-dd');
-    
+
 
                     % Inicializar el campo tiempoRuta como una tabla vacía con encabezados
                     headers = {'Inicio_Ruta', 'Fin_Ruta', 'Ruta', 'Genero_Conductor', 'Id'};
@@ -268,7 +268,7 @@ classdef Calcular
 
                         % Buscar el género del conductor más adecuado
                         generoConductor = repmat({"NA"}, size(tiempoRutaTemp, 1), 1); % Default a "NA"
-                        idConductor = repmat({0}, size(tiempoRutaTemp, 1), 1); 
+                        idConductor = repmat({0}, size(tiempoRutaTemp, 1), 1);
 
                         % Filtrar los conductores por el mismo MOVIL y fecha
                         conductoresBusFecha = conductores(strcmp(extractAfter(conductores.MOVIL, 4), bus_id) & conductores.Fecha == fechaConvertida, :);
@@ -276,59 +276,59 @@ classdef Calcular
 
 
 
-                for m = 1:size(tiempoRutaTemp, 1)
-                    inicioRuta = tiempoRutaTemp{m, 1}; % Inicio de la ruta
-                    finRuta = tiempoRutaTemp{m, 2}; % Fin de la ruta
+                        for m = 1:size(tiempoRutaTemp, 1)
+                            inicioRuta = tiempoRutaTemp{m, 1}; % Inicio de la ruta
+                            finRuta = tiempoRutaTemp{m, 2}; % Fin de la ruta
 
-                   
-                if ~isempty(conductoresBusFecha)
-                    for m = 1:size(tiempoRutaTemp, 1)
-                        inicioRuta = tiempoRutaTemp{m, 1}; % Inicio de la ruta
-                        finRuta = tiempoRutaTemp{m, 2}; % Fin de la ruta
 
-                        mejorDiferencia = inf;
-                        mejorGenero = "NA";
-                        mejorId = 0;
+                            if ~isempty(conductoresBusFecha)
+                                for m = 1:size(tiempoRutaTemp, 1)
+                                    inicioRuta = tiempoRutaTemp{m, 1}; % Inicio de la ruta
+                                    finRuta = tiempoRutaTemp{m, 2}; % Fin de la ruta
 
-                        for n = 1:height(conductoresBusFecha)
-                            login = conductoresBusFecha.Login(n);
-                            logout = conductoresBusFecha.Logout(n);
+                                    mejorDiferencia = inf;
+                                    mejorGenero = "NA";
+                                    mejorId = 0;
 
-                            inicioRutaTemp = timeofday(inicioRuta);
-                            finRutaTemp = timeofday(finRuta);
+                                    for n = 1:height(conductoresBusFecha)
+                                        login = conductoresBusFecha.Login(n);
+                                        logout = conductoresBusFecha.Logout(n);
 
-                            % Verificar si el tiempo de ruta está dentro del tiempo del conductor
-                            if (inicioRutaTemp < logout && finRutaTemp > login)  % Hay algún solapamiento
-                                % Calcular el porcentaje de solapamiento
-                                duracionRuta = finRutaTemp - inicioRutaTemp;
-                                duracionSolapada = min(finRutaTemp, logout) - max(inicioRutaTemp, login);
-                                porcentajeSolapamiento = duracionSolapada / duracionRuta;
-                            
-                                if porcentajeSolapamiento > 0.65  %  es el valor mínimo aceptado
-                                    diferencia = abs(inicioRutaTemp - login) + abs(finRutaTemp - logout);
-                                    if diferencia < mejorDiferencia
-                                        mejorDiferencia = diferencia;
-                                        mejorGenero = conductoresBusFecha.Genero(n);
-                                        mejorId = conductoresBusFecha.ID_Conductor(n);
+                                        inicioRutaTemp = timeofday(inicioRuta);
+                                        finRutaTemp = timeofday(finRuta);
+
+                                        % Verificar si el tiempo de ruta está dentro del tiempo del conductor
+                                        if (inicioRutaTemp < logout && finRutaTemp > login)  % Hay algún solapamiento
+                                            % Calcular el porcentaje de solapamiento
+                                            duracionRuta = finRutaTemp - inicioRutaTemp;
+                                            duracionSolapada = min(finRutaTemp, logout) - max(inicioRutaTemp, login);
+                                            porcentajeSolapamiento = duracionSolapada / duracionRuta;
+
+                                            if porcentajeSolapamiento > 0.65  %  es el valor mínimo aceptado
+                                                diferencia = abs(inicioRutaTemp - login) + abs(finRutaTemp - logout);
+                                                if diferencia < mejorDiferencia
+                                                    mejorDiferencia = diferencia;
+                                                    mejorGenero = conductoresBusFecha.Genero(n);
+                                                    mejorId = conductoresBusFecha.ID_Conductor(n);
+                                                end
+                                            end
+                                        end
+
                                     end
+                                    generoConductor{m} = mejorGenero;
+                                    idConductor{m} = mejorId;
                                 end
                             end
-
                         end
-                        generoConductor{m} = mejorGenero;
-                        idConductor{m} = mejorId;
-                    end
-                end
-                end
 
-                % Agregar la columna del género del conductor
-                tiempoRutaTemp = [tiempoRutaTemp, generoConductor, idConductor];
+                        % Agregar la columna del género del conductor
+                        tiempoRutaTemp = [tiempoRutaTemp, generoConductor, idConductor];
 
 
 
 
 
-                        
+
                         % Concatenar los resultados en el campo tiempoRuta
                         datosBuses.(bus).(fecha).tiempoRuta = [datosBuses.(bus).(fecha).tiempoRuta; tiempoRutaTemp];
                     end
@@ -414,10 +414,10 @@ classdef Calcular
         function tiempos = RutaSensor(datosSensor, paradas, distanciaUmbral, porcentajeMinimoParadas)
             % Esta función devuelve un array con los tiempos de salida, llegada al punto de regreso,
             % y regreso al punto de inicio para cada viaje.
-        
+
             % Convertir las fechas en 'datosSensor' a datetimes sin zona horaria para la comparación
             datosSensor{:, 'time'} = datetime(datosSensor{:, 'time'}, 'TimeZone', '');
-        
+
             % Inicializar variables
             tiempos = [];  % Inicializar una matriz para guardar los tiempos de cada viaje
             estadoViaje = 0;  % 0 = fuera de la ruta, 1 = en la ruta
@@ -427,22 +427,22 @@ classdef Calcular
             lastTime = datetime('0000-01-01', 'TimeZone', '');  % Inicializar la última hora registrada
             inicioRuta = datetime('0000-01-01', 'TimeZone', '');  % Inicializar tiempo de inicio de ruta
             porcentajeVisitadas = 0;
-        
+
             % Recorrer todos los puntos de datos de datosSensor
             for i = 1:height(datosSensor)
                 % Obtener la posición actual del bus
                 latBus = datosSensor.lat(i);
                 lonBus = datosSensor.lon(i);
-        
+
                 % Verificar la distancia a cada parada en orden de `stop_sequence`
                 for j = 1:height(paradas)
                     latParada = paradas.lat(j);
                     lonParada = paradas.lon(j);
                     stopSequence = paradas.stop_sequence(j);  % Obtener el stop_sequence actual
-        
+
                     % Calcular la distancia entre el bus y la parada actual
                     distParada = Calculos.geodist(latBus, lonBus, latParada, lonParada);
-        
+
                     % Si la distancia es menor que el umbral, se marca como visitada
                     if distParada < distanciaUmbral
                         if porcentajeVisitadas == 0
@@ -452,7 +452,7 @@ classdef Calcular
                             estadoViaje = 0;
                             paradasVisitadas(:) = false;  % Reiniciar las paradas visitadas para el siguiente viaje
                             ultimoStopSequence = 0;  % Reiniciar el `stop_sequence` para el siguiente viaje
-        
+
                             if porcentajeVisitadas >= porcentajeMinimoParadas
                                 finRuta = datosSensor.time(i);  % Guardar el tiempo de fin
                                 % Registrar el viaje
@@ -463,15 +463,15 @@ classdef Calcular
                                 paradasVisitadas(:) = false;
                                 ultimoStopSequence = 0;
                             end
-        
+
                             inicioRuta = datosSensor.time(i);  % Guardar el tiempo de inicio
                         end
-        
+
                         paradasVisitadas(j) = true;  % Marcar la parada como visitada
                         ultimoStopSequence = stopSequence;  % Actualizar el último `stop_sequence` visitado
                     end
                 end
-        
+
                 % Verificar si se ha pasado por el porcentaje mínimo de paradas
                 porcentajeVisitadas = sum(paradasVisitadas) / height(paradas);
             end
@@ -480,21 +480,21 @@ classdef Calcular
         %%
         function tiempos = RutaP60(datosP60)
             % Esta función devuelve un array con los tiempos de inicio y fin de cada ruta recorrida.
-        
+
             % Convertir las fechas en 'datosP60' a datetimes sin zona horaria para la comparación
             datosP60{:, 'fechaHoraLecturaDato'} = datetime(datosP60{:, 'fechaHoraLecturaDato'}, 'TimeZone', '');
-        
+
             % Inicializar variables
             tiempos = [];  % Inicializar una matriz para guardar los tiempos de cada viaje
             estadoRuta = false;  % Indica si se está en una ruta
             inicioRuta = datetime('0000-01-01', 'TimeZone', '');  % Inicializar tiempo de inicio de ruta
             idRutaActual = "";  % Ruta en curso
-        
+
             % Recorrer todos los puntos de datos de datosP60
             for i = 1:height(datosP60)
                 idRuta = datosP60.idRuta(i);
                 tiempoActual = datosP60.fechaHoraLecturaDato(i);
-        
+
                 if ~strcmp(idRuta, "No Disponible") % Si hay una ruta activa
                     if ~estadoRuta  % Si no estamos en una ruta, iniciamos una
                         inicioRuta = tiempoActual;
@@ -513,18 +513,18 @@ classdef Calcular
                     end
                 end
             end
-            
+
             % Si quedó una ruta abierta al final de los datos, cerrarla
             if estadoRuta
                 tiempos = [tiempos; {inicioRuta, datosP60.fechaHoraLecturaDato(end), idRutaActual}];
             end
-        end 
+        end
 
         %%
 
         function tiempos = RutaOptimizada(datosP60p, datosSensor, paradas, distanciaUmbral, porcentajeMinimoParadas)
             % Esta función ajusta los tiempos de inicio y fin de una ruta basándose en el porcentaje de paradas visitadas.
-        
+
 
             datosP60 = datosP60p;
 
@@ -532,23 +532,23 @@ classdef Calcular
             datosP60{:, 'fechaHoraLecturaDato'} = datetime(datosP60{:, 'fechaHoraLecturaDato'}, 'TimeZone', '');
             datosP60 = sortrows(datosP60, 'fechaHoraLecturaDato', 'ascend');
             datosSensor{:, 'time'} = datetime(datosSensor{:, 'time'}, 'TimeZone', '');
-        
+
             % Inicializar matriz de tiempos
             tiempos = [];
-        
+
             % Recorrer las rutas en datosP60
             i = 1; % Inicializar el índice manualmente
-            while i <= height(datosP60)             
+            while i <= height(datosP60)
                 idRuta = datosP60.idRuta(i);
                 if strcmp(idRuta, "No Disponible")
                     i = i + 1; % Pasar al siguiente elemento
                     continue; % Saltar rutas no disponibles
                 end
-                
+
                 % Definir inicio de la ruta
                 inicioRuta = datosP60.fechaHoraLecturaDato(i);
                 finRuta = inicioRuta; % Inicializar finRuta con inicioRuta
-        
+
                 % Buscar el último timestamp donde idRuta sigue siendo la misma
                 for j = i+1:height(datosP60)
                     if strcmp(datosP60.idRuta(j), idRuta) % Sigue en la misma ruta
@@ -557,18 +557,18 @@ classdef Calcular
                         break; % Se terminó la ruta
                     end
                 end
-        
+
                 i = j;
 
                 % Filtrar datosSensor en el rango de la ruta
                 indicesSensor = (datosSensor.time >= inicioRuta) & (datosSensor.time <= finRuta);
                 datosSensorRuta = datosSensor(indicesSensor, :);
-                
+
                 % Si no hay datos en ese rango, pasar a la siguiente iteración
                 if isempty(datosSensorRuta)
                     continue;
                 end
-                
+
                 % Inicializar variables de ajuste de tiempo
                 paradasVisitadas = false(height(paradas), 1);
                 tiempoInicioAjustado = inicioRuta;
@@ -576,7 +576,7 @@ classdef Calcular
                 indiceRuta = find(strcmp(string({paradas.idruta}), string(idRuta)));
 
                 try
-                rutaParadas = paradas(indiceRuta).stops;
+                    rutaParadas = paradas(indiceRuta).stops;
                 catch
                     indiceRuta
                     idRuta
@@ -590,7 +590,7 @@ classdef Calcular
                 % Obtener la primera y última parada de la ruta
                 latPrimeraParada = rutaParadas.lat(1);
                 lonPrimeraParada = rutaParadas.lon(1);
-                
+
                 latUltimaParada = rutaParadas.lat(end);
                 lonUltimaParada = rutaParadas.lon(end);
 
@@ -598,31 +598,31 @@ classdef Calcular
                 for k = 1:height(rutaParadas)
                     latParada = rutaParadas.lat(k);
                     lonParada = rutaParadas.lon(k);
-                    
+
                     for j = 1:height(datosSensorRuta)
                         latBus = datosSensorRuta.lat(j);
                         lonBus = datosSensorRuta.lon(j);
                         tiempoActual = datosSensorRuta.time(j);
-                        
+
                         distParada = Calculos.geodist(latBus, lonBus, latParada, lonParada);
-                        
+
                         if distParada < distanciaUmbral
                             paradasVisitadas(k) = true;
-                            
+
                         end
 
                         if false
                             % Calcular distancia a la primera parada
                             distPrimeraParada = Calculos.geodist(latBus, lonBus, latPrimeraParada, lonPrimeraParada);
-                            
+
                             if distPrimeraParada < minDistanciaInicio
                                 minDistanciaInicio = distPrimeraParada;
                                 tiempoInicioAjustado = tiempoActual;
                             end
-                            
+
                             % Calcular distancia a la última parada
                             distUltimaParada = Calculos.geodist(latBus, lonBus, latUltimaParada, lonUltimaParada);
-                            
+
                             if distUltimaParada < minDistanciaFin
                                 minDistanciaFin = distUltimaParada;
                                 tiempoFinAjustado = tiempoActual;
@@ -631,10 +631,10 @@ classdef Calcular
 
                     end
                 end
-                
+
                 % Calcular porcentaje de paradas cubiertas
                 porcentajeVisitadas = sum(paradasVisitadas) / height(paradas(indiceRuta).stops);
-                
+
                 % Si cumple el porcentaje mínimo, guardar la ruta ajustada
                 if porcentajeVisitadas >= porcentajeMinimoParadas
                     tiempos = [tiempos; {tiempoInicioAjustado, tiempoFinAjustado, idRuta}];
@@ -678,7 +678,7 @@ classdef Calcular
                             datosBuses.(bus).(fecha).velocidadRuta = {}; % Inicializar como celda vacía si no existe
                         end
 
-                        % Calcular la velocidad para cada ruta completa 
+                        % Calcular la velocidad para cada ruta completa
                         for k = 1:size(tiempoRuta, 1)
                             ruta = tiempoRuta.Ruta{k}; % El nombre de la ruta está en la última columna
                             genero = tiempoRuta.Genero_Conductor{k};
@@ -705,80 +705,182 @@ classdef Calcular
             end
         end
 
-%%
-function nivelBateriaSuavizado = suavizarNivelBateria(nivelBateria)
-    % Suaviza el nivel de batería usando un filtro de Savitzky-Golay.
+        %%
+        function nivelBateriaSuavizado = suavizarNivelBateria(nivelBateria)
+            % Suaviza el nivel de batería usando un filtro de Savitzky-Golay.
 
-    ordenPol = 3; % Orden del polinomio
-    ventana = 65; % Longitud de la ventana, debe ser impar
+            ordenPol = 3; % Orden del polinomio
+            ventana = 65; % Longitud de la ventana, debe ser impar
 
-    if length(nivelBateria) >= ventana
-        % Aplicar filtro de Savitzky-Golay si hay suficientes datos
-        nivelBateriaSuavizado = sgolayfilt(nivelBateria, ordenPol, ventana);
-    else
-        % Si no hay suficientes datos, mantener el nivel de batería sin cambios
-        nivelBateriaSuavizado = nivelBateria;
-    end
-end
+            if length(nivelBateria) >= ventana
+                % Aplicar filtro de Savitzky-Golay si hay suficientes datos
+                nivelBateriaSuavizado = sgolayfilt(nivelBateria, ordenPol, ventana);
+            else
+                % Si no hay suficientes datos, mantener el nivel de batería sin cambios
+                nivelBateriaSuavizado = nivelBateria;
+            end
+        end
 
 
         %%
         function datosBuses = aproximarNivelBateriaPorRutas(datosBuses)
-    % Esta función suaviza el nivel de batería para cada ruta de cada bus en cada fecha,
-    % asegurando que los datos se ajusten a la estructura de datosBuses.
+            % Esta función suaviza el nivel de batería para cada ruta de cada bus en cada fecha,
+            % asegurando que los datos se ajusten a la estructura de datosBuses.
 
-    % Obtener los nombres de los buses
+            % Obtener los nombres de los buses
+            buses = fieldnames(datosBuses);
+
+            % Iterar sobre cada bus
+            for i = 1:numel(buses)
+                bus = buses{i};
+
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
+                end
+
+                % Obtener los campos de las fechas para el bus actual
+                fechas = fieldnames(datosBuses.(bus));
+
+                % Iterar sobre cada fecha
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+
+                    % Verificar si existen datos de rutas y nivel de batería
+                    if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && isfield(datosBuses.(bus).(fecha), 'P60')
+
+
+                        % Inicializar el campo nivelBateriaSuavizado como celda vacía si no existe
+                        if ~isfield(datosBuses.(bus).(fecha), 'nivelBateriaSuavizado') || isempty(datosBuses.(bus).(fecha).nivelBateriaSuavizado)
+                            datosBuses.(bus).(fecha).nivelBateriaSuavizado = {}; % Inicializar como celda vacía
+                        end
+
+                        datosBuses.(bus).(fecha).nivelBateriaSuavizado = Calcular.suavizarNivelBateria(datosBuses.(bus).(fecha).P60.nivelRestanteEnergia);
+
+                        rutas = datosBuses.(bus).(fecha).tiempoRuta;
+
+                        % Calcular el nivel de batería suavizado para cada ruta
+                        for k = 1:size(rutas, 1)
+                            ruta = rutas.Ruta{k}; % Nombre de la ruta
+                            datosP60 = datosBuses.(bus).(fecha).segmentoP60{k};
+                            % Asumiendo que tienes tiempos de inicio y fin por ruta
+                            t_inicio = rutas.Inicio_Ruta(k);  % datetime o datenum
+                            t_fin = rutas.Fin_Ruta(k);
+
+                            % Indices en el vector de todo el día correspondientes a la ruta
+                            idx = datosBuses.(bus).(fecha).P60.fechaHoraLecturaDato >= t_inicio & ...
+                                datosBuses.(bus).(fecha).P60.fechaHoraLecturaDato <= t_fin;
+
+                            % Extraer el segmento suavizado para esta ruta
+                            nivelBateriaRuta = datosBuses.(bus).(fecha).nivelBateriaSuavizado(idx);
+
+                            % Guardar en la ruta correspondiente
+                            datosBuses.(bus).(fecha).segmentoP60{k}.nivelBateriaSuavizado = nivelBateriaRuta;
+                            % Mostrar mensaje de confirmación
+                            disp(['Nivel de batería suavizado para la ruta ' ruta ' en el bus ' bus ' en la fecha ' fecha '.']);
+                        end
+                    else
+                        warning("No se encontraron los datos necesarios para suavizar el nivel de batería en el bus " + bus + " para el día " + fecha);
+                    end
+                end
+            end
+        end
+
+
+        %%
+
+function datosBuses = ConsumoPorRuta(datosBuses, capacidadBateria_kWh)
     buses = fieldnames(datosBuses);
 
-    % Iterar sobre cada bus
     for i = 1:numel(buses)
         bus = buses{i};
-
-        % Saltar el campo 'info'
         if strcmp(bus, 'info')
             continue;
         end
 
-        % Obtener los campos de las fechas para el bus actual
         fechas = fieldnames(datosBuses.(bus));
-
-        % Iterar sobre cada fecha
         for j = 1:numel(fechas)
             fecha = fechas{j};
-
-            % Verificar si existen datos de rutas y nivel de batería
-            if isfield(datosBuses.(bus).(fecha), 'tiempoRuta') && isfield(datosBuses.(bus).(fecha), 'P60')
-                
-
-                % Inicializar el campo nivelBateriaSuavizado como celda vacía si no existe
-                if ~isfield(datosBuses.(bus).(fecha), 'nivelBateriaSuavizado') || isempty(datosBuses.(bus).(fecha).nivelBateriaSuavizado)
-                    datosBuses.(bus).(fecha).nivelBateriaSuavizado = {}; % Inicializar como celda vacía
-                end
-
-                rutas = datosBuses.(bus).(fecha).tiempoRuta;
-
-                % Calcular el nivel de batería suavizado para cada ruta
-                for k = 1:size(rutas, 1)
-                    ruta = rutas.Ruta{k}; % Nombre de la ruta
-                    tiempoRuta = datosBuses.(bus).(fecha).datosSensorRuta{k,2}.time;
+            if isfield(datosBuses.(bus).(fecha), 'segmentoP60')
+                segmentos = datosBuses.(bus).(fecha).segmentoP60;
+                for k = 1:numel(segmentos)
                     datosP60 = datosBuses.(bus).(fecha).segmentoP60{k};
 
+                    if ismember('nivelBateriaSuavizado', datosP60.Properties.VariableNames) && ~isempty(datosP60.nivelBateriaSuavizado)
+                        % Calcular consumo por intervalo
+                        consumoPorcentaje = [NaN; -diff(datosP60.nivelBateriaSuavizado)];
+                        % (nivel anterior - nivel actual) => -diff porque diff es actual-anterior
 
-                    % Aplicar suavizado de batería
-                    nivelBateriaSuavizado = Calcular.suavizarNivelBateria(datosP60.nivelRestanteEnergia);
+                        if nargin > 1 && ~isempty(capacidadBateria_kWh)
+                            consumo_kWh = (consumoPorcentaje / 100) * capacidadBateria_kWh;
+                        else
+                            consumo_kWh = NaN(size(consumoPorcentaje));
+                        end
 
-                    % Guardar el resultado en la estructura de datos
-                    datosBuses.(bus).(fecha).nivelBateriaSuavizado = [datosBuses.(bus).(fecha).nivelBateriaSuavizado; {nivelBateriaSuavizado}];
-
-                    % Mostrar mensaje de confirmación
-                    disp(['Nivel de batería suavizado para la ruta ' ruta ' en el bus ' bus ' en la fecha ' fecha '.']);
+                        % Asignar a la tabla
+                        datosBuses.(bus).(fecha).segmentoP60{k}.consumoPorcentaje = consumoPorcentaje;
+                        datosBuses.(bus).(fecha).segmentoP60{k}.consumo_kWh = consumo_kWh;
+                    else
+                        n = height(datosP60);
+                        datosBuses.(bus).(fecha).segmentoP60{k}.consumoPorcentaje = NaN(n,1);
+                        datosBuses.(bus).(fecha).segmentoP60{k}.consumo_kWh = NaN(n,1);
+                    end
                 end
-            else
-                warning("No se encontraron los datos necesarios para suavizar el nivel de batería en el bus " + bus + " para el día " + fecha);
             end
         end
     end
 end
+
+
+%%
+
+function datosBuses = RiesgoCurvaTodasRutas(datosBuses)
+    buses = fieldnames(datosBuses);
+
+    for i = 1:numel(buses)
+        bus = buses{i};
+        if strcmp(bus, 'info')
+            continue;
+        end
+
+        fechas = fieldnames(datosBuses.(bus));
+        for j = 1:numel(fechas)
+            fecha = fechas{j};
+            if isfield(datosBuses.(bus).(fecha), 'segmentoP60')
+                segmentos = datosBuses.(bus).(fecha).segmentoP60;
+                for k = 1:numel(segmentos)
+                    datosSensorRuta = datosBuses.(bus).(fecha).datosSensorRuta{k,2};
+                    rutas = datosBuses.(bus).(fecha).tiempoRuta;
+                    t_inicio = rutas.Inicio_Ruta(k);
+                    t_fin = rutas.Fin_Ruta(k);
+
+                    % Llama a la función de riesgo de curva (sin gráfico)
+                    riesgo = Calculos.riesgoCurvaSinGrafico(datosSensorRuta, t_inicio, t_fin);
+
+                    % Almacena los datos de riesgo de curva
+                    datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva = riesgo;
+
+                    % Calcula el percentil 90 del riesgo (por curva)
+                    if ~isempty(riesgo)
+                        p90 = NaN(1, numel(riesgo));
+                        for m = 1:numel(riesgo)
+                            if size(riesgo{m},2) >= 3 && size(riesgo{m},1) >= 1
+                                riesgoCurvaVals = riesgo{m}(:,3); % tercera columna = "riesgo"
+                                p90(m) = prctile(riesgoCurvaVals, 90);
+                            else
+                                p90(m) = NaN;
+                            end
+                        end
+                        datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva_p90 = p90;
+                    else
+                        datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva_p90 = NaN;
+                    end
+                end
+            end
+        end
+    end
+end
+
 
         %%
 
@@ -936,7 +1038,7 @@ end
 
         %%
         function datos = NormalizarRuta()
-            
+
         end
 
         %%
@@ -1021,7 +1123,7 @@ end
 
                 % Iterar sobre cada fecha
                 for j = 1:numel(fechas)
-                    fecha = fechas{j};                    
+                    fecha = fechas{j};
 
 
                     try
@@ -1084,52 +1186,52 @@ end
         function datosBuses = AceleracionKilometrosWrapper(datosBuses, k)
             % Esta función calcula la relación entre la longitud de cada celda en indicesAceleracionRuta
             % y los kilómetros recorridos en Kilometros_Ida para la fila k.
-        
+
             % Obtener los datos de índices de aceleración
             nAceleracionesPositivas = size (datosBuses.indicesAceleracionRuta{k, 1});
             nAceleracionesNegativas = size(datosBuses.indicesAceleracionRuta{k, 2});
-        
+
             % Obtener los kilómetros recorridos en la ida
             kilometrosIda = datosBuses.tiempoRuta.Kilometros_Ida(k);
-        
+
             % Verificar si los datos existen
             if isempty(nAceleracionesPositivas) || isempty(kilometrosIda) || isempty(nAceleracionesNegativas)
                 error('No hay datos suficientes para calcular la relación.');
             end
-        
-            
-        
+
+
+
             datosBuses.tiempoRuta.AceleKiloPosi(k) = nAceleracionesPositivas(1) / kilometrosIda;
             datosBuses.tiempoRuta.AceleKiloNega(k) = nAceleracionesNegativas(1) / kilometrosIda;
         end
 
 
         function datosBuses = aceleracionesKilometroRutas(datosBuses)
-            
+
             datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.AceleracionKilometrosWrapper);
         end
 
         function datosBuses = velocidadVsDistancia(datosBuses)
-            
+
             datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.velocidadVsDistanciaWrapper);
         end
 
         function datosBuses = velocidadVsDistanciaWrapper(datosBuses, k)
-            
-        
+
+
             % Obtener latitud y longitud
             lat = datosBuses.datosSensorRuta{k, 2}.lat;
             lon = datosBuses.datosSensorRuta{k, 2}.lon;
-        
+
             % Inicializar vector de distancias
             n = length(lat);
             distancias = zeros(n, 1); % Mismo tamaño que lat/lon
-        
+
             % Calcular distancia entre puntos consecutivos
             for i = 1:n - 1
                 distancias(i + 1) = distance(lat(i), lon(i), lat(i+1), lon(i+1), wgs84Ellipsoid('meters'));
             end
-        
+
             % Guardar el vector de distancias en la subtabla
             datosBuses.datosSensorRuta{k, 2}.distancia = distancias;
 
@@ -1155,44 +1257,44 @@ end
 
 
         function datosBuses = ClasificarHorarioRutaW(datosBuses, k)
-    % Convierte las horas de inicio y fin a minutos desde medianoche
-    inicio = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Inicio_Ruta(k));
-    fin = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Fin_Ruta(k));
+            % Convierte las horas de inicio y fin a minutos desde medianoche
+            inicio = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Inicio_Ruta(k));
+            fin = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Fin_Ruta(k));
 
-    % Duraciones por tipo de horario
-    duraciones = struct('P', 0, 'V', 0, 'F', 0);
+            % Duraciones por tipo de horario
+            duraciones = struct('P', 0, 'V', 0, 'F', 0);
 
-    % Evaluar minuto a minuto el tipo de horario
-    for t = inicio:fin-1
-        tipo = Calcular.ClasificarHorario(mod(t,1440)); % mod para mantener dentro de 24h
-        duraciones.(tipo) = duraciones.(tipo) + 1;
-    end
+            % Evaluar minuto a minuto el tipo de horario
+            for t = inicio:fin-1
+                tipo = Calcular.ClasificarHorario(mod(t,1440)); % mod para mantener dentro de 24h
+                duraciones.(tipo) = duraciones.(tipo) + 1;
+            end
 
-    % Determinar horario predominante
-    [~, idx] = max([duraciones.P, duraciones.V, duraciones.F]);
-    tipos = ['P', 'V', 'F'];
-    horarioPredominante = tipos(idx);
+            % Determinar horario predominante
+            [~, idx] = max([duraciones.P, duraciones.V, duraciones.F]);
+            tipos = ['P', 'V', 'F'];
+            horarioPredominante = tipos(idx);
 
-    % Guardar el resultado
-    datosBuses.tiempoRuta.HorarioRuta(k) = horarioPredominante;
-end
+            % Guardar el resultado
+            datosBuses.tiempoRuta.HorarioRuta(k) = horarioPredominante;
+        end
 
-function minutos = HoraEnMinutos(horaStr)
-    % Convierte 'HH:mm' a minutos
-    tiempo = datetime(horaStr, 'InputFormat', 'HH:mm');
-    minutos = hour(tiempo) * 60 + minute(tiempo);
-end
+        function minutos = HoraEnMinutos(horaStr)
+            % Convierte 'HH:mm' a minutos
+            tiempo = datetime(horaStr, 'InputFormat', 'HH:mm');
+            minutos = hour(tiempo) * 60 + minute(tiempo);
+        end
 
-function tipo = ClasificarHorario(minutos)
-    % Clasifica según los rangos definidos
-    if (minutos >= 330 && minutos < 390) || (minutos >= 1020 && minutos < 1080)
-        tipo = 'P'; % Pico
-    elseif (minutos >= 390 && minutos < 1020) || (minutos >= 1080 && minutos < 1320)
-        tipo = 'V'; % Valle
-    else
-        tipo = 'F'; % Flujo libre
-    end
-end
+        function tipo = ClasificarHorario(minutos)
+            % Clasifica según los rangos definidos
+            if (minutos >= 330 && minutos < 390) || (minutos >= 1020 && minutos < 1080)
+                tipo = 'P'; % Pico
+            elseif (minutos >= 390 && minutos < 1020) || (minutos >= 1080 && minutos < 1320)
+                tipo = 'V'; % Valle
+            else
+                tipo = 'F'; % Flujo libre
+            end
+        end
 
 
 
@@ -1200,29 +1302,29 @@ end
         function datosBuses = corregirAceleracionPorRutas(datosBuses)
             % Esta función corrige los valores de aceleración de cada ruta en cada bus
             % eliminando ruido y estableciendo segmentos de aceleración constantes.
-        
+
             % Obtener los nombres de los buses
             buses = fieldnames(datosBuses);
-        
+
             % Iterar sobre cada bus
             for i = 1:numel(buses)
                 bus = buses{i};
-        
+
                 % Saltar el campo 'info'
                 if strcmp(bus, 'info')
                     continue;
                 end
-        
+
                 % Obtener las fechas disponibles para el bus
                 fechas = fieldnames(datosBuses.(bus));
-        
+
                 % Iterar sobre cada fecha
                 for j = 1:numel(fechas)
                     fecha = fechas{j};
-        
+
                     % Verificar si existen datos de rutas en la fecha
                     if isfield(datosBuses.(bus).(fecha), 'aceleracionRuta') && isfield(datosBuses.(bus).(fecha), 'tiempoRuta')
-                        
+
                         % Obtener las rutas disponibles
                         numRutas = size(datosBuses.(bus).(fecha).aceleracionRuta, 1);
 
@@ -1230,27 +1332,27 @@ end
                             datosBuses.(bus).(fecha).indicesAceleracionRuta = table([], [], [], [], ...
                                 'VariableNames', {'MagnitudesPositivas', 'MagnitudesNegativas', 'TiemposPositivos', 'TiemposNegativos'});
                         end
-        
+
                         % Iterar sobre cada ruta en la fecha
                         for k = 1:numRutas
                             % Extraer datos de aceleración y tiempo de la ruta actual
                             acc = datosBuses.(bus).(fecha).aceleracionRuta{k,2}; % Aceleración en la segunda columna
                             tiempo = datosBuses.(bus).(fecha).datosSensorRuta{k,2}.time; % Tiempo en la segunda columna
-        
+
                             % Filtrar valores pequeños (ruido)
                             acc(abs(acc) <= 0.3) = 0;
-        
+
                             % Inicializar variables
                             intervalo_inicio = 1;
                             tiempo_constante = [];
                             valor_constante = [];
-        
+
                             % Arreglos para intervalos positivos y negativos
                             magnitudes_positivas = [];
                             magnitudes_negativas = [];
                             tiempos_positivos = [];
                             tiempos_negativos = [];
-        
+
                             % Recorrer la señal de aceleración
                             while intervalo_inicio <= length(acc)
                                 if acc(intervalo_inicio) > 0
@@ -1261,11 +1363,11 @@ end
                                     end
                                     altura = mean(acc(intervalo_inicio:intervalo_fin));
                                     duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
-        
+
                                     % Guardar los valores en los arreglos
                                     magnitudes_positivas = [magnitudes_positivas; altura];
                                     tiempos_positivos = [tiempos_positivos; duracion];
-        
+
                                 elseif acc(intervalo_inicio) < 0
                                     % Buscar el final del intervalo negativo
                                     intervalo_fin = find(acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
@@ -1274,11 +1376,11 @@ end
                                     end
                                     altura = mean(acc(intervalo_inicio:intervalo_fin));
                                     duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
-        
+
                                     % Guardar los valores en los arreglos
                                     magnitudes_negativas = [magnitudes_negativas; altura];
                                     tiempos_negativos = [tiempos_negativos; duracion];
-        
+
                                 else
                                     % Intervalo con aceleración 0
                                     intervalo_fin = find(acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
@@ -1287,27 +1389,27 @@ end
                                     end
                                     altura = 0;
                                 end
-        
+
                                 % Construir la señal corregida
                                 tiempo_constante = [tiempo_constante; tiempo(intervalo_inicio:intervalo_fin)];
                                 valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
-        
+
                                 % Actualizar el inicio del siguiente intervalo
                                 intervalo_inicio = intervalo_fin + 1;
                             end
-        
+
                             % Guardar la aceleración corregida en la estructura de datos
                             datosBuses.(bus).(fecha).aceleracionRuta{k,5} = tiempo_constante;
                             datosBuses.(bus).(fecha).aceleracionRuta{k,6} = valor_constante;
-        
+
                             % Crear una nueva fila de la tabla con los datos de índices
                             nuevaFila = table({magnitudes_positivas}, {magnitudes_negativas}, {tiempos_positivos}, {tiempos_negativos}, ...
                                 'VariableNames', {'MagnitudesPositivas', 'MagnitudesNegativas', 'TiemposPositivos', 'TiemposNegativos'});
-        
+
                             % Agregar la nueva fila a la tabla existente
                             datosBuses.(bus).(fecha).indicesAceleracionRuta = [datosBuses.(bus).(fecha).indicesAceleracionRuta; nuevaFila];
                         end
-        
+
                         % Mostrar mensaje de confirmación por fecha
                         disp(['Corrección de aceleración realizada para el bus ' bus ' en la fecha ' fecha '.']);
                     else
@@ -1320,120 +1422,120 @@ end
 
 
 
-function datosBuses = corregirAceleracionPorRutasMax(datosBuses)
-    % Esta función corrige los valores de aceleración de cada ruta en cada bus
-    % eliminando ruido y estableciendo segmentos de aceleración constantes.
+        function datosBuses = corregirAceleracionPorRutasMax(datosBuses)
+            % Esta función corrige los valores de aceleración de cada ruta en cada bus
+            % eliminando ruido y estableciendo segmentos de aceleración constantes.
 
-    % Obtener los nombres de los buses
-    buses = fieldnames(datosBuses);
+            % Obtener los nombres de los buses
+            buses = fieldnames(datosBuses);
 
-    % Iterar sobre cada bus
-    for i = 1:numel(buses)
-        bus = buses{i};
+            % Iterar sobre cada bus
+            for i = 1:numel(buses)
+                bus = buses{i};
 
-        % Saltar el campo 'info'
-        if strcmp(bus, 'info')
-            continue;
-        end
-
-        % Obtener las fechas disponibles para el bus
-        fechas = fieldnames(datosBuses.(bus));
-
-        % Iterar sobre cada fecha
-        for j = 1:numel(fechas)
-            fecha = fechas{j};
-
-            % Verificar si existen datos de rutas en la fecha
-            if isfield(datosBuses.(bus).(fecha), 'aceleracionRuta') && isfield(datosBuses.(bus).(fecha), 'tiempoRuta')
-                
-                % Obtener las rutas disponibles
-                numRutas = size(datosBuses.(bus).(fecha).aceleracionRuta, 1);
-
-              
-
-                % Iterar sobre cada ruta en la fecha
-                for k = 1:numRutas
-                    % Extraer datos de aceleración y tiempo de la ruta actual
-                    acc = datosBuses.(bus).(fecha).aceleracionRuta{k,2}; % Aceleración en la segunda columna
-                    tiempo = datosBuses.(bus).(fecha).datosSensorRuta{k,2}.time; % Tiempo en la segunda columna
-
-                    % Filtrar valores pequeños (ruido)
-                    acc(abs(acc) <= 0.3) = 0;
-
-                    % Inicializar variables
-                    intervalo_inicio = 1;
-                    tiempo_constante = [];
-                    valor_constante = [];
-
-                    % Arreglos para intervalos positivos y negativos
-                    magnitudes_positivas = [];
-                    magnitudes_negativas = [];
-                    tiempos_positivos = [];
-                    tiempos_negativos = [];
-
-                    % Recorrer la señal de aceleración
-                    while intervalo_inicio <= length(acc)
-                        if acc(intervalo_inicio) > 0
-                            % Buscar el final del intervalo positivo
-                            intervalo_fin = find(acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
-                            if isempty(intervalo_fin)
-                                intervalo_fin = length(acc);
-                            end
-                            altura = max(acc(intervalo_inicio:intervalo_fin));
-                            duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
-
-                            % Guardar los valores en los arreglos
-                            magnitudes_positivas = [magnitudes_positivas; altura];
-                            tiempos_positivos = [tiempos_positivos; duracion];
-
-                        elseif acc(intervalo_inicio) < 0
-                            % Buscar el final del intervalo negativo
-                            intervalo_fin = find(acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
-                            if isempty(intervalo_fin)
-                                intervalo_fin = length(acc);
-                            end
-                            altura = min(acc(intervalo_inicio:intervalo_fin));
-                            duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
-
-                            % Guardar los valores en los arreglos
-                            magnitudes_negativas = [magnitudes_negativas; altura];
-                            tiempos_negativos = [tiempos_negativos; duracion];
-
-                        else
-                            % Intervalo con aceleración 0
-                            intervalo_fin = find(acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
-                            if isempty(intervalo_fin)
-                                intervalo_fin = length(acc);
-                            end
-                            altura = 0;
-                        end
-
-                        % Construir la señal corregida
-                        tiempo_constante = [tiempo_constante; tiempo(intervalo_inicio:intervalo_fin)];
-                        valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
-
-                        % Actualizar el inicio del siguiente intervalo
-                        intervalo_inicio = intervalo_fin + 1;
-                    end
-
-                    % Guardar la aceleración corregida en la estructura de datos
-                    datosBuses.(bus).(fecha).aceleracionRuta{k,7} = tiempo_constante;
-                    datosBuses.(bus).(fecha).aceleracionRuta{k,8} = valor_constante;
-
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta.magnitudes_positivas_max{k} = magnitudes_positivas;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta.magnitudes_negativas_max{k} = magnitudes_negativas;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta.tiempos_positivos_max{k} = tiempos_positivos;
-                    datosBuses.(bus).(fecha).indicesAceleracionRuta.tiempos_negativos_max{k} = tiempos_negativos;
+                % Saltar el campo 'info'
+                if strcmp(bus, 'info')
+                    continue;
                 end
 
-                % Mostrar mensaje de confirmación por fecha
-                disp(['Corrección de aceleración realizada para el bus ' bus ' en la fecha ' fecha '.']);
-            else
-                warning("No se encontraron los datos de aceleración para el bus " + bus + " en la fecha " + fecha);
+                % Obtener las fechas disponibles para el bus
+                fechas = fieldnames(datosBuses.(bus));
+
+                % Iterar sobre cada fecha
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+
+                    % Verificar si existen datos de rutas en la fecha
+                    if isfield(datosBuses.(bus).(fecha), 'aceleracionRuta') && isfield(datosBuses.(bus).(fecha), 'tiempoRuta')
+
+                        % Obtener las rutas disponibles
+                        numRutas = size(datosBuses.(bus).(fecha).aceleracionRuta, 1);
+
+
+
+                        % Iterar sobre cada ruta en la fecha
+                        for k = 1:numRutas
+                            % Extraer datos de aceleración y tiempo de la ruta actual
+                            acc = datosBuses.(bus).(fecha).aceleracionRuta{k,2}; % Aceleración en la segunda columna
+                            tiempo = datosBuses.(bus).(fecha).datosSensorRuta{k,2}.time; % Tiempo en la segunda columna
+
+                            % Filtrar valores pequeños (ruido)
+                            acc(abs(acc) <= 0.3) = 0;
+
+                            % Inicializar variables
+                            intervalo_inicio = 1;
+                            tiempo_constante = [];
+                            valor_constante = [];
+
+                            % Arreglos para intervalos positivos y negativos
+                            magnitudes_positivas = [];
+                            magnitudes_negativas = [];
+                            tiempos_positivos = [];
+                            tiempos_negativos = [];
+
+                            % Recorrer la señal de aceleración
+                            while intervalo_inicio <= length(acc)
+                                if acc(intervalo_inicio) > 0
+                                    % Buscar el final del intervalo positivo
+                                    intervalo_fin = find(acc(intervalo_inicio:end) <= 0, 1) + intervalo_inicio - 2;
+                                    if isempty(intervalo_fin)
+                                        intervalo_fin = length(acc);
+                                    end
+                                    altura = max(acc(intervalo_inicio:intervalo_fin));
+                                    duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
+
+                                    % Guardar los valores en los arreglos
+                                    magnitudes_positivas = [magnitudes_positivas; altura];
+                                    tiempos_positivos = [tiempos_positivos; duracion];
+
+                                elseif acc(intervalo_inicio) < 0
+                                    % Buscar el final del intervalo negativo
+                                    intervalo_fin = find(acc(intervalo_inicio:end) >= 0, 1) + intervalo_inicio - 2;
+                                    if isempty(intervalo_fin)
+                                        intervalo_fin = length(acc);
+                                    end
+                                    altura = min(acc(intervalo_inicio:intervalo_fin));
+                                    duracion = tiempo(intervalo_fin) - tiempo(intervalo_inicio);
+
+                                    % Guardar los valores en los arreglos
+                                    magnitudes_negativas = [magnitudes_negativas; altura];
+                                    tiempos_negativos = [tiempos_negativos; duracion];
+
+                                else
+                                    % Intervalo con aceleración 0
+                                    intervalo_fin = find(acc(intervalo_inicio:end) ~= 0, 1) + intervalo_inicio - 2;
+                                    if isempty(intervalo_fin)
+                                        intervalo_fin = length(acc);
+                                    end
+                                    altura = 0;
+                                end
+
+                                % Construir la señal corregida
+                                tiempo_constante = [tiempo_constante; tiempo(intervalo_inicio:intervalo_fin)];
+                                valor_constante = [valor_constante; repmat(altura, intervalo_fin - intervalo_inicio + 1, 1)];
+
+                                % Actualizar el inicio del siguiente intervalo
+                                intervalo_inicio = intervalo_fin + 1;
+                            end
+
+                            % Guardar la aceleración corregida en la estructura de datos
+                            datosBuses.(bus).(fecha).aceleracionRuta{k,7} = tiempo_constante;
+                            datosBuses.(bus).(fecha).aceleracionRuta{k,8} = valor_constante;
+
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta.magnitudes_positivas_max{k} = magnitudes_positivas;
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta.magnitudes_negativas_max{k} = magnitudes_negativas;
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta.tiempos_positivos_max{k} = tiempos_positivos;
+                            datosBuses.(bus).(fecha).indicesAceleracionRuta.tiempos_negativos_max{k} = tiempos_negativos;
+                        end
+
+                        % Mostrar mensaje de confirmación por fecha
+                        disp(['Corrección de aceleración realizada para el bus ' bus ' en la fecha ' fecha '.']);
+                    else
+                        warning("No se encontraron los datos de aceleración para el bus " + bus + " en la fecha " + fecha);
+                    end
+                end
             end
         end
-    end
-end
 
 
 
