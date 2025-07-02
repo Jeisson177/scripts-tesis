@@ -60,6 +60,10 @@ datosBuses = Calcular.velocidadVsDistancia(datosBuses);
 
 %% Delta de tiempo en datos sensor
 datosBuses = Calcular.tiempoEntrePuntos(datosBuses);
+
+%%
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @ImportarDatos.OrdenarP60);
+
 %% Interpola los valores discretos del nivel del bateria
 datosBuses = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
 
