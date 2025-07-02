@@ -855,7 +855,7 @@ function datosBuses = RiesgoCurvaTodasRutas(datosBuses)
                     t_fin = rutas.Fin_Ruta(k);
 
                     % Llama a la función de riesgo de curva (sin gráfico)
-                    riesgo = Calculos.riesgoCurvaSinGrafico(datosSensorRuta, t_inicio, t_fin);
+                    riesgo = Calculos.riesgoCurva2(datosSensorRuta, t_inicio, t_fin);
 
                     % Almacena los datos de riesgo de curva
                     datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva = riesgo;
