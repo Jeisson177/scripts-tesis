@@ -81,6 +81,19 @@ classdef ImportarDatos
         end
 
 
+        function datosBuses = OrdenarP60(datosBuses, k)
+            % Asegurarse de que la columna sea tipo datetime
+            if ~isdatetime(datosBuses.P60.fechaHoraLecturaDato)
+                datosBuses.P60.fechaHoraLecturaDato = datetime(datosBuses.P60.fechaHoraLecturaDato, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS');
+            end
+
+            % Ordenar la tabla por la columna de fecha
+            datosBuses.P60 = sortrows(datosBuses.P60, 'fechaHoraLecturaDato');
+        end
+
+
+
+
 
         function mar = P20(carpeta)
             if nargin < 1
@@ -514,7 +527,7 @@ classdef ImportarDatos
             folders = folderNames(~ismember(folderNames, {'.', '..'}));
         end
 
-            
+
 
 
 
@@ -849,9 +862,9 @@ classdef ImportarDatos
         end
 
 
-%%
+        %%
 
-function busesDatos = importarMuestra(basePath, numero, busesDatos)
+        function busesDatos = importarMuestra(basePath, numero, busesDatos)
             clc;
             % Esta función importa todos los datos de sensores para cada bus en cada fecha disponible bajo la carpeta base.
             % basePath es la ruta a la carpeta 'Datos'.
@@ -918,7 +931,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos de la trama P60 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV1
                 try
                     % Importar los datos del sensor de la carpeta completa
@@ -929,7 +942,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 1 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV2
                 try
                     datosEV2 = ImportarDatos.Evento2(carpetaPath);
@@ -938,7 +951,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 2 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV6
                 try
                     datosEV6 = ImportarDatos.Evento6(carpetaPath);
@@ -947,7 +960,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 6 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV7
                 try
                     datosEV7 = ImportarDatos.Evento7(carpetaPath);
@@ -956,7 +969,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 7 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV8
                 try
                     datosEV8 = ImportarDatos.Evento8(carpetaPath);
@@ -965,7 +978,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 8 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV12
                 try
                     datosEV12 = ImportarDatos.Evento12(carpetaPath);
@@ -974,7 +987,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 12 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV13
                 try
                     datosEV13 = ImportarDatos.Evento13(carpetaPath);
@@ -983,7 +996,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 13 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV14
                 try
                     datosEV14 = ImportarDatos.Evento14(carpetaPath);
@@ -992,7 +1005,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 14 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV15
                 try
                     datosEV15 = ImportarDatos.Evento15(carpetaPath);
@@ -1001,7 +1014,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 15 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV16
                 try
                     datosEV16 = ImportarDatos.Evento16(carpetaPath);
@@ -1010,7 +1023,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 16 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV17
                 try
                     datosEV17 = ImportarDatos.Evento17(carpetaPath);
@@ -1019,7 +1032,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 17 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV18
                 try
                     datosEV18 = ImportarDatos.Evento18(carpetaPath);
@@ -1028,7 +1041,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 18 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV19
                 try
                     datosEV19 = ImportarDatos.Evento19(carpetaPath);
@@ -1037,7 +1050,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 19 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV20
                 try
                     datosEV20 = ImportarDatos.Evento20(carpetaPath);
@@ -1046,7 +1059,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos del Evento 20 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % EV21
                 try
                     datosEV21 = ImportarDatos.Evento21(carpetaPath);
@@ -1066,7 +1079,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos de la alarma 1 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % ALA2
                 try
                     datosALA2 = ImportarDatos.Alarma2(carpetaPath);
@@ -1075,7 +1088,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos de la alarma 2 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % ALA3
                 try
                     datosALA3 = ImportarDatos.Alarma3(carpetaPath);
@@ -1084,7 +1097,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos de la alarma 3 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % ALA5
                 try
                     datosALA5 = ImportarDatos.Alarma5(carpetaPath);
@@ -1093,7 +1106,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos de la alarma 5 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % ALA8
                 try
                     datosALA8 = ImportarDatos.Alarma8(carpetaPath);
@@ -1102,7 +1115,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos de la alarma 8 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % ALA9
                 try
                     datosALA9 = ImportarDatos.Alarma9(carpetaPath);
@@ -1111,7 +1124,7 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
                     warning('No se pudieron importar datos de la alarma 9 de %s.', carpetaPath);
                     disp(getReport(Me, 'extended'));
                 end
-                
+
                 % ALA10
                 try
                     datosALA10 = ImportarDatos.Alarma10(carpetaPath);
@@ -1188,21 +1201,21 @@ function busesDatos = importarMuestra(basePath, numero, busesDatos)
         %%
 
         function data = importarCSV(filename)
-    
+
             if exist(filename, 'file') ~= 2
                 error('El archivo especificado no existe: %s', filename);
             end
-            
+
             % Leer el archivo CSV en una tabla
             data = readtable(filename);
-        
+
             % Convertir la columna 'Fecha' a formato datetime
             if any(strcmp(data.Properties.VariableNames, 'Fecha'))
                 data.Fecha = datetime(data.Fecha, 'InputFormat', 'yyyy-MM-dd');
             else
                 warning('No se encontró la columna "Fecha" en el archivo.');
             end
-        
+
             % Mostrar las primeras filas del archivo importado
             disp('Datos importados correctamente:');
             disp(head(data));
