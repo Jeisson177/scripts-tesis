@@ -250,9 +250,9 @@ riesgo = Calculos.riesgoCurva2( datosBuses.bus_4012.f_11_07_2024.datosSensorRuta
     PosCurvas.A617);
 
 %% Funciones
-Tabla = superTabla(datosBuses);
+Tabla = superTabla(datosBuses,PosCurvas);
 
-function TABLA = superTabla(datosBuses)
+function TABLA = superTabla(datosBuses, PosCurvas)
 
 
 % Crear la tabla vacía con los nombres de columna adecuados
@@ -307,7 +307,25 @@ for i = 1:numel(buses)
                 Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 %c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
-                curvas = {cellfun(@(mat) mean(mat(:)), datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva)};
+                
+                nombreRuta = strrep(rutadato.tiempoRuta.Ruta{k}, '"', '');
+                try
+                    pCurvas = PosCurvas.(nombreRuta);
+                    riesgo = Calculos.riesgoCurva2( ...
+                        rutadato.datosSensorRuta{k, 2}, ...
+                        hora_inicio, hora_final, pCurvas);
+
+                    if numel(riesgo) ~= size(pCurvas{1}, 1)
+                        fprintf('⚠️ Diferencia en número de curvas en fila %d: riesgo=%d, pCurvas=%d\n', ...
+                            fila, numel(riesgo), size(pCurvas{1},1));
+                        pause
+                    end
+                catch ME_inner
+                    fprintf("Error en ruta '%s' (bus %s, fecha %s): %s\n", ...
+                        nombreRuta, bus, fecha, ME_inner.message);
+                    riesgo = [];
+                end
+
                 if ismember('consumo_kWh', datosBuses.(bus).(fecha).segmentoP60{k}.Properties.VariableNames)
                     consumo_recorrido = sum(datosBuses.(bus).(fecha).segmentoP60{k}.consumo_kWh(2:end));
                 else
@@ -319,7 +337,7 @@ for i = 1:numel(buses)
                 nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
                     indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
                     indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
-                    rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, curvas, consumo_recorrido,...
+                    rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo}, consumo_recorrido,...
                     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                     'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...

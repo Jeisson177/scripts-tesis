@@ -1925,100 +1925,115 @@ classdef Calculos
         %%
 
         function datosn = riesgoCurva2(datosCordenadasSensor, fechaInicio, fechaFin, pCurvas)
-    % Convertir fechas si son cadenas
-    if ischar(fechaInicio) || isstring(fechaInicio)
-        fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-    end
-    if ischar(fechaFin) || isstring(fechaFin)
-        fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
-    end
-    datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
-
-    % Calcular radio y velocidad
-    radio = Calculos.calcularCurvatura(datosCordenadasSensor, 300);
-    velocidad = Calculos.corregirVelocidadPendiente(datosCordenadasSensor, 3);
-
-    Ccurvas = size(pCurvas{1, 1}, 1); % Número total de curvas
-    datosn = cell(1, Ccurvas); % Celda para almacenar datos de cada curva
-    umbral = 10; % Umbral aumentado a 10 metros
-
-    for Ncurva = 1:Ccurvas
-        inicioCurva = pCurvas{1, 1}(Ncurva, :); % Punto de inicio de la curva
-        finCurva = pCurvas{1, 2}(Ncurva, :); % Punto de final de la curva
-
-        % Inicializar variables para esta curva
-        datosCurva = []; % Almacenar datos de esta curva
-        j = 1; % Índice para datosCurva
-        inCurva = false; % Bandera para indicar si estamos dentro de la curva
-
-        % Recorrer los datos del sensor
-        for i = 1:size(datosCordenadasSensor, 1)
-            if i > numel(radio)
-                break; % Salir si el índice excede el tamaño de radio
+            % Convertir fechas si son cadenas
+            if ischar(fechaInicio) || isstring(fechaInicio)
+                fechaInicio = datetime(fechaInicio, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
             end
-
-            % Calcular distancias al inicio y fin de la curva
-            distanciaInicio = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), inicioCurva(1), inicioCurva(2));
-            distanciaFin = Calculos.geodist(datosCordenadasSensor.lat(i), datosCordenadasSensor.lon(i), finCurva(1), finCurva(2));
-
-            % Activar captura al estar cerca del inicio
-            if distanciaInicio < umbral && ~inCurva
-                inCurva = true;
+            if ischar(fechaFin) || isstring(fechaFin)
+                fechaFin = datetime(fechaFin, 'InputFormat', 'yyyy-MM-dd HH:mm:ss.SSS', 'TimeZone', '');
             end
+            datosCordenadasSensor = datosCordenadasSensor(datosCordenadasSensor.time >= fechaInicio & datosCordenadasSensor.time <= fechaFin, :);
+        
+            % Calcular radio y velocidad
+            radio = Calculos.calcularCurvatura(datosCordenadasSensor, 300);
+            velocidad = Calculos.corregirVelocidadPendiente(datosCordenadasSensor, 3);
+        
+            Ccurvas = size(pCurvas{1, 1}, 1); % Número total de curvas
+            datosn = cell(1, Ccurvas); % Celda para almacenar datos de cada curva
 
-            % Capturar datos si estamos dentro de la curva
-            if inCurva
-                if ~isnan(radio(i)) && radio(i) ~= -1
-                    datosCurva(j, 1) = velocidad(i); % Velocidad
-                    datosCurva(j, 2) = radio(i); % Radio
-                    datosCurva(j, 3) = (velocidad(i)^2) / radio(i); % Relación v^2/r
+            for Ncurva = 1:Ccurvas
+                inicioCurva = pCurvas{1, 1}(Ncurva, :); % Punto de inicio de la curva
+                finCurva = pCurvas{1, 2}(Ncurva, :); % Punto de final de la curva
+        
+                % Inicializar variables para esta curva
+                datosCurva = []; % Almacenar datos de esta curva
+                j = 1; % Índice para datosCurva
+                inCurva = false; % Bandera para indicar si estamos dentro de la curva
+                distanciaInicio = Calculos.geodistArreglos(datosCordenadasSensor.lat, datosCordenadasSensor.lon, inicioCurva(1), inicioCurva(2));
+                distanciaFin = Calculos.geodistArreglos(datosCordenadasSensor.lat, datosCordenadasSensor.lon, finCurva(1), finCurva(2));
+                [minimoInicio,Pinicio]=min(distanciaInicio);
+                [minimoFin,Pfin]=min(distanciaFin);
 
-                    % Ajustes específicos
-                    if velocidad(i) < 1.5
-                        datosCurva(j, 2) = 1; % Corregir radio si velocidad es baja
-                    end
-                    if isnan(datosCurva(j, 3))
-                        datosCurva(j, 3) = 0; % Manejar NaN
-                    end
-                    j = j + 1;
+                if Pfin-Pinicio<=3%almenos 3 puntos por curva
+                    datosCurva(1, 1) = NaN; % Velocidad
+                    datosCurva(1, 2) = NaN; % Radio
+                    datosCurva(1, 3) = NaN; % Relación v^2/r
+                    maximos(Ncurva, 1) = NaN;
+                else
+                    datosCurva{1, 1} = velocidad(Pinicio:Pfin); % Velocidad
+                    datosCurva{1, 2} = radio(Pinicio:Pfin); % Radio
+                    datosCurva{1, 3} = (velocidad(Pinicio:Pfin).^2) ./ radio(Pinicio:Pfin); % Relación v^2/r
+                    datosCurva{1, 3}(datosCurva{1, 3} < 0) = NaN;
+                    percentil80 = prctile(datosCurva{1, 3}, 80);
+                    maximos(Ncurva, 1) = percentil80;
                 end
+                
+                % Recorrer los datos del sensor
+                % for i = 1:size(datosCordenadasSensor, 1)
+                %     if i > numel(radio)
+                %         break; % Salir si el índice excede el tamaño de radio
+                %     end
+                % 
+                %     % Calcular distancias al inicio y fin de la curva
+                % 
+                %     % Activar captura al estar cerca del inicio
+                %     if distanciaInicio < umbral && ~inCurva
+                %         inCurva = true;
+                %     end
+                % 
+                %     % Capturar datos si estamos dentro de la curva
+                %     if inCurva
+                %         if ~isnan(radio(i)) && radio(i) ~= -1
+                %             datosCurva(j, 1) = velocidad(i); % Velocidad
+                %             datosCurva(j, 2) = radio(i); % Radio
+                %             datosCurva(j, 3) = (velocidad(i)^2) / radio(i); % Relación v^2/r
+                % 
+                %             % Ajustes específicos
+                %             if velocidad(i) < 1.5
+                %                 datosCurva(j, 2) = 1; % Corregir radio si velocidad es baja
+                %             end
+                %             if isnan(datosCurva(j, 3))
+                %                 datosCurva(j, 3) = 0; % Manejar NaN
+                %             end
+                %             j = j + 1;
+                %         end
+                %     end
+                % 
+                %     % Detener captura al llegar al final
+                %     if inCurva && distanciaFin < umbral
+                %         inCurva = false;
+                %         break; % Salir del bucle para esta curva
+                %     end
+                % end
+        
+                % Almacenar datos de esta curva
+                %datosn{Ncurva} = datosCurva;
+        
+                % Calcular percentil 80 de la columna 3
+                % if ~isempty(datosCurva)
+                %     try
+                %         percentil80 = prctile(datosCurva(:, 3), 80);
+                %         maximos(Ncurva, 1) = percentil80;
+                %     catch
+                %         maximos(Ncurva, 1) = 0;
+                %     end
+                % else
+                %     maximos(Ncurva, 1) = 0;
+                % end
             end
 
-            % Detener captura al llegar al final
-            if inCurva && distanciaFin < umbral
-                inCurva = false;
-                break; % Salir del bucle para esta curva
-            end
+            % Asignar los máximos como salida
+            datosn = maximos;
+        
+            %Visualización corregida
+            % geoscatter(datosCordenadasSensor.lat(3:end), datosCordenadasSensor.lon(3:end), 10, radio(3:end), 'filled');
+            % colormap(jet);
+            % colorbar;
+            % hold on;
+            % geoscatter(pCurvas{1,1}(:, 1), pCurvas{1,1}(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Inicio Curvas', 'SizeData', 200);
+            % geoscatter(pCurvas{1,2}(:, 1), pCurvas{1,2}(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Fin Curvas', 'SizeData', 100);
+            % hold off;
         end
-
-        % Almacenar datos de esta curva
-        datosn{Ncurva} = datosCurva;
-
-        % Calcular percentil 80 de la columna 3
-        if ~isempty(datosCurva)
-            try
-                percentil80 = prctile(datosCurva(:, 3), 80);
-                maximos(Ncurva, 1) = percentil80;
-            catch
-                maximos(Ncurva, 1) = 0;
-            end
-        else
-            maximos(Ncurva, 1) = 0;
-        end
-    end
-
-    % Asignar los máximos como salida
-    datosn = maximos;
-
-    % Visualización corregida
-    geoscatter(datosCordenadasSensor.lat(3:end), datosCordenadasSensor.lon(3:end), 10, radio(3:end), 'filled');
-    colormap(jet);
-    colorbar;
-    hold on;
-    geoscatter(pCurvas{1,1}(:, 1), pCurvas{1,1}(:, 2), 'Filled', 'Marker', 'x', 'MarkerEdgeColor', 'red', 'DisplayName', 'Inicio Curvas', 'SizeData', 200);
-    geoscatter(pCurvas{1,2}(:, 1), pCurvas{1,2}(:, 2), 'Filled', 'Marker', 'o', 'MarkerEdgeColor', 'blue', 'DisplayName', 'Fin Curvas', 'SizeData', 100);
-    hold off;
-end
 
         %%
         function percentiles = calcularPercentilesConsumo()
@@ -2246,7 +2261,19 @@ end
             c = 2 * atan2(sqrt(a), sqrt(1-a));
             d = R * c;
         end
+        
+        function d = geodistArreglos(lat1, lon1, lat2, lon2)
+            % Función para calcular la distancia geodésica entre dos puntos
+            R = 6371000; % Radio de la Tierra en metros
+            phi1 = deg2rad(lat1);
+            phi2 = deg2rad(lat2);
+            deltaPhi = deg2rad(lat2 - lat1);
+            deltaLambda = deg2rad(lon2 - lon1);
 
+            a = sin(deltaPhi/2) .* sin(deltaPhi/2) + cos(phi1) .* cos(phi2) .* sin(deltaLambda/2) .* sin(deltaLambda/2);
+            c = 2 * atan2(sqrt(a), sqrt(1-a));
+            d = R * c;
+        end
         %%
 
 
