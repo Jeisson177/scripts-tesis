@@ -264,6 +264,8 @@ classdef Calcular
         function datosBuses = detectar_curvas(datosBuses, k)
     lat = datosBuses.trayectoriaFiltrada(k).lat;
     lon = datosBuses.trayectoriaFiltrada(k).lon;
+    velocidad = datosBuses.velocidadRuta{k,2}; % Vector columna de tamaño N-1
+
     x = lon(:);
     y = lat(:);
 
@@ -271,7 +273,12 @@ classdef Calcular
     radio_curvatura = nan(N,1);
 
 
-    ventana = 7; % número de puntos a cada lado, ajusta según tu muestreo y escala
+    ventana = 5; % número de puntos a cada lado
+    umbral = 0.0013;           % para detectar curva
+    radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
+    umbral_longitud = 15;
+    proporcion_minima = 0.08; 
+    velocidad_minima = 1.1;
 
 
     for i = ventana+1:N-ventana
@@ -295,15 +302,14 @@ classdef Calcular
 
     datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
 
-    umbral = 0.0013;           % para detectar curva
-    radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
-    umbral_longitud = 15;
-    proporcion_minima = 0.08; % ejemplo: 10%
+    
 
     en_curva = radio_curvatura < umbral;
     cambio = diff([0; en_curva; 0]);
     inicio = find(cambio == 1);
     fin = find(cambio == -1) - 1;
+
+    curvas = {};
 
     figure;
     plot(x, y, 'b-', 'LineWidth', 1); hold on;
@@ -325,10 +331,22 @@ classdef Calcular
         perimetro_circulo = 2*pi*R*100000;
     proporcion = long_acum / perimetro_circulo;
 
+
+    vel_idx_ini = idx(1);
+vel_idx_end = idx(end)-1;
+if vel_idx_end > length(velocidad)
+    vel_idx_end = length(velocidad);
+end
+
+% Velocidad promedio del segmento
+vel_prom = mean(velocidad(vel_idx_ini:vel_idx_end));
+
         % Solo graficar si el radio está dentro del límite
         if R < radio_maximo && ...
        long_acum >= umbral_longitud && ...
-       proporcion >= proporcion_minima
+       proporcion >= proporcion_minima && ...
+       vel_prom >= velocidad_minima
+
             plot(x(idx), y(idx), 'r-', 'LineWidth', 3);
             theta = linspace(0, 2*pi, 200);
             xcirc = xc + R*cos(theta);
