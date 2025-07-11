@@ -271,7 +271,7 @@ classdef Calcular
     radio_curvatura = nan(N,1);
 
 
-    ventana = 5; % número de puntos a cada lado, ajusta según tu muestreo y escala
+    ventana = 7; % número de puntos a cada lado, ajusta según tu muestreo y escala
 
 
     for i = ventana+1:N-ventana
@@ -295,9 +295,10 @@ classdef Calcular
 
     datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
 
-    umbral = 0.001;           % para detectar curva
+    umbral = 0.0013;           % para detectar curva
     radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
     umbral_longitud = 15;
+    proporcion_minima = 0.08; % ejemplo: 10%
 
     en_curva = radio_curvatura < umbral;
     cambio = diff([0; en_curva; 0]);
@@ -321,14 +322,23 @@ classdef Calcular
 
         % Ajustar círculo al segmento
         [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
+        perimetro_circulo = 2*pi*R*100000;
+    proporcion = long_acum / perimetro_circulo;
 
         % Solo graficar si el radio está dentro del límite
-        if R < radio_maximo && long_acum >= umbral_longitud
+        if R < radio_maximo && ...
+       long_acum >= umbral_longitud && ...
+       proporcion >= proporcion_minima
             plot(x(idx), y(idx), 'r-', 'LineWidth', 3);
             theta = linspace(0, 2*pi, 200);
             xcirc = xc + R*cos(theta);
             ycirc = yc + R*sin(theta);
             plot(xcirc, ycirc, 'g--', 'LineWidth', 1.5);
+
+           % Dibuja la normal desde el punto de mitad de longitud real
+    [xm, ym] = Calcular.punto_mitad_longitud(idx, x, y, lat, lon);
+    plot([xm xc], [ym yc], 'k-', 'LineWidth', 2);
+
         end
     end
 
@@ -350,6 +360,21 @@ function [xc, yc, R] = circle_fit(x, y)
     yc = params(2);
     R = sqrt(params(3) + xc^2 + yc^2);
 end
+
+
+function [x_m, y_m] = punto_mitad_longitud(idx, x, y, lat, lon)
+    % Calcula el punto del segmento idx (curva) que está a la mitad de la longitud real
+    dist_acum = zeros(length(idx), 1);
+    for j = 2:length(idx)
+        dist_acum(j) = dist_acum(j-1) + Calculos.geodist(...
+            lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+    end
+    long_total = dist_acum(end);
+    i_mitad = find(dist_acum >= long_total/2, 1, 'first');
+    x_m = x(idx(i_mitad));
+    y_m = y(idx(i_mitad));
+end
+
 
 
 
