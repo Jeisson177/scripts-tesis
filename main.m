@@ -64,6 +64,14 @@ datosBuses = Calcular.tiempoEntrePuntos(datosBuses);
 %%
 datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @ImportarDatos.OrdenarP60);
 
+%%
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.kalmanFiltro2D);
+
+%%
+clc
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.detectar_curvas);
+
+
 %% Interpola los valores discretos del nivel del bateria
 datosBuses = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
 
@@ -71,7 +79,7 @@ datosBuses = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
 datosBuses = Calcular.ConsumoPorRuta(datosBuses, 280);
 
 %% Riesgo curva 
-datosBuses = Calcular.RiesgoCurvaTodasRutas(datosBuses);
+datosBuses = Calcular.RiesgoCurvaTodasRutas(datosBuses, PosCurvas);
 
 %%
 datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
@@ -186,3 +194,51 @@ function graficarCurvasVelocidad(resultado)
 end
 
 graficarCurvasVelocidad(resultado)
+
+
+%%
+
+
+% Suponiendo que ya tienes la tabla:
+% Tabla = superTabla(datosBuses, PosCurvas);
+
+rutas = unique(Tabla.NombreRuta);
+
+figure;
+hold on;
+
+for i = 1:numel(rutas)
+    idx = strcmp(Tabla.NombreRuta, rutas(i)) & ~isnan(Tabla.Consumo) & ~isnan(Tabla.KilometrosRuta);
+    plot(Tabla.KilometrosRuta(idx), Tabla.Consumo(idx), 'o', 'DisplayName', string(rutas(i)));
+end
+
+xlabel('Kilómetros totales (Km)');
+ylabel('Consumo total (kWh)');
+title('Consumo total vs. Kilómetros totales por ruta');
+legend('show', 'Location', 'best');
+grid on;
+hold off;
+
+%%
+
+% Asume que ya tienes:
+% Tabla = superTabla(datosBuses, PosCurvas);
+
+buses = unique(Tabla.Bus);
+
+figure;
+hold on;
+
+for i = 1:numel(buses)
+    idx = strcmp(Tabla.Bus, buses(i)) & ~isnan(Tabla.Consumo) & ~isnan(Tabla.KilometrosRuta);
+    plot(Tabla.KilometrosRuta(idx), Tabla.Consumo(idx), 'o', 'DisplayName', string(buses(i)));
+end
+
+xlabel('Kilómetros totales (Km)');
+ylabel('Consumo total (kWh)');
+title('Consumo total vs. Kilómetros totales por bus');
+legend('show', 'Location', 'best');
+grid on;
+hold off;
+
+
