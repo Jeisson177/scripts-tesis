@@ -270,10 +270,14 @@ classdef Calcular
     N = length(x);
     radio_curvatura = nan(N,1);
 
-    for i = 2:N-1
-        x1 = x(i-1); y1 = y(i-1);
-        x2 = x(i);   y2 = y(i);
-        x3 = x(i+1); y3 = y(i+1);
+
+    ventana = 5; % número de puntos a cada lado, ajusta según tu muestreo y escala
+
+
+    for i = ventana+1:N-ventana
+    x1 = x(i-ventana); y1 = y(i-ventana);
+    x2 = x(i);         y2 = y(i);
+    x3 = x(i+ventana); y3 = y(i+ventana);
 
         A = [x1, y1, 1;
              x2, y2, 1;
@@ -291,8 +295,10 @@ classdef Calcular
 
     datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
 
-    % Umbral fijo para detectar curvas
-    umbral = 0.0005; 
+    umbral = 0.001;           % para detectar curva
+    radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
+    umbral_longitud = 15;
+
     en_curva = radio_curvatura < umbral;
     cambio = diff([0; en_curva; 0]);
     inicio = find(cambio == 1);
@@ -303,19 +309,31 @@ classdef Calcular
 
     for s = 1:length(inicio)
         idx = inicio(s):fin(s);
-        % Graficar segmento de curva
-        plot(x(idx), y(idx), 'r-', 'LineWidth', 3);
 
-        % Ajustar círculo a los puntos de la curva
+
+        % Calcular longitud acumulada del segmento de curva usando geodist
+        long_acum = 0;
+        for j = 2:length(idx)
+            long_acum = long_acum + Calculos.geodist(...
+                lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+        end
+
+
+        % Ajustar círculo al segmento
         [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
-        theta = linspace(0, 2*pi, 200);
-        xcirc = xc + R*cos(theta);
-        ycirc = yc + R*sin(theta);
-        plot(xcirc, ycirc, 'g--', 'LineWidth', 1.5);
+
+        % Solo graficar si el radio está dentro del límite
+        if R < radio_maximo && long_acum >= umbral_longitud
+            plot(x(idx), y(idx), 'r-', 'LineWidth', 3);
+            theta = linspace(0, 2*pi, 200);
+            xcirc = xc + R*cos(theta);
+            ycirc = yc + R*sin(theta);
+            plot(xcirc, ycirc, 'g--', 'LineWidth', 1.5);
+        end
     end
 
     axis equal;
-    title('Trayectoria, curvas detectadas y círculo ajustado');
+    title('Trayectoria, curvas y círculos ajustados (limitado)');
     xlabel('Longitud');
     ylabel('Latitud');
     legend('Trayectoria', 'Curvas', 'Círculo ajustado');
@@ -332,6 +350,7 @@ function [xc, yc, R] = circle_fit(x, y)
     yc = params(2);
     R = sqrt(params(3) + xc^2 + yc^2);
 end
+
 
 
 
