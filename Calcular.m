@@ -295,39 +295,20 @@ end
             lon = datosBuses.trayectoriaFiltrada(k).lon;
             velocidad = datosBuses.velocidadRuta{k,2}; % Vector columna de tamaño N-1
 
-            x = lon(:);
-            y = lat(:);
-
-            N = length(x);
-            radio_curvatura = nan(N,1);
 
 
-            ventana = 3; % número de puntos a cada lado
+
+            ventana = 1; % número de puntos a cada lado
             umbral = 0.0015;           % para detectar curva
             radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
             umbral_longitud = 15;
             proporcion_minima = 0.1;
             velocidad_minima = 0.5;
 
+            x = lon(:);
+            y = lat(:);
 
-            for i = ventana+1:N-ventana
-                x1 = x(i-ventana); y1 = y(i-ventana);
-                x2 = x(i);         y2 = y(i);
-                x3 = x(i+ventana); y3 = y(i+ventana);
-
-                A = [x1, y1, 1;
-                    x2, y2, 1;
-                    x3, y3, 1];
-                B = [-(x1^2 + y1^2);
-                    -(x2^2 + y2^2);
-                    -(x3^2 + y3^2)];
-                params = A\B;
-                xc = -0.5*params(1);
-                yc = -0.5*params(2);
-                r = sqrt((xc-x1)^2 + (yc-y1)^2);
-
-                radio_curvatura(i) = r;
-            end
+            radio_curvatura =  Calcular.calcular_radio_curvatura(x, y, ventana);
 
             datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
 
@@ -342,6 +323,11 @@ end
 
             figure;
             plot(x, y, 'b-', 'LineWidth', 1); hold on;
+            axis equal;
+            title('Trayectoria, curvas y círculos ajustados (limitado)');
+            xlabel('Longitud');
+            ylabel('Latitud');
+            legend('Trayectoria', 'Curvas', 'Círculo ajustado');
 
             for s = 1:length(inicio)
                 idx = inicio(s):fin(s);
@@ -389,28 +375,32 @@ end
                 end
             end
 
-            axis equal;
-            title('Trayectoria, curvas y círculos ajustados (limitado)');
-            xlabel('Longitud');
-            ylabel('Latitud');
-            legend('Trayectoria', 'Curvas', 'Círculo ajustado');
+            
             hold off;
         end
 
-function radio_curvatura = calcular_radio_curvatura(x, y, ventana)
-    N = length(x);
-    radio_curvatura = nan(N,1);
-    for i = ventana+1:N-ventana
-        idx = [i-ventana, i, i+ventana];
-        A = [x(idx)', y(idx)', ones(3,1)];
-        B = -[x(idx).^2 + y(idx).^2]';
-        params = A\B;
-        xc = -0.5*params(1);
-        yc = -0.5*params(2);
-        r = sqrt((xc-x(idx(1)))^2 + (yc-y(idx(1)))^2);
-        radio_curvatura(i) = r;
-    end
-end
+        function radio_curvatura = calcular_radio_curvatura(x, y, ventana)
+            N = length(x);
+            radio_curvatura = nan(N,1);
+            for i = ventana+1:N-ventana
+                x1 = x(i-ventana); y1 = y(i-ventana);
+                x2 = x(i);         y2 = y(i);
+                x3 = x(i+ventana); y3 = y(i+ventana);
+
+                A = [x1, y1, 1;
+                    x2, y2, 1;
+                    x3, y3, 1];
+                B = [-(x1^2 + y1^2);
+                    -(x2^2 + y2^2);
+                    -(x3^2 + y3^2)];
+                params = A\B;
+                xc = -0.5*params(1);
+                yc = -0.5*params(2);
+                r = sqrt((xc-x1)^2 + (yc-y1)^2);
+
+                radio_curvatura(i) = r;
+            end
+        end
 
         function [xc, yc, R] = circle_fit(x, y)
             x = x(:);
