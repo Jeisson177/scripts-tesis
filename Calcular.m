@@ -258,145 +258,375 @@ classdef Calcular
             % axis equal
 
         end
+%%
+
+function datosBuses = detectar_curvas_multi_escala(datosBuses, k)
+    % Primera pasada: Curvas pequeñas
+    parametros1.ventana = 5;
+    parametros1.umbral = 0.0013;
+    parametros1.radio_maximo = 0.005;
+    parametros1.umbral_longitud = 15;
+    parametros1.proporcion_minima = 0.08;
+    parametros1.velocidad_minima = 1.1;
+
+    % Segunda pasada: Curvas grandes
+    parametros2.ventana = 15;
+    parametros2.umbral = 0.0035;
+    parametros2.radio_maximo = 0.03;      % Permite radios más grandes
+    parametros2.umbral_longitud = 30;     % Longitud mínima más alta
+    parametros2.proporcion_minima = 0.04; % Proporción menor para grandes
+    parametros2.velocidad_minima = 1.1;
+
+    % Detectar curvas pequeñas
+    datosBuses = Calcular.detectar_curvas_con_parametros(datosBuses, k, parametros1, 'curvasPequenas');
+    % Detectar curvas grandes
+    datosBuses = Calcular.detectar_curvas_con_parametros(datosBuses, k, parametros2, 'curvasGrandes');
+
+    Calcular.fusionar_y_graficar_curvas(datosBuses, k);
+
+    % Aquí podrías fusionar los resultados, según como guardes la info.
+end
+
 
         %%
 
         function datosBuses = detectar_curvas(datosBuses, k)
-    lat = datosBuses.trayectoriaFiltrada(k).lat;
-    lon = datosBuses.trayectoriaFiltrada(k).lon;
-    velocidad = datosBuses.velocidadRuta{k,2}; % Vector columna de tamaño N-1
+            lat = datosBuses.trayectoriaFiltrada(k).lat;
+            lon = datosBuses.trayectoriaFiltrada(k).lon;
+            velocidad = datosBuses.velocidadRuta{k,2}; % Vector columna de tamaño N-1
 
-    x = lon(:);
-    y = lat(:);
+            x = lon(:);
+            y = lat(:);
 
+            N = length(x);
+            radio_curvatura = nan(N,1);
+
+
+            ventana = 3; % número de puntos a cada lado
+            umbral = 0.0015;           % para detectar curva
+            radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
+            umbral_longitud = 15;
+            proporcion_minima = 0.1;
+            velocidad_minima = 0.5;
+
+
+            for i = ventana+1:N-ventana
+                x1 = x(i-ventana); y1 = y(i-ventana);
+                x2 = x(i);         y2 = y(i);
+                x3 = x(i+ventana); y3 = y(i+ventana);
+
+                A = [x1, y1, 1;
+                    x2, y2, 1;
+                    x3, y3, 1];
+                B = [-(x1^2 + y1^2);
+                    -(x2^2 + y2^2);
+                    -(x3^2 + y3^2)];
+                params = A\B;
+                xc = -0.5*params(1);
+                yc = -0.5*params(2);
+                r = sqrt((xc-x1)^2 + (yc-y1)^2);
+
+                radio_curvatura(i) = r;
+            end
+
+            datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
+
+
+
+            en_curva = radio_curvatura < umbral;
+            cambio = diff([0; en_curva; 0]);
+            inicio = find(cambio == 1);
+            fin = find(cambio == -1) - 1;
+
+            curvas = {};
+
+            figure;
+            plot(x, y, 'b-', 'LineWidth', 1); hold on;
+
+            for s = 1:length(inicio)
+                idx = inicio(s):fin(s);
+
+
+                % Calcular longitud acumulada del segmento de curva usando geodist
+                long_acum = 0;
+                for j = 2:length(idx)
+                    long_acum = long_acum + Calculos.geodist(...
+                        lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+                end
+
+
+                % Ajustar círculo al segmento
+                [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
+                perimetro_circulo = 2*pi*R*100000;
+                proporcion = long_acum / perimetro_circulo;
+
+
+                vel_idx_ini = idx(1);
+                vel_idx_end = idx(end)-1;
+                if vel_idx_end > length(velocidad)
+                    vel_idx_end = length(velocidad);
+                end
+
+                % Velocidad promedio del segmento
+                vel_prom = mean(velocidad(vel_idx_ini:vel_idx_end));
+
+                % Solo graficar si el radio está dentro del límite
+                if R < radio_maximo && ...
+                        long_acum >= umbral_longitud && ...
+                        proporcion >= proporcion_minima && ...
+                        vel_prom >= velocidad_minima
+
+                    plot(x(idx), y(idx), 'r-', 'LineWidth', 3);
+                    theta = linspace(0, 2*pi, 200);
+                    xcirc = xc + R*cos(theta);
+                    ycirc = yc + R*sin(theta);
+                    plot(xcirc, ycirc, 'g--', 'LineWidth', 1.5);
+
+                    % Dibuja la normal desde el punto de mitad de longitud real
+                    [xm, ym] = Calcular.punto_mitad_longitud(idx, x, y, lat, lon);
+                    plot([xm xc], [ym yc], 'k-', 'LineWidth', 2);
+
+                end
+            end
+
+            axis equal;
+            title('Trayectoria, curvas y círculos ajustados (limitado)');
+            xlabel('Longitud');
+            ylabel('Latitud');
+            legend('Trayectoria', 'Curvas', 'Círculo ajustado');
+            hold off;
+        end
+
+function radio_curvatura = calcular_radio_curvatura(x, y, ventana)
     N = length(x);
     radio_curvatura = nan(N,1);
-
-
-    ventana = 5; % número de puntos a cada lado
-    umbral = 0.0013;           % para detectar curva
-    radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
-    umbral_longitud = 15;
-    proporcion_minima = 0.08; 
-    velocidad_minima = 1.1;
-
-
     for i = ventana+1:N-ventana
-    x1 = x(i-ventana); y1 = y(i-ventana);
-    x2 = x(i);         y2 = y(i);
-    x3 = x(i+ventana); y3 = y(i+ventana);
-
-        A = [x1, y1, 1;
-             x2, y2, 1;
-             x3, y3, 1];
-        B = [-(x1^2 + y1^2);
-             -(x2^2 + y2^2);
-             -(x3^2 + y3^2)];
+        idx = [i-ventana, i, i+ventana];
+        A = [x(idx)', y(idx)', ones(3,1)];
+        B = -[x(idx).^2 + y(idx).^2]';
         params = A\B;
         xc = -0.5*params(1);
         yc = -0.5*params(2);
-        r = sqrt((xc-x1)^2 + (yc-y1)^2);
-
+        r = sqrt((xc-x(idx(1)))^2 + (yc-y(idx(1)))^2);
         radio_curvatura(i) = r;
     end
+end
 
-    datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
-
-    
-
-    en_curva = radio_curvatura < umbral;
-    cambio = diff([0; en_curva; 0]);
-    inicio = find(cambio == 1);
-    fin = find(cambio == -1) - 1;
-
-    curvas = {};
-
-    figure;
-    plot(x, y, 'b-', 'LineWidth', 1); hold on;
-
-    for s = 1:length(inicio)
-        idx = inicio(s):fin(s);
-
-
-        % Calcular longitud acumulada del segmento de curva usando geodist
-        long_acum = 0;
-        for j = 2:length(idx)
-            long_acum = long_acum + Calculos.geodist(...
-                lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+        function [xc, yc, R] = circle_fit(x, y)
+            x = x(:);
+            y = y(:);
+            A = [2*x, 2*y, ones(size(x))];
+            b = x.^2 + y.^2;
+            params = A\b;
+            xc = params(1);
+            yc = params(2);
+            R = sqrt(params(3) + xc^2 + yc^2);
         end
 
 
-        % Ajustar círculo al segmento
-        [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
-        perimetro_circulo = 2*pi*R*100000;
-    proporcion = long_acum / perimetro_circulo;
-
-
-    vel_idx_ini = idx(1);
-vel_idx_end = idx(end)-1;
-if vel_idx_end > length(velocidad)
-    vel_idx_end = length(velocidad);
-end
-
-% Velocidad promedio del segmento
-vel_prom = mean(velocidad(vel_idx_ini:vel_idx_end));
-
-        % Solo graficar si el radio está dentro del límite
-        if R < radio_maximo && ...
-       long_acum >= umbral_longitud && ...
-       proporcion >= proporcion_minima && ...
-       vel_prom >= velocidad_minima
-
-            plot(x(idx), y(idx), 'r-', 'LineWidth', 3);
-            theta = linspace(0, 2*pi, 200);
-            xcirc = xc + R*cos(theta);
-            ycirc = yc + R*sin(theta);
-            plot(xcirc, ycirc, 'g--', 'LineWidth', 1.5);
-
-           % Dibuja la normal desde el punto de mitad de longitud real
-    [xm, ym] = Calcular.punto_mitad_longitud(idx, x, y, lat, lon);
-    plot([xm xc], [ym yc], 'k-', 'LineWidth', 2);
-
+        function [x_m, y_m] = punto_mitad_longitud(idx, x, y, lat, lon)
+            % Calcula el punto del segmento idx (curva) que está a la mitad de la longitud real
+            dist_acum = zeros(length(idx), 1);
+            for j = 2:length(idx)
+                dist_acum(j) = dist_acum(j-1) + Calculos.geodist(...
+                    lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+            end
+            long_total = dist_acum(end);
+            i_mitad = find(dist_acum >= long_total/2, 1, 'first');
+            x_m = x(idx(i_mitad));
+            y_m = y(idx(i_mitad));
         end
-    end
-
-    axis equal;
-    title('Trayectoria, curvas y círculos ajustados (limitado)');
-    xlabel('Longitud');
-    ylabel('Latitud');
-    legend('Trayectoria', 'Curvas', 'Círculo ajustado');
-    hold off;
-end
-
-function [xc, yc, R] = circle_fit(x, y)
-    x = x(:);
-    y = y(:);
-    A = [2*x, 2*y, ones(size(x))];
-    b = x.^2 + y.^2;
-    params = A\b;
-    xc = params(1);
-    yc = params(2);
-    R = sqrt(params(3) + xc^2 + yc^2);
-end
 
 
-function [x_m, y_m] = punto_mitad_longitud(idx, x, y, lat, lon)
-    % Calcula el punto del segmento idx (curva) que está a la mitad de la longitud real
-    dist_acum = zeros(length(idx), 1);
-    for j = 2:length(idx)
-        dist_acum(j) = dist_acum(j-1) + Calculos.geodist(...
-            lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
-    end
-    long_total = dist_acum(end);
-    i_mitad = find(dist_acum >= long_total/2, 1, 'first');
-    x_m = x(idx(i_mitad));
-    y_m = y(idx(i_mitad));
-end
+        function datosBuses = detectar_curvas_con_parametros(datosBuses, k, parametros, campoSalida)
+            lat = datosBuses.trayectoriaFiltrada(k).lat;
+            lon = datosBuses.trayectoriaFiltrada(k).lon;
+            velocidad = datosBuses.velocidadRuta{k,2};
 
+            x = lon(:);
+            y = lat(:);
 
+            N = length(x);
+            radio_curvatura = nan(N,1);
 
+            ventana = parametros.ventana;
+            umbral = parametros.umbral;
+            radio_maximo = parametros.radio_maximo;
+            umbral_longitud = parametros.umbral_longitud;
+            proporcion_minima = parametros.proporcion_minima;
+            velocidad_minima = parametros.velocidad_minima;
 
+            for i = ventana+1:N-ventana
+                x1 = x(i-ventana); y1 = y(i-ventana);
+                x2 = x(i);         y2 = y(i);
+                x3 = x(i+ventana); y3 = y(i+ventana);
 
+                A = [x1, y1, 1;
+                    x2, y2, 1;
+                    x3, y3, 1];
+                B = [-(x1^2 + y1^2);
+                    -(x2^2 + y2^2);
+                    -(x3^2 + y3^2)];
+                params = A\B;
+                xc = -0.5*params(1);
+                yc = -0.5*params(2);
+                r = sqrt((xc-x1)^2 + (yc-y1)^2);
+
+                radio_curvatura(i) = r;
+            end
+
+            en_curva = radio_curvatura < umbral;
+            cambio = diff([0; en_curva; 0]);
+            inicio = find(cambio == 1);
+            fin = find(cambio == -1) - 1;
+
+            curvas = {};
+            for s = 1:length(inicio)
+                idx = inicio(s):fin(s);
+
+                % Longitud acumulada
+                long_acum = 0;
+                for j = 2:length(idx)
+                    long_acum = long_acum + Calculos.geodist(...
+                        lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+                end
+
+                % Círculo ajustado
+                [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
+                perimetro_circulo = 2*pi*R*100000;
+                proporcion = long_acum / perimetro_circulo;
+
+                vel_idx_ini = idx(1);
+                vel_idx_end = idx(end)-1;
+                if vel_idx_end > length(velocidad)
+                    vel_idx_end = length(velocidad);
+                end
+                vel_prom = mean(velocidad(vel_idx_ini:vel_idx_end));
+
+                if R < radio_maximo && ...
+                        long_acum >= umbral_longitud && ...
+                        proporcion >= proporcion_minima && ...
+                        vel_prom >= velocidad_minima
+
+                    curvas{end+1} = idx;
+                end
+            end
+
+            % Guarda los índices de las curvas detectadas en el campo correspondiente
+            datosBuses.trayectoriaFiltrada(k).(campoSalida) = curvas;
+        end
+
+        function fusionar_y_graficar_curvas(datosBuses, k)
+            % Extraer datos
+            lat = datosBuses.trayectoriaFiltrada(k).lat;
+            lon = datosBuses.trayectoriaFiltrada(k).lon;
+            x = lon(:);
+            y = lat(:);
+
+            curvasPeq = datosBuses.trayectoriaFiltrada(k).curvasPequenas;
+            curvasGra = datosBuses.trayectoriaFiltrada(k).curvasGrandes;
+
+            % Unir todos los segmentos, etiquetar tipo: 1=pequeña, 2=grande
+            % Para cada segmento, calcula también el signo de curvatura
+            [segs_peq, signos_peq] = Calcular.obtener_segmentos_y_signos(curvasPeq, x, y);
+            [segs_gra, signos_gra] = Calcular.obtener_segmentos_y_signos(curvasGra, x, y);
+
+            todos = [segs_peq, ones(size(segs_peq,1),1), signos_peq; ...
+                segs_gra, 2*ones(size(segs_gra,1),1), signos_gra];
+
+            % Ordenar por inicio
+            todos = sortrows(todos,1);
+
+            % Fusión de segmentos solapados o muy próximos Y CON EL MISMO SIGNO DE CURVATURA
+            fusionados = [];
+            i = 1;
+            while i <= size(todos,1)
+                ini = todos(i,1);
+                fin = todos(i,2);
+                tipo = todos(i,3);
+                signo = todos(i,4);
+                j = i+1;
+                while j <= size(todos,1) && todos(j,1) <= fin+2 && todos(j,4) == signo
+                    fin = max(fin, todos(j,2));
+                    tipo = max(tipo, todos(j,3)); % Prioriza tipo más grande
+                    j = j+1;
+                end
+                fusionados = [fusionados; ini, fin, tipo, signo];
+                i = j;
+            end
+
+            % Gráfica
+            figure; hold on;
+            plot(x, y, 'k-', 'LineWidth', 1); % Trayectoria base
+            ley = {'Trayectoria'};
+
+            for f = 1:size(fusionados,1)
+                idx = fusionados(f,1):fusionados(f,2);
+                signo = fusionados(f,4);
+
+                % Color según tipo y sentido de curva
+                if fusionados(f,3)==1
+                    color_curva = 'r';
+                    color_circulo = [1 0.6 0.6]; % rojo claro
+                    nombre = 'Curva pequeña';
+                else
+                    color_curva = 'b';
+                    color_circulo = [0.6 0.6 1]; % azul claro
+                    nombre = 'Curva grande';
+                end
+                if signo < 0
+                    color_curva = [0 0.7 0]; % verde para curvas hacia otro lado
+                    color_circulo = [0.6 1 0.6];
+                    nombre = [nombre ' reversa'];
+                end
+                ley{end+1} = nombre;
+
+                plot(x(idx), y(idx), '-', 'Color', color_curva, 'LineWidth', 2);
+
+                % Ajuste de círculo al segmento
+                [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
+                theta = linspace(0,2*pi,200);
+                xcirc = xc + R*cos(theta);
+                ycirc = yc + R*sin(theta);
+                plot(xcirc, ycirc, '--', 'Color', color_circulo, 'LineWidth', 1.5);
+
+                % Dibuja la normal desde el punto de mitad de longitud real
+                [xm, ym] = Calcular.punto_mitad_longitud(idx, x, y, lat, lon);
+                plot([xm xc], [ym yc], 'k-', 'LineWidth', 2);
+            end
+
+            legend(ley, 'Location', 'best');
+            title('Trayectoria, curvas fusionadas (con signo), círculos y normales');
+            xlabel('Longitud');
+            ylabel('Latitud');
+            axis equal; hold off;
+        end
+
+        function [segs, signos] = obtener_segmentos_y_signos(curvas, x, y)
+            n = numel(curvas);
+            segs = zeros(n,2);
+            signos = zeros(n,1);
+            for i = 1:n
+                idx = curvas{i};
+                segs(i,:) = [idx(1) idx(end)];
+                signos(i) = Calcular.signo_curvatura_segmento(x(idx), y(idx));
+            end
+        end
+
+        function signo = signo_curvatura_segmento(xseg, yseg)
+            % Usa los extremos y el punto intermedio
+            N = numel(xseg);
+            if N < 3
+                signo = 0;
+                return
+            end
+            x1 = xseg(1);   y1 = yseg(1);
+            x2 = xseg(round(N/2)); y2 = yseg(round(N/2));
+            x3 = xseg(end); y3 = yseg(end);
+            % Determinante del triángulo
+            area2 = (x2-x1)*(y3-y1) - (y2-y1)*(x3-x1);
+            signo = sign(area2); % +1 izquierda, -1 derecha (según convención)
+        end
 
         %%
 
