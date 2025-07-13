@@ -73,6 +73,698 @@ classdef Calcular
         end
 
         %%
+        function trayectoria_filtrada = filtraGPS_mediana(datosBuses, k)
+            % lat, lon: vectores columna o fila de posiciones
+            % ventana: número impar, tamaño de la ventana de filtrado
+            lat = datosBuses.datosSensorRuta{k, 2}.lat;
+            lon = datosBuses.datosSensorRuta{k, 2}.lon;
+            lat_f = medfilt1(lat, ventana);
+            lon_f = medfilt1(lon, ventana);
+            trayectoria_filtrada = [lat_f(:), lon_f(:)];
+        end
+
+
+        %%
+
+        function trayectoria_filtrada = filtraGPS_kalman(datosBuses, k)
+            lat = datosBuses.datosSensorRuta{k, 2}.lat;
+            lon = datosBuses.datosSensorRuta{k, 2}.lon;
+            t = datosBuses.datosSensorRuta{k, 2}.time;
+
+            N = length(lat);
+            trayectoria_filtrada = zeros(N, 2);
+
+            % Estado inicial: [lat; lon; vlat; vlon; alat; alon]
+            Xk = [lat(1); lon(1); 0; 0; 0; 0];
+            Pk = 1e-3 * eye(6);
+
+            % Ajusta según tu caso
+            sigma_gps = 5 / 111320; % 5 metros de error típico GPS
+            R = (sigma_gps^2) * eye(2);
+
+            Q_base = (1e-9 * eye(6))/10000; % Ajusta según comportamiento del bus
+
+            for i = 1:N
+                if i == 1
+                    dt = 0.1; % Valor pequeño para el primer ciclo
+                else
+                    dt = seconds(t(i) - t(i-1));
+                    if dt <= 0, dt = 0.1; end
+                end
+
+                % F y Q actualizadas en cada ciclo
+                F = [1 0 dt 0 0.5*dt^2 0;
+                    0 1 0 dt 0 0.5*dt^2;
+                    0 0 1 0 dt 0;
+                    0 0 0 1 0 dt;
+                    0 0 0 0 1 0;
+                    0 0 0 0 0 1];
+
+                % Escalamiento opcional de Q con dt (si hay mucho cambio en dt)
+                Q = Q_base * (1 + dt);
+
+                % Predicción
+                Xk_pred = F * Xk;
+                Pk_pred = F * Pk * F' + Q;
+
+                % Medición
+                zk = [lat(i); lon(i)];
+
+                % Actualización
+                H = [1 0 0 0 0 0; 0 1 0 0 0 0];
+                K = Pk_pred * H' / (H * Pk_pred * H' + R);
+                Xk = Xk_pred + K * (zk - H * Xk_pred);
+                Pk = (eye(6) - K * H) * Pk_pred;
+
+                trayectoria_filtrada(i, :) = Xk(1:2)';
+            end
+        end
+
+        %%
+        function datosBuses = kalmanFiltro2D(datosBuses, k)
+            lat = datosBuses.datosSensorRuta{k, 2}.lat(:);
+            lon = datosBuses.datosSensorRuta{k, 2}.lon(:);
+            t = datosBuses.datosSensorRuta{k, 2}.time(:);
+            N = numel(t);
+
+            % Modelo simple: posición pura
+            % Estado: posición
+            A = 1;
+            C = 1;
+            Q = 1e-6; % Ruido de proceso bajo (ajusta según experiencia)
+            R_base = 1e-9; % Varianza de medición (ajusta según precisión GPS)
+            factor = 1e-8;
+
+            R_max = 1e-5;   % R cuando distancia es pequeña
+            R_min = 1e-12;  % R cuando distancia es grande
+            epsilon = 1e-3; % Para evitar división por cero
+
+            % Inicialización
+            x_lat = lat(1);
+            P_lat = 1e-6;
+            x_lon = lon(1);
+            P_lon = 1e-6;
+
+            lat_f = zeros(N,1);
+            lon_f = zeros(N,1);
+
+            distancias = zeros(N,1);
+            R_values = zeros(N,1);
+
+
+            for i = 1:N
+                if i == 1
+                    dist = 0;
+                else
+                    % Calcula distancia euclidiana (o usa Haversine si lo prefieres)
+
+                    dist = Calculos.geodist(lat(i), lon(i), lat(i-1), lon(i-1));
+                end
+
+                dist_normalized = dist + epsilon;
+                R_dynamic = R_min + (R_max - R_min) * (1 ./ dist_normalized);
+                R_dynamic = min(max(R_dynamic, R_min), R_max); % Limitar rango
+                distancias(i) = dist;
+                R_values(i) = R_dynamic;
+
+                % Predicción
+                x_lat = A * x_lat;
+                P_lat = A * P_lat * A' + Q;
+
+                % Medición
+                z = lat(i);
+
+                % Ganancia de Kalman (usa R_dynamic)
+                S = C * P_lat * C' + R_dynamic;
+                K = P_lat * C' / S;
+
+                % Actualización
+                x_lat = x_lat + K * (z - C * x_lat);
+                P_lat = (1 - K * C) * P_lat;
+
+                lat_f(i) = x_lat;
+            end
+
+            % Idéntico para longitud
+            for i = 1:N
+                if i == 1
+                    dist = 0;
+                else
+                    dist = Calculos.geodist(lat(i), lon(i), lat(i-1), lon(i-1));
+                end
+                dist_normalized = dist + epsilon;
+                R_dynamic = R_min + (R_max - R_min) * (1 ./ dist_normalized);
+                R_dynamic = min(max(R_dynamic, R_min), R_max);
+
+                x_lon = A * x_lon;
+                P_lon = A * P_lon * A' + Q;
+
+                z = lon(i);
+
+                S = C * P_lon * C' + R_dynamic;
+                K = P_lon * C' / S;
+
+                x_lon = x_lon + K * (z - C * x_lon);
+                P_lon = (1 - K * C) * P_lon;
+
+                lon_f(i) = x_lon;
+            end
+
+            trayectoria_filtrada.lat = lat_f;
+            trayectoria_filtrada.lon = lon_f;
+            trayectoria_filtrada.time = t;
+
+            if ~isfield(datosBuses, 'trayectoriaFiltrada')
+                datosBuses.trayectoriaFiltrada = repmat(struct('lat',[], 'lon',[], 'time',[]), size(datosBuses.datosSensorRuta,1), 1);
+            end
+            datosBuses.trayectoriaFiltrada(k) = trayectoria_filtrada;
+
+
+
+
+            % Extraer datos filtrados
+            % lat_f = trayectoria_filtrada.lat(:);
+            % lon_f = trayectoria_filtrada.lon(:);
+            %
+            % figure
+            % plot(lon, lat, 'r.', 'DisplayName', 'GPS Original')
+            % hold on
+            % plot(lon_f, lat_f, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Kalman Filtrado')
+            % xlabel('Longitud')
+            % ylabel('Latitud')
+            % legend('show', 'Location', 'best')
+            % title('Trayectoria GPS: Original vs Kalman Filtrado')
+            % grid on
+            % axis equal
+
+        end
+        %%
+
+        function datosBuses = detectar_curvas_multi_escala(datosBuses, k)
+            % Primera pasada: Curvas pequeñas
+            parametros1.ventana = 5;
+            parametros1.umbral = 0.0013;
+            parametros1.radio_maximo = 0.005;
+            parametros1.umbral_longitud = 15;
+            parametros1.proporcion_minima = 0.08;
+            parametros1.velocidad_minima = 1.1;
+
+            % Segunda pasada: Curvas grandes
+            parametros2.ventana = 15;
+            parametros2.umbral = 0.0035;
+            parametros2.radio_maximo = 0.03;      % Permite radios más grandes
+            parametros2.umbral_longitud = 30;     % Longitud mínima más alta
+            parametros2.proporcion_minima = 0.04; % Proporción menor para grandes
+            parametros2.velocidad_minima = 1.1;
+
+            % Detectar curvas pequeñas
+            datosBuses = Calcular.detectar_curvas_con_parametros(datosBuses, k, parametros1, 'curvasPequenas');
+            % Detectar curvas grandes
+            datosBuses = Calcular.detectar_curvas_con_parametros(datosBuses, k, parametros2, 'curvasGrandes');
+
+            Calcular.fusionar_y_graficar_curvas(datosBuses, k);
+
+            % Aquí podrías fusionar los resultados, según como guardes la info.
+        end
+
+
+        %%
+
+        function datosBuses = detectar_curvas(datosBuses, k)
+            lat = datosBuses.trayectoriaFiltrada(k).lat;
+            lon = datosBuses.trayectoriaFiltrada(k).lon;
+            velocidad = datosBuses.velocidadRuta{k,2}; % Vector columna de tamaño N-1
+
+
+
+
+            ventana = 3; % número de puntos a cada lado
+            umbral = 0.0014;           % para detectar curva
+            radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
+            umbral_longitud = 10;
+            proporcion_minima = 0.1;
+            velocidad_minima = 0.1;
+
+            x = lon(:);
+            y = lat(:);
+
+            [radio_curvatura, direccion_curva, signo_curvatura] =  Calcular.calcular_radio_curvatura(x, y, ventana);
+
+            datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
+
+
+
+            en_curva = radio_curvatura < umbral;
+            cambio = diff([0; en_curva; 0]);
+            inicio = find(cambio == 1);
+            fin = find(cambio == -1) - 1;
+
+            curvas = [];
+
+            figure;
+            plot(x, y, 'b-', 'LineWidth', 1); hold on;
+            dcm = datacursormode(gcf);
+            set(dcm, 'UpdateFcn', {@Calcular.mi_callback, x, y, velocidad, radio_curvatura, signo_curvatura});
+
+            for s = 1:length(inicio)
+                idx = inicio(s):fin(s);
+
+
+                % Calcular longitud acumulada del segmento de curva usando geodist
+                long_acum = 0;
+                for j = 2:length(idx)
+                    long_acum = long_acum + Calculos.geodist(...
+                        lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+                end
+
+
+                % Ajustar círculo al segmento
+                [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
+                perimetro_circulo = 2*pi*R*100000;
+                proporcion = long_acum / perimetro_circulo;
+
+
+                vel_idx_ini = idx(1);
+                vel_idx_end = idx(end)-1;
+                if vel_idx_end > length(velocidad)
+                    vel_idx_end = length(velocidad);
+                end
+
+                % Velocidad promedio del segmento
+                vel_prom = mean(velocidad(vel_idx_ini:vel_idx_end));
+
+                % Solo graficar si el radio está dentro del límite
+                if R < radio_maximo && ...
+                        long_acum >= umbral_longitud && ...
+                        proporcion >= proporcion_minima && ...
+                        vel_prom >= velocidad_minima
+
+                    plot(x(idx), y(idx), 'r-', 'LineWidth', 3);
+                    theta = linspace(0, 2*pi, 200);
+                    xcirc = xc + R*cos(theta);
+                    ycirc = yc + R*sin(theta);
+                    plot(xcirc, ycirc, 'g--', 'LineWidth', 1.5);
+
+                    % Dibuja la normal desde el punto de mitad de longitud real
+                    [xm, ym] = Calcular.punto_mitad_longitud(idx, x, y, lat, lon);
+                    plot([xm xc], [ym yc], 'k-', 'LineWidth', 2);
+
+                    curva.idx = idx;
+            curva.xc = xc;
+            curva.yc = yc;
+            curva.R = R;
+            curva.long_acum = long_acum;
+            curva.perimetro_circulo = perimetro_circulo;
+            curva.proporcion = proporcion;
+            curva.vel_prom = vel_prom;
+            curva.direccion = direccion_curva(idx);
+            curva.signo = signo_curvatura(idx);
+            curvas = [curvas; curva];
+
+                end
+            end
+datosBuses.trayectoriaFiltrada(k).curvas = curvas;
+            axis equal;
+            title('Trayectoria, curvas y círculos ajustados (limitado)');
+            xlabel('Longitud');
+            ylabel('Latitud');
+            legend('Trayectoria', 'Curvas', 'Círculo ajustado');
+            hold off;
+        end
+
+
+        function output_txt = mi_callback(~, event_obj, x, y, velocidad, radio_curvatura, direccion_curva)
+            pos = get(event_obj, 'Position');
+            % Buscar el índice más cercano a pos
+            dist = hypot(x - pos(1), y - pos(2));
+            [~, idx] = min(dist);
+
+            output_txt = {...
+                ['Longitud: ', num2str(pos(1), '%.6f')], ...
+                ['Latitud: ', num2str(pos(2), '%.6f')], ...
+                ['Índice: ', num2str(idx)], ...
+                ['Velocidad: ', num2str(velocidad(idx), '%.2f')], ...
+                ['Radio curvatura: ', num2str(radio_curvatura(idx), '%.6f')] ...
+                ['Dirección curva: ', num2str(direccion_curva(idx), '%.6f')] ...
+                };
+        end
+
+
+        function [radio_curvatura, direccion_curva, signo_curvatura] = calcular_radio_curvatura(x, y, ventana)
+    N = length(x);
+    radio_curvatura = nan(N,1);
+    direccion_curva = nan(N,1);
+    signo_curvatura = nan(N,1);
+    for i = ventana+1:N-ventana
+        x1 = x(i-ventana); y1 = y(i-ventana);
+        x2 = x(i);         y2 = y(i);
+        x3 = x(i+ventana); y3 = y(i+ventana);
+
+        % Ajuste de círculo
+        A = [x1, y1, 1; x2, y2, 1; x3, y3, 1];
+        B = [-(x1^2 + y1^2); -(x2^2 + y2^2); -(x3^2 + y3^2)];
+        params = A\B;
+        xc = -0.5*params(1);
+        yc = -0.5*params(2);
+        r = sqrt((xc-x1)^2 + (yc-y1)^2);
+        radio_curvatura(i) = r;
+
+        % Dirección de la curva: ángulo de la tangente en el punto central
+        dx = x3 - x1;
+        dy = y3 - y1;
+        direccion_curva(i) = atan2(dy, dx);
+
+        % Cálculo del signo de la curvatura
+        v1 = [x2 - x1; y2 - y1];
+        v2 = [x3 - x2; y3 - y2];
+        cross_z = v1(1)*v2(2) - v1(2)*v2(1);
+        if cross_z > 0
+            signo_curvatura(i) = 1; % izquierda
+        elseif cross_z < 0
+            signo_curvatura(i) = -1; % derecha
+        else
+            signo_curvatura(i) = 0;
+        end
+    end
+end
+
+function radio_curvatura = radio_curvatura_punto_kasa(x, y, m_min, m_max)
+    N = length(x);
+    radio_curvatura = nan(N,1);
+
+    for i = 1:N
+        min_error = inf;
+        best_r = nan;
+        for w = m_min:m_max
+            w2 = floor(w/2);
+            i1 = max(1, i-w2);
+            i2 = min(N, i+w2);
+            idx = i1:i2;
+            if numel(idx) < 3
+                continue;
+            end
+
+            xi = x(idx);
+            yi = y(idx);
+            n = length(xi);
+
+            theta = abs(atan2(yi(end)-yi(1), xi(end)-xi(1)));
+if theta < deg2rad(5)
+    continue; % no ajustar si el arco es muy pequeño
+end
+
+            % Kasa least squares circle fitting
+            Zi = xi(:).^2 + yi(:).^2;
+            A = [xi(:) yi(:) ones(n,1)];
+            b = -Zi;
+            params = A\b;
+            a = params(1);
+            b_ = params(2);
+            c = params(3);
+
+            xc = -0.5*a;
+            yc = -0.5*b_;
+            r = sqrt(xc^2 + yc^2 - c);
+
+            % Error de ajuste para esta ventana
+            dists = sqrt((xi-xc).^2 + (yi-yc).^2);
+            err = sum((dists - r).^2);
+
+            if err < min_error
+                min_error = err;
+                best_r = r;
+            end
+        end
+        radio_curvatura(i) = best_r;
+    end
+end
+
+
+function [radio_curvatura, direccion_curva, signo_curvatura] = calcular_radio_curvatura_kasa(x, y, ventana)
+    N = length(x);
+    radio_curvatura = nan(N,1);
+    direccion_curva = nan(N,1);
+    signo_curvatura = nan(N,1);
+    for i = ventana+1:N-ventana
+        idx = (i-ventana):(i+ventana);
+        xi = x(idx);
+        yi = y(idx);
+        n = length(xi);
+
+        % Kasa least squares circle fitting
+        Xi = xi(:); Yi = yi(:);
+        Zi = Xi.^2 + Yi.^2;
+        A = [Xi Yi ones(n,1)];
+        b = -Zi;
+        params = A\b;
+        a = params(1);
+        b_ = params(2);
+        c = params(3);
+
+        xc = -0.5*a;
+        yc = -0.5*b_;
+        r = sqrt(xc^2 + yc^2 - c);
+
+        radio_curvatura(i) = r;
+
+        % Dirección de la curva (aproximación por ángulo de la tangente)
+        dx = x(i+ventana) - x(i-ventana);
+        dy = y(i+ventana) - y(i-ventana);
+        direccion_curva(i) = atan2(dy, dx);
+
+        % Cálculo del signo de la curvatura
+        % (usando los 3 puntos: inicio, centro, fin)
+        v1 = [x(i) - x(i-ventana); y(i) - y(i-ventana)];
+        v2 = [x(i+ventana) - x(i); y(i+ventana) - y(i)];
+        cross_z = v1(1)*v2(2) - v1(2)*v2(1);
+        if cross_z > 0
+            signo_curvatura(i) = 1; % curva a la izquierda
+        elseif cross_z < 0
+            signo_curvatura(i) = -1; % curva a la derecha
+        else
+            signo_curvatura(i) = 0; % sin curvatura
+        end
+    end
+end
+
+
+        function [xc, yc, R] = circle_fit(x, y)
+            x = x(:);
+            y = y(:);
+            A = [2*x, 2*y, ones(size(x))];
+            b = x.^2 + y.^2;
+            params = A\b;
+            xc = params(1);
+            yc = params(2);
+            R = sqrt(params(3) + xc^2 + yc^2);
+        end
+
+
+        function [x_m, y_m] = punto_mitad_longitud(idx, x, y, lat, lon)
+            % Calcula el punto del segmento idx (curva) que está a la mitad de la longitud real
+            dist_acum = zeros(length(idx), 1);
+            for j = 2:length(idx)
+                dist_acum(j) = dist_acum(j-1) + Calculos.geodist(...
+                    lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+            end
+            long_total = dist_acum(end);
+            i_mitad = find(dist_acum >= long_total/2, 1, 'first');
+            x_m = x(idx(i_mitad));
+            y_m = y(idx(i_mitad));
+        end
+
+
+        function datosBuses = detectar_curvas_con_parametros(datosBuses, k, parametros, campoSalida)
+            lat = datosBuses.trayectoriaFiltrada(k).lat;
+            lon = datosBuses.trayectoriaFiltrada(k).lon;
+            velocidad = datosBuses.velocidadRuta{k,2};
+
+            x = lon(:);
+            y = lat(:);
+
+            N = length(x);
+            radio_curvatura = nan(N,1);
+
+            ventana = parametros.ventana;
+            umbral = parametros.umbral;
+            radio_maximo = parametros.radio_maximo;
+            umbral_longitud = parametros.umbral_longitud;
+            proporcion_minima = parametros.proporcion_minima;
+            velocidad_minima = parametros.velocidad_minima;
+
+            for i = ventana+1:N-ventana
+                x1 = x(i-ventana); y1 = y(i-ventana);
+                x2 = x(i);         y2 = y(i);
+                x3 = x(i+ventana); y3 = y(i+ventana);
+
+                A = [x1, y1, 1;
+                    x2, y2, 1;
+                    x3, y3, 1];
+                B = [-(x1^2 + y1^2);
+                    -(x2^2 + y2^2);
+                    -(x3^2 + y3^2)];
+                params = A\B;
+                xc = -0.5*params(1);
+                yc = -0.5*params(2);
+                r = sqrt((xc-x1)^2 + (yc-y1)^2);
+
+                radio_curvatura(i) = r;
+            end
+
+            en_curva = radio_curvatura < umbral;
+            cambio = diff([0; en_curva; 0]);
+            inicio = find(cambio == 1);
+            fin = find(cambio == -1) - 1;
+
+            curvas = {};
+            for s = 1:length(inicio)
+                idx = inicio(s):fin(s);
+
+                % Longitud acumulada
+                long_acum = 0;
+                for j = 2:length(idx)
+                    long_acum = long_acum + Calculos.geodist(...
+                        lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+                end
+
+                % Círculo ajustado
+                [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
+                perimetro_circulo = 2*pi*R*100000;
+                proporcion = long_acum / perimetro_circulo;
+
+                vel_idx_ini = idx(1);
+                vel_idx_end = idx(end)-1;
+                if vel_idx_end > length(velocidad)
+                    vel_idx_end = length(velocidad);
+                end
+                vel_prom = mean(velocidad(vel_idx_ini:vel_idx_end));
+
+                if R < radio_maximo && ...
+                        long_acum >= umbral_longitud && ...
+                        proporcion >= proporcion_minima && ...
+                        vel_prom >= velocidad_minima
+
+                    curvas{end+1} = idx;
+                end
+            end
+
+            % Guarda los índices de las curvas detectadas en el campo correspondiente
+            datosBuses.trayectoriaFiltrada(k).(campoSalida) = curvas;
+        end
+
+        function fusionar_y_graficar_curvas(datosBuses, k)
+            % Extraer datos
+            lat = datosBuses.trayectoriaFiltrada(k).lat;
+            lon = datosBuses.trayectoriaFiltrada(k).lon;
+            x = lon(:);
+            y = lat(:);
+
+            curvasPeq = datosBuses.trayectoriaFiltrada(k).curvasPequenas;
+            curvasGra = datosBuses.trayectoriaFiltrada(k).curvasGrandes;
+
+            % Unir todos los segmentos, etiquetar tipo: 1=pequeña, 2=grande
+            % Para cada segmento, calcula también el signo de curvatura
+            [segs_peq, signos_peq] = Calcular.obtener_segmentos_y_signos(curvasPeq, x, y);
+            [segs_gra, signos_gra] = Calcular.obtener_segmentos_y_signos(curvasGra, x, y);
+
+            todos = [segs_peq, ones(size(segs_peq,1),1), signos_peq; ...
+                segs_gra, 2*ones(size(segs_gra,1),1), signos_gra];
+
+            % Ordenar por inicio
+            todos = sortrows(todos,1);
+
+            % Fusión de segmentos solapados o muy próximos Y CON EL MISMO SIGNO DE CURVATURA
+            fusionados = [];
+            i = 1;
+            while i <= size(todos,1)
+                ini = todos(i,1);
+                fin = todos(i,2);
+                tipo = todos(i,3);
+                signo = todos(i,4);
+                j = i+1;
+                while j <= size(todos,1) && todos(j,1) <= fin+2 && todos(j,4) == signo
+                    fin = max(fin, todos(j,2));
+                    tipo = max(tipo, todos(j,3)); % Prioriza tipo más grande
+                    j = j+1;
+                end
+                fusionados = [fusionados; ini, fin, tipo, signo];
+                i = j;
+            end
+
+            % Gráfica
+            figure; hold on;
+            plot(x, y, 'k-', 'LineWidth', 1); % Trayectoria base
+            ley = {'Trayectoria'};
+
+            for f = 1:size(fusionados,1)
+                idx = fusionados(f,1):fusionados(f,2);
+                signo = fusionados(f,4);
+
+                % Color según tipo y sentido de curva
+                if fusionados(f,3)==1
+                    color_curva = 'r';
+                    color_circulo = [1 0.6 0.6]; % rojo claro
+                    nombre = 'Curva pequeña';
+                else
+                    color_curva = 'b';
+                    color_circulo = [0.6 0.6 1]; % azul claro
+                    nombre = 'Curva grande';
+                end
+                if signo < 0
+                    color_curva = [0 0.7 0]; % verde para curvas hacia otro lado
+                    color_circulo = [0.6 1 0.6];
+                    nombre = [nombre ' reversa'];
+                end
+                ley{end+1} = nombre;
+
+                plot(x(idx), y(idx), '-', 'Color', color_curva, 'LineWidth', 2);
+
+                % Ajuste de círculo al segmento
+                [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
+                theta = linspace(0,2*pi,200);
+                xcirc = xc + R*cos(theta);
+                ycirc = yc + R*sin(theta);
+                plot(xcirc, ycirc, '--', 'Color', color_circulo, 'LineWidth', 1.5);
+
+                % Dibuja la normal desde el punto de mitad de longitud real
+                [xm, ym] = Calcular.punto_mitad_longitud(idx, x, y, lat, lon);
+                plot([xm xc], [ym yc], 'k-', 'LineWidth', 2);
+            end
+
+            legend(ley, 'Location', 'best');
+            title('Trayectoria, curvas fusionadas (con signo), círculos y normales');
+            xlabel('Longitud');
+            ylabel('Latitud');
+            axis equal; hold off;
+        end
+
+        function [segs, signos] = obtener_segmentos_y_signos(curvas, x, y)
+            n = numel(curvas);
+            segs = zeros(n,2);
+            signos = zeros(n,1);
+            for i = 1:n
+                idx = curvas{i};
+                segs(i,:) = [idx(1) idx(end)];
+                signos(i) = Calcular.signo_curvatura_segmento(x(idx), y(idx));
+            end
+        end
+
+        function signo = signo_curvatura_segmento(xseg, yseg)
+            % Usa los extremos y el punto intermedio
+            N = numel(xseg);
+            if N < 3
+                signo = 0;
+                return
+            end
+            x1 = xseg(1);   y1 = yseg(1);
+            x2 = xseg(round(N/2)); y2 = yseg(round(N/2));
+            x3 = xseg(end); y3 = yseg(end);
+            % Determinante del triángulo
+            area2 = (x2-x1)*(y3-y1) - (y2-y1)*(x3-x1);
+            signo = sign(area2); % +1 izquierda, -1 derecha (según convención)
+        end
+
+        %%
 
         function velocidad = velocidadSinFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud)
             % Asegurarse de que los datos son una tabla
@@ -789,97 +1481,102 @@ classdef Calcular
 
         %%
 
-function datosBuses = ConsumoPorRuta(datosBuses, capacidadBateria_kWh)
-    buses = fieldnames(datosBuses);
+        function datosBuses = ConsumoPorRuta(datosBuses, capacidadBateria_kWh)
+            buses = fieldnames(datosBuses);
 
-    for i = 1:numel(buses)
-        bus = buses{i};
-        if strcmp(bus, 'info')
-            continue;
-        end
-
-        fechas = fieldnames(datosBuses.(bus));
-        for j = 1:numel(fechas)
-            fecha = fechas{j};
-            if isfield(datosBuses.(bus).(fecha), 'segmentoP60')
-                segmentos = datosBuses.(bus).(fecha).segmentoP60;
-                for k = 1:numel(segmentos)
-                    datosP60 = datosBuses.(bus).(fecha).segmentoP60{k};
-
-                    if ismember('nivelBateriaSuavizado', datosP60.Properties.VariableNames) && ~isempty(datosP60.nivelBateriaSuavizado)
-                        % Calcular consumo por intervalo
-                        consumoPorcentaje = [NaN; -diff(datosP60.nivelBateriaSuavizado)];
-                        % (nivel anterior - nivel actual) => -diff porque diff es actual-anterior
-
-                        if nargin > 1 && ~isempty(capacidadBateria_kWh)
-                            consumo_kWh = (consumoPorcentaje / 100) * capacidadBateria_kWh;
-                        else
-                            consumo_kWh = NaN(size(consumoPorcentaje));
-                        end
-
-                        % Asignar a la tabla
-                        datosBuses.(bus).(fecha).segmentoP60{k}.consumoPorcentaje = consumoPorcentaje;
-                        datosBuses.(bus).(fecha).segmentoP60{k}.consumo_kWh = consumo_kWh;
-                    else
-                        n = height(datosP60);
-                        datosBuses.(bus).(fecha).segmentoP60{k}.consumoPorcentaje = NaN(n,1);
-                        datosBuses.(bus).(fecha).segmentoP60{k}.consumo_kWh = NaN(n,1);
-                    end
+            for i = 1:numel(buses)
+                bus = buses{i};
+                if strcmp(bus, 'info')
+                    continue;
                 end
-            end
-        end
-    end
-end
 
+                fechas = fieldnames(datosBuses.(bus));
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+                    if isfield(datosBuses.(bus).(fecha), 'segmentoP60')
+                        segmentos = datosBuses.(bus).(fecha).segmentoP60;
+                        for k = 1:numel(segmentos)
+                            datosP60 = datosBuses.(bus).(fecha).segmentoP60{k};
 
-%%
+                            if ismember('nivelBateriaSuavizado', datosP60.Properties.VariableNames) && ~isempty(datosP60.nivelBateriaSuavizado)
+                                % Calcular consumo por intervalo
+                                consumoPorcentaje = [NaN; -diff(datosP60.nivelBateriaSuavizado)];
+                                % (nivel anterior - nivel actual) => -diff porque diff es actual-anterior
 
-function datosBuses = RiesgoCurvaTodasRutas(datosBuses)
-    buses = fieldnames(datosBuses);
+                                if nargin > 1 && ~isempty(capacidadBateria_kWh)
+                                    consumo_kWh = (consumoPorcentaje / 100) * capacidadBateria_kWh;
+                                else
+                                    consumo_kWh = NaN(size(consumoPorcentaje));
+                                end
 
-    for i = 1:numel(buses)
-        bus = buses{i};
-        if strcmp(bus, 'info')
-            continue;
-        end
-
-        fechas = fieldnames(datosBuses.(bus));
-        for j = 1:numel(fechas)
-            fecha = fechas{j};
-            if isfield(datosBuses.(bus).(fecha), 'segmentoP60')
-                segmentos = datosBuses.(bus).(fecha).segmentoP60;
-                for k = 1:numel(segmentos)
-                    datosSensorRuta = datosBuses.(bus).(fecha).datosSensorRuta{k,2};
-                    rutas = datosBuses.(bus).(fecha).tiempoRuta;
-                    t_inicio = rutas.Inicio_Ruta(k);
-                    t_fin = rutas.Fin_Ruta(k);
-
-                    % Llama a la función de riesgo de curva (sin gráfico)
-                    riesgo = Calculos.riesgoCurva2(datosSensorRuta, t_inicio, t_fin);
-
-                    % Almacena los datos de riesgo de curva
-                    datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva = riesgo;
-
-                    % Calcula el percentil 90 del riesgo (por curva)
-                    if ~isempty(riesgo)
-                        p90 = NaN(1, numel(riesgo));
-                        for m = 1:numel(riesgo)
-                            if size(riesgo{m},2) >= 3 && size(riesgo{m},1) >= 1
-                                riesgoCurvaVals = riesgo{m}(:,3); % tercera columna = "riesgo"
-                                p90(m) = prctile(riesgoCurvaVals, 90);
+                                % Asignar a la tabla
+                                datosBuses.(bus).(fecha).segmentoP60{k}.consumoPorcentaje = consumoPorcentaje;
+                                datosBuses.(bus).(fecha).segmentoP60{k}.consumo_kWh = consumo_kWh;
                             else
-                                p90(m) = NaN;
+                                n = height(datosP60);
+                                datosBuses.(bus).(fecha).segmentoP60{k}.consumoPorcentaje = NaN(n,1);
+                                datosBuses.(bus).(fecha).segmentoP60{k}.consumo_kWh = NaN(n,1);
                             end
                         end
-                        datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva_p90 = p90;
-                    else
-                        datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva_p90 = NaN;
                     end
                 end
             end
         end
-    end
-end
+
+
+        %%
+
+        function datosBuses = RiesgoCurvaTodasRutas(datosBuses, PosCurvas)
+            buses = fieldnames(datosBuses);
+
+            for i = 1:numel(buses)
+                bus = buses{i};
+                if strcmp(bus, 'info')
+                    continue;
+                end
+
+                fechas = fieldnames(datosBuses.(bus));
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+                    if isfield(datosBuses.(bus).(fecha), 'segmentoP60')
+                        segmentos = datosBuses.(bus).(fecha).segmentoP60;
+                        for k = 1:numel(segmentos)
+                            datosSensorRuta = datosBuses.(bus).(fecha).datosSensorRuta{k,2};
+                            rutas = datosBuses.(bus).(fecha).tiempoRuta;
+                            t_inicio = rutas.Inicio_Ruta(k);
+                            t_fin = rutas.Fin_Ruta(k);
+
+                            % Llama a la función de riesgo de curva (sin gráfico) con try-catch
+                            try
+                                riesgo = Calculos.riesgoCurva2(datosSensorRuta, t_inicio, t_fin, PosCurvas);
+                                datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva = riesgo;
+                            catch ME
+                                % En caso de error, guarda NaN y el mensaje de error
+                                datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva = NaN;
+                                datosBuses.(bus).(fecha).Curvas{k}.errorRiesgoCurva2 = ME.message;
+                                continue; % pasa al siguiente segmento
+                            end
+
+                            % Calcula el percentil 90 del riesgo (por curva)
+                            if ~isempty(riesgo)
+                                p90 = NaN(1, numel(riesgo));
+                                for m = 1:numel(riesgo)
+                                    if size(riesgo{m},2) >= 3 && size(riesgo{m},1) >= 1
+                                        riesgoCurvaVals = riesgo{m}(:,3); % tercera columna = "riesgo"
+                                        p90(m) = prctile(riesgoCurvaVals, 90);
+                                    else
+                                        p90(m) = NaN;
+                                    end
+                                end
+                                datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva_p90 = p90;
+                            else
+                                datosBuses.(bus).(fecha).Curvas{k}.riesgoCurva_p90 = NaN;
+                            end
+                        end
+                    end
+                end
+            end
+        end
 
 
         %%
