@@ -177,7 +177,7 @@ classdef Calcular
                     dist = 0;
                 else
                     % Calcula distancia euclidiana (o usa Haversine si lo prefieres)
-                     
+
                     dist = Calculos.geodist(lat(i), lon(i), lat(i-1), lon(i-1));
                 end
 
@@ -245,7 +245,7 @@ classdef Calcular
             % Extraer datos filtrados
             % lat_f = trayectoria_filtrada.lat(:);
             % lon_f = trayectoria_filtrada.lon(:);
-            % 
+            %
             % figure
             % plot(lon, lat, 'r.', 'DisplayName', 'GPS Original')
             % hold on
@@ -258,34 +258,34 @@ classdef Calcular
             % axis equal
 
         end
-%%
+        %%
 
-function datosBuses = detectar_curvas_multi_escala(datosBuses, k)
-    % Primera pasada: Curvas pequeñas
-    parametros1.ventana = 5;
-    parametros1.umbral = 0.0013;
-    parametros1.radio_maximo = 0.005;
-    parametros1.umbral_longitud = 15;
-    parametros1.proporcion_minima = 0.08;
-    parametros1.velocidad_minima = 1.1;
+        function datosBuses = detectar_curvas_multi_escala(datosBuses, k)
+            % Primera pasada: Curvas pequeñas
+            parametros1.ventana = 5;
+            parametros1.umbral = 0.0013;
+            parametros1.radio_maximo = 0.005;
+            parametros1.umbral_longitud = 15;
+            parametros1.proporcion_minima = 0.08;
+            parametros1.velocidad_minima = 1.1;
 
-    % Segunda pasada: Curvas grandes
-    parametros2.ventana = 15;
-    parametros2.umbral = 0.0035;
-    parametros2.radio_maximo = 0.03;      % Permite radios más grandes
-    parametros2.umbral_longitud = 30;     % Longitud mínima más alta
-    parametros2.proporcion_minima = 0.04; % Proporción menor para grandes
-    parametros2.velocidad_minima = 1.1;
+            % Segunda pasada: Curvas grandes
+            parametros2.ventana = 15;
+            parametros2.umbral = 0.0035;
+            parametros2.radio_maximo = 0.03;      % Permite radios más grandes
+            parametros2.umbral_longitud = 30;     % Longitud mínima más alta
+            parametros2.proporcion_minima = 0.04; % Proporción menor para grandes
+            parametros2.velocidad_minima = 1.1;
 
-    % Detectar curvas pequeñas
-    datosBuses = Calcular.detectar_curvas_con_parametros(datosBuses, k, parametros1, 'curvasPequenas');
-    % Detectar curvas grandes
-    datosBuses = Calcular.detectar_curvas_con_parametros(datosBuses, k, parametros2, 'curvasGrandes');
+            % Detectar curvas pequeñas
+            datosBuses = Calcular.detectar_curvas_con_parametros(datosBuses, k, parametros1, 'curvasPequenas');
+            % Detectar curvas grandes
+            datosBuses = Calcular.detectar_curvas_con_parametros(datosBuses, k, parametros2, 'curvasGrandes');
 
-    Calcular.fusionar_y_graficar_curvas(datosBuses, k);
+            Calcular.fusionar_y_graficar_curvas(datosBuses, k);
 
-    % Aquí podrías fusionar los resultados, según como guardes la info.
-end
+            % Aquí podrías fusionar los resultados, según como guardes la info.
+        end
 
 
         %%
@@ -298,17 +298,17 @@ end
 
 
 
-            ventana = 1; % número de puntos a cada lado
-            umbral = 0.0015;           % para detectar curva
+            ventana = 3; % número de puntos a cada lado
+            umbral = 0.00099;           % para detectar curva
             radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
-            umbral_longitud = 15;
+            umbral_longitud = 10;
             proporcion_minima = 0.1;
             velocidad_minima = 0.5;
 
             x = lon(:);
             y = lat(:);
 
-            radio_curvatura =  Calcular.calcular_radio_curvatura(x, y, ventana);
+            [radio_curvatura, direccion_curva] =  Calcular.calcular_radio_curvatura(x, y, ventana);
 
             datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
 
@@ -323,11 +323,8 @@ end
 
             figure;
             plot(x, y, 'b-', 'LineWidth', 1); hold on;
-            axis equal;
-            title('Trayectoria, curvas y círculos ajustados (limitado)');
-            xlabel('Longitud');
-            ylabel('Latitud');
-            legend('Trayectoria', 'Curvas', 'Círculo ajustado');
+            dcm = datacursormode(gcf);
+            set(dcm, 'UpdateFcn', {@Calcular.mi_callback, x, y, velocidad, radio_curvatura, direccion_curva});
 
             for s = 1:length(inicio)
                 idx = inicio(s):fin(s);
@@ -375,18 +372,42 @@ end
                 end
             end
 
-            
+            axis equal;
+            title('Trayectoria, curvas y círculos ajustados (limitado)');
+            xlabel('Longitud');
+            ylabel('Latitud');
+            legend('Trayectoria', 'Curvas', 'Círculo ajustado');
             hold off;
         end
 
-        function radio_curvatura = calcular_radio_curvatura(x, y, ventana)
+
+        function output_txt = mi_callback(~, event_obj, x, y, velocidad, radio_curvatura, direccion_curva)
+            pos = get(event_obj, 'Position');
+            % Buscar el índice más cercano a pos
+            dist = hypot(x - pos(1), y - pos(2));
+            [~, idx] = min(dist);
+
+            output_txt = {...
+                ['Longitud: ', num2str(pos(1), '%.6f')], ...
+                ['Latitud: ', num2str(pos(2), '%.6f')], ...
+                ['Índice: ', num2str(idx)], ...
+                ['Velocidad: ', num2str(velocidad(idx), '%.2f')], ...
+                ['Radio curvatura: ', num2str(radio_curvatura(idx), '%.6f')] ...
+                ['Dirección curva: ', num2str(direccion_curva(idx), '%.6f')] ...
+                };
+        end
+
+        
+        function [radio_curvatura, direccion_curva] = calcular_radio_curvatura(x, y, ventana)
             N = length(x);
             radio_curvatura = nan(N,1);
+            direccion_curva = nan(N,1);
             for i = ventana+1:N-ventana
                 x1 = x(i-ventana); y1 = y(i-ventana);
                 x2 = x(i);         y2 = y(i);
                 x3 = x(i+ventana); y3 = y(i+ventana);
 
+                % Ajuste de círculo
                 A = [x1, y1, 1;
                     x2, y2, 1;
                     x3, y3, 1];
@@ -397,10 +418,15 @@ end
                 xc = -0.5*params(1);
                 yc = -0.5*params(2);
                 r = sqrt((xc-x1)^2 + (yc-y1)^2);
-
                 radio_curvatura(i) = r;
+
+                % Dirección de la curva: ángulo de la tangente en el punto central
+                dx = x3 - x1;
+                dy = y3 - y1;
+                direccion_curva(i) = atan2(dy, dx); % en radianes, respecto al eje X
             end
         end
+
 
         function [xc, yc, R] = circle_fit(x, y)
             x = x(:);
