@@ -299,16 +299,16 @@ classdef Calcular
 
 
             ventana = 3; % número de puntos a cada lado
-            umbral = 0.00099;           % para detectar curva
+            umbral = 0.0014;           % para detectar curva
             radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
             umbral_longitud = 10;
             proporcion_minima = 0.1;
-            velocidad_minima = 0.5;
+            velocidad_minima = 0.1;
 
             x = lon(:);
             y = lat(:);
 
-            [radio_curvatura, direccion_curva] =  Calcular.calcular_radio_curvatura(x, y, ventana);
+            [radio_curvatura, direccion_curva, signo_curvatura] =  Calcular.calcular_radio_curvatura(x, y, ventana);
 
             datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
 
@@ -319,12 +319,12 @@ classdef Calcular
             inicio = find(cambio == 1);
             fin = find(cambio == -1) - 1;
 
-            curvas = {};
+            curvas = [];
 
             figure;
             plot(x, y, 'b-', 'LineWidth', 1); hold on;
             dcm = datacursormode(gcf);
-            set(dcm, 'UpdateFcn', {@Calcular.mi_callback, x, y, velocidad, radio_curvatura, direccion_curva});
+            set(dcm, 'UpdateFcn', {@Calcular.mi_callback, x, y, velocidad, radio_curvatura, signo_curvatura});
 
             for s = 1:length(inicio)
                 idx = inicio(s):fin(s);
@@ -369,9 +369,21 @@ classdef Calcular
                     [xm, ym] = Calcular.punto_mitad_longitud(idx, x, y, lat, lon);
                     plot([xm xc], [ym yc], 'k-', 'LineWidth', 2);
 
+                    curva.idx = idx;
+            curva.xc = xc;
+            curva.yc = yc;
+            curva.R = R;
+            curva.long_acum = long_acum;
+            curva.perimetro_circulo = perimetro_circulo;
+            curva.proporcion = proporcion;
+            curva.vel_prom = vel_prom;
+            curva.direccion = direccion_curva(idx);
+            curva.signo = signo_curvatura(idx);
+            curvas = [curvas; curva];
+
                 end
             end
-
+datosBuses.trayectoriaFiltrada(k).curvas = curvas;
             axis equal;
             title('Trayectoria, curvas y círculos ajustados (limitado)');
             xlabel('Longitud');
@@ -397,35 +409,143 @@ classdef Calcular
                 };
         end
 
-        
-        function [radio_curvatura, direccion_curva] = calcular_radio_curvatura(x, y, ventana)
-            N = length(x);
-            radio_curvatura = nan(N,1);
-            direccion_curva = nan(N,1);
-            for i = ventana+1:N-ventana
-                x1 = x(i-ventana); y1 = y(i-ventana);
-                x2 = x(i);         y2 = y(i);
-                x3 = x(i+ventana); y3 = y(i+ventana);
 
-                % Ajuste de círculo
-                A = [x1, y1, 1;
-                    x2, y2, 1;
-                    x3, y3, 1];
-                B = [-(x1^2 + y1^2);
-                    -(x2^2 + y2^2);
-                    -(x3^2 + y3^2)];
-                params = A\B;
-                xc = -0.5*params(1);
-                yc = -0.5*params(2);
-                r = sqrt((xc-x1)^2 + (yc-y1)^2);
-                radio_curvatura(i) = r;
+        function [radio_curvatura, direccion_curva, signo_curvatura] = calcular_radio_curvatura(x, y, ventana)
+    N = length(x);
+    radio_curvatura = nan(N,1);
+    direccion_curva = nan(N,1);
+    signo_curvatura = nan(N,1);
+    for i = ventana+1:N-ventana
+        x1 = x(i-ventana); y1 = y(i-ventana);
+        x2 = x(i);         y2 = y(i);
+        x3 = x(i+ventana); y3 = y(i+ventana);
 
-                % Dirección de la curva: ángulo de la tangente en el punto central
-                dx = x3 - x1;
-                dy = y3 - y1;
-                direccion_curva(i) = atan2(dy, dx); % en radianes, respecto al eje X
+        % Ajuste de círculo
+        A = [x1, y1, 1; x2, y2, 1; x3, y3, 1];
+        B = [-(x1^2 + y1^2); -(x2^2 + y2^2); -(x3^2 + y3^2)];
+        params = A\B;
+        xc = -0.5*params(1);
+        yc = -0.5*params(2);
+        r = sqrt((xc-x1)^2 + (yc-y1)^2);
+        radio_curvatura(i) = r;
+
+        % Dirección de la curva: ángulo de la tangente en el punto central
+        dx = x3 - x1;
+        dy = y3 - y1;
+        direccion_curva(i) = atan2(dy, dx);
+
+        % Cálculo del signo de la curvatura
+        v1 = [x2 - x1; y2 - y1];
+        v2 = [x3 - x2; y3 - y2];
+        cross_z = v1(1)*v2(2) - v1(2)*v2(1);
+        if cross_z > 0
+            signo_curvatura(i) = 1; % izquierda
+        elseif cross_z < 0
+            signo_curvatura(i) = -1; % derecha
+        else
+            signo_curvatura(i) = 0;
+        end
+    end
+end
+
+function radio_curvatura = radio_curvatura_punto_kasa(x, y, m_min, m_max)
+    N = length(x);
+    radio_curvatura = nan(N,1);
+
+    for i = 1:N
+        min_error = inf;
+        best_r = nan;
+        for w = m_min:m_max
+            w2 = floor(w/2);
+            i1 = max(1, i-w2);
+            i2 = min(N, i+w2);
+            idx = i1:i2;
+            if numel(idx) < 3
+                continue;
+            end
+
+            xi = x(idx);
+            yi = y(idx);
+            n = length(xi);
+
+            theta = abs(atan2(yi(end)-yi(1), xi(end)-xi(1)));
+if theta < deg2rad(5)
+    continue; % no ajustar si el arco es muy pequeño
+end
+
+            % Kasa least squares circle fitting
+            Zi = xi(:).^2 + yi(:).^2;
+            A = [xi(:) yi(:) ones(n,1)];
+            b = -Zi;
+            params = A\b;
+            a = params(1);
+            b_ = params(2);
+            c = params(3);
+
+            xc = -0.5*a;
+            yc = -0.5*b_;
+            r = sqrt(xc^2 + yc^2 - c);
+
+            % Error de ajuste para esta ventana
+            dists = sqrt((xi-xc).^2 + (yi-yc).^2);
+            err = sum((dists - r).^2);
+
+            if err < min_error
+                min_error = err;
+                best_r = r;
             end
         end
+        radio_curvatura(i) = best_r;
+    end
+end
+
+
+function [radio_curvatura, direccion_curva, signo_curvatura] = calcular_radio_curvatura_kasa(x, y, ventana)
+    N = length(x);
+    radio_curvatura = nan(N,1);
+    direccion_curva = nan(N,1);
+    signo_curvatura = nan(N,1);
+    for i = ventana+1:N-ventana
+        idx = (i-ventana):(i+ventana);
+        xi = x(idx);
+        yi = y(idx);
+        n = length(xi);
+
+        % Kasa least squares circle fitting
+        Xi = xi(:); Yi = yi(:);
+        Zi = Xi.^2 + Yi.^2;
+        A = [Xi Yi ones(n,1)];
+        b = -Zi;
+        params = A\b;
+        a = params(1);
+        b_ = params(2);
+        c = params(3);
+
+        xc = -0.5*a;
+        yc = -0.5*b_;
+        r = sqrt(xc^2 + yc^2 - c);
+
+        radio_curvatura(i) = r;
+
+        % Dirección de la curva (aproximación por ángulo de la tangente)
+        dx = x(i+ventana) - x(i-ventana);
+        dy = y(i+ventana) - y(i-ventana);
+        direccion_curva(i) = atan2(dy, dx);
+
+        % Cálculo del signo de la curvatura
+        % (usando los 3 puntos: inicio, centro, fin)
+        v1 = [x(i) - x(i-ventana); y(i) - y(i-ventana)];
+        v2 = [x(i+ventana) - x(i); y(i+ventana) - y(i)];
+        cross_z = v1(1)*v2(2) - v1(2)*v2(1);
+        if cross_z > 0
+            signo_curvatura(i) = 1; % curva a la izquierda
+        elseif cross_z < 0
+            signo_curvatura(i) = -1; % curva a la derecha
+        else
+            signo_curvatura(i) = 0; % sin curvatura
+        end
+    end
+end
 
 
         function [xc, yc, R] = circle_fit(x, y)
