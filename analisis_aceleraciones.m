@@ -185,9 +185,9 @@ try
 end
 end
 %%
-if ~ismember('Curvas', Tabla.Properties.VariableNames)
-    Tabla.Curvas = cell(height(Tabla), 1);
-end
+% if ~ismember('Curvas', Tabla.Properties.VariableNames)
+%     Tabla.Curvas = cell(height(Tabla), 1);
+% end
 
 % Inicializar contador de fila
 fila = 1;
@@ -250,8 +250,8 @@ riesgo = Calculos.riesgoCurva2( datosBuses.bus_4012.f_11_07_2024.datosSensorRuta
 
 %% Funciones
 PosCurvas = llamarFuncionesLcurvas(datosBuses);
-%%
-Tabla = superTabla(datosBuses,PosCurvas);
+%% 
+Tabla2 = superTabla(datosBuses,PosCurvas);
 
 function TABLA = superTabla(datosBuses, PosCurvas)
 
@@ -333,12 +333,12 @@ for i = 1:numel(buses)
                     consumo_recorrido = NaN; % O cualquier valor/fórmula por defecto
                     warning('No existe la columna "consumo" en P60 para %s - %s.', bus, fecha);
                 end
-                riesgo=nanmean(riesgo);
+                %riesgo=nanmean(riesgo);
                 % Definir los datos de una nueva fila
                 nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
                     indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
                     indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
-                    rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, riesgo, consumo_recorrido, consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k),...
+                    rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo}, consumo_recorrido, consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k),...
                     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                     'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
