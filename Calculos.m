@@ -1954,7 +1954,7 @@ classdef Calculos
                 [minimoInicio,Pinicio]=min(distanciaInicio);
                 [minimoFin,Pfin]=min(distanciaFin);
 
-                if Pfin-Pinicio<=3%almenos 3 puntos por curva
+                if Pfin-Pinicio<3%almenos 3 puntos por curva
                     datosCurva(1, 1) = NaN; % Velocidad
                     datosCurva(1, 2) = NaN; % Radio
                     datosCurva(1, 3) = NaN; % Relación v^2/r

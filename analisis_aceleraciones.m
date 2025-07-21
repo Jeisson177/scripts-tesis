@@ -250,8 +250,9 @@ riesgo = Calculos.riesgoCurva2( datosBuses.bus_4012.f_11_07_2024.datosSensorRuta
 
 %% Funciones
 PosCurvas = llamarFuncionesLcurvas(datosBuses);
+
 %% 
-Tabla2 = superTabla(datosBuses,PosCurvas);
+Tabla = superTabla(datosBuses,PosCurvas);
 
 function TABLA = superTabla(datosBuses, PosCurvas)
 
@@ -333,7 +334,7 @@ for i = 1:numel(buses)
                     consumo_recorrido = NaN; % O cualquier valor/fórmula por defecto
                     warning('No existe la columna "consumo" en P60 para %s - %s.', bus, fecha);
                 end
-                %riesgo=nanmean(riesgo);
+                riesgo=nanmean(riesgo);
                 % Definir los datos de una nueva fila
                 nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
                     indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
