@@ -1964,7 +1964,23 @@ classdef Calculos
                     datosCurva{1, 2} = radio(Pinicio:Pfin); % Radio
                     datosCurva{1, 3} = (velocidad(Pinicio:Pfin).^2) ./ radio(Pinicio:Pfin); % Relación v^2/r
                     datosCurva{1, 3}(datosCurva{1, 3} < 0) = NaN;
-                    percentil80 = prctile(datosCurva{1, 3}, 80);
+                    %percentil80 = prctile(datosCurva{1, 3}, 80);
+                    datos = datosCurva{1, 3}; 
+                    x = sort(datos); % ordenar los datos
+                    N = length(x);
+                    k = 80;
+                    
+                    pos = (k/100) * (N - 1) + 1; % posición real
+                    pos_inf = floor(pos);
+                    pos_sup = ceil(pos);
+                    
+                    if pos_inf == pos_sup
+                        percentil80 = x(pos_inf); % es una posición exacta
+                    else
+                        % interpolación lineal
+                        percentil80 = x(pos_inf) + (pos - pos_inf) * (x(pos_sup) - x(pos_inf));
+                    end
+
                     maximos(Ncurva, 1) = percentil80;
                 end
                 
