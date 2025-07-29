@@ -65,6 +65,7 @@ datosBuses = Calcular.tiempoEntrePuntos(datosBuses);
 datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @ImportarDatos.OrdenarP60);
 
 %%
+clc
 datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.kalmanFiltro2D);
 
 %%

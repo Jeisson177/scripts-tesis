@@ -242,10 +242,10 @@ classdef Calcular
 
 
 
-            % Extraer datos filtrados
+            %Extraer datos filtrados
             % lat_f = trayectoria_filtrada.lat(:);
             % lon_f = trayectoria_filtrada.lon(:);
-            %
+            % 
             % figure
             % plot(lon, lat, 'r.', 'DisplayName', 'GPS Original')
             % hold on
@@ -290,14 +290,16 @@ classdef Calcular
 
         %%
 
-        function datosBuses = detectar_curvas(datosBuses, k)
+        function datosBuses = detectar_curvas_graficar(datosBuses, k)
+            % data cache
             lat = datosBuses.trayectoriaFiltrada(k).lat;
             lon = datosBuses.trayectoriaFiltrada(k).lon;
             velocidad = datosBuses.velocidadRuta{k,2}; % Vector columna de tamaño N-1
+            x = lon(:);
+            y = lat(:);
 
 
-
-
+            % Configuracion
             ventana = 3; % número de puntos a cada lado
             umbral = 0.0014;           % para detectar curva
             radio_maximo = 0.005;      % radio máximo permitido para graficar círculo
@@ -305,11 +307,9 @@ classdef Calcular
             proporcion_minima = 0.1;
             velocidad_minima = 0.1;
 
-            x = lon(:);
-            y = lat(:);
+            
 
             [radio_curvatura, direccion_curva, signo_curvatura] =  Calcular.calcular_radio_curvatura(x, y, ventana);
-
             datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
 
 
@@ -321,10 +321,12 @@ classdef Calcular
 
             curvas = [];
 
-            figure;
-            plot(x, y, 'b-', 'LineWidth', 1); hold on;
-            dcm = datacursormode(gcf);
-            set(dcm, 'UpdateFcn', {@Calcular.mi_callback, x, y, velocidad, radio_curvatura, signo_curvatura});
+            % figure;
+            % plot(x, y, 'b-', 'LineWidth', 1); hold on;
+            % %scatter(x, y, 20, velocidad, 'filled');
+            % %colorbar;
+            % dcm = datacursormode(gcf);
+            % set(dcm, 'UpdateFcn', {@Calcular.mi_callback, x, y, velocidad, radio_curvatura, signo_curvatura});
 
             for s = 1:length(inicio)
                 idx = inicio(s):fin(s);
@@ -379,6 +381,7 @@ classdef Calcular
             curva.vel_prom = vel_prom;
             curva.direccion = direccion_curva(idx);
             curva.signo = signo_curvatura(idx);
+            curva.v2_sobre_R = vel_prom^2 / R;
             curvas = [curvas; curva];
 
                 end
@@ -391,6 +394,81 @@ datosBuses.trayectoriaFiltrada(k).curvas = curvas;
             legend('Trayectoria', 'Curvas', 'Círculo ajustado');
             hold off;
         end
+
+
+        function datosBuses = detectar_curvas(datosBuses, k)
+    lat = datosBuses.trayectoriaFiltrada(k).lat;
+    lon = datosBuses.trayectoriaFiltrada(k).lon;
+    velocidad = datosBuses.velocidadRuta{k,2}; % Vector columna de tamaño N-1
+    x = lon(:);
+    y = lat(:);
+
+    % Configuración
+    ventana = 3; % número de puntos a cada lado
+    umbral = 0.0014;           % para detectar curva
+    radio_maximo = 0.005;      % radio máximo permitido para aceptar curva
+    umbral_longitud = 10;
+    proporcion_minima = 0.1;
+    velocidad_minima = 0.1;
+
+    [radio_curvatura, direccion_curva, signo_curvatura] = Calcular.calcular_radio_curvatura(x, y, ventana);
+    datosBuses.trayectoriaFiltrada(k).radioCurvatura = radio_curvatura;
+
+    en_curva = radio_curvatura < umbral;
+    cambio = diff([0; en_curva; 0]);
+    inicio = find(cambio == 1);
+    fin = find(cambio == -1) - 1;
+
+    curvas = [];
+
+    for s = 1:length(inicio)
+        idx = inicio(s):fin(s);
+
+        % Calcular longitud acumulada del segmento de curva usando geodist
+        long_acum = 0;
+        for j = 2:length(idx)
+            long_acum = long_acum + Calculos.geodist(...
+                lat(idx(j-1)), lon(idx(j-1)), lat(idx(j)), lon(idx(j)));
+        end
+
+        % Ajustar círculo al segmento
+        [xc, yc, R] = Calcular.circle_fit(x(idx), y(idx));
+        perimetro_circulo = 2*pi*R*100000;
+        proporcion = long_acum / perimetro_circulo;
+
+idx_vel = idx;
+idx_vel(idx_vel > length(velocidad)) = []; % elimina índices fuera de rango
+vel_curva = velocidad(idx_vel);
+
+
+        % Filtros
+        if R < radio_maximo && ...
+                long_acum >= umbral_longitud && ...
+                proporcion >= proporcion_minima && ...
+                mean(vel_curva) >= velocidad_minima
+
+            curva.idx = idx;
+            curva.xc = xc;
+            curva.yc = yc;
+            curva.R = R;
+            curva.long_acum = long_acum;
+            curva.perimetro_circulo = perimetro_circulo;
+            curva.proporcion = proporcion;
+            curva.vel_prom = mean(vel_curva);
+            % Guardar valores para cada punto de la curva:
+            curva.radio_curvatura = radio_curvatura(idx);
+            curva.direccion = direccion_curva(idx);
+            curva.signo = signo_curvatura(idx);
+            curva.velocidad = vel_curva;
+            curva.v2_sobre_R = (vel_curva.^2) ./ curva.radio_curvatura; % Vector para cada punto
+            curvas = [curvas; curva];
+        end
+    end
+
+    datosBuses.trayectoriaFiltrada(k).curvas = curvas;
+end
+
+        %%
 
 
         function output_txt = mi_callback(~, event_obj, x, y, velocidad, radio_curvatura, direccion_curva)
@@ -439,9 +517,9 @@ datosBuses.trayectoriaFiltrada(k).curvas = curvas;
         v2 = [x3 - x2; y3 - y2];
         cross_z = v1(1)*v2(2) - v1(2)*v2(1);
         if cross_z > 0
-            signo_curvatura(i) = 1; % izquierda
+            signo_curvatura(i) = -1; % izquierda
         elseif cross_z < 0
-            signo_curvatura(i) = -1; % derecha
+            signo_curvatura(i) = 1; % derecha
         else
             signo_curvatura(i) = 0;
         end
@@ -1830,7 +1908,13 @@ end
                         end
                     catch ME
                         fprintf('Error encontrado: %s\n', ME.message);
+                        if ~isempty(ME.stack)
+                            fprintf('Archivo: %s\n', ME.stack(1).file);
+                            fprintf('Función: %s\n', ME.stack(1).name);
+                            fprintf('Línea: %d\n', ME.stack(1).line);
+                        end
                     end
+
 
                 end
             end
