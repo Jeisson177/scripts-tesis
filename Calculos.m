@@ -2490,6 +2490,45 @@ classdef Calculos
             return;
         end
 
+%%
+
+
+function datosBuses = extraerP20(datosBuses)
+            % Esta función extrae segmentos de la tabla P60 para cada ruta de cada bus en cada fecha.
+
+            % Iterar sobre todas las fechas disponibles en datosBuses
+            fechas = fieldnames(datosBuses);
+            for i = 1:numel(fechas)
+                fecha = fechas{i};
+
+                % Buscar cada tipo de bus en la fecha actual
+                buses = fieldnames(datosBuses.(fecha));
+                for j = 1:numel(buses)
+                    bus = buses{j};
+
+                    % Asegurarse de que existen datos de ruta y datos P60 para el bus
+                    if isfield(datosBuses.(fecha).(bus), 'tiempoRuta') && isfield(datosBuses.(fecha).(bus), 'P20')
+                        tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+                        datosP20 = datosBuses.(fecha).(bus).P20;
+
+                        % Calcular y almacenar el segmento P60 para cada trayecto de ida y vuelta en las rutas del día
+                        for k = 1:size(tiempoRuta, 1)
+                            % Trayecto de ida
+                            inicioIda = tiempoRuta{k, 1};
+                            finIda = tiempoRuta{k, 2};
+                            segmentoP20Ida = datosP20(datosP20.fechaHoraLecturaDato >= inicioIda & datosP20.fechaHoraLecturaDato <= finIda, :);
+
+                            % Almacenar los segmentos P60 en la estructura de datos
+                            datosBuses.(fecha).(bus).segmentoP20{k, 1} = segmentoP20Ida;
+                        end
+                    end
+                end
+            end
+
+            return;
+        end
+
+
 
         %%
 

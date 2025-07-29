@@ -258,11 +258,11 @@ function TABLA = superTabla(datosBuses, PosCurvas)
 
 
 % Crear la tabla vacía con los nombres de columna adecuados
-TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],...
+TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
     'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
-    'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro'});
+    'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20'});
 
 
 
@@ -309,7 +309,7 @@ for i = 1:numel(buses)
                 Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 %c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
-                
+                curva_kalman = rutadato.trayectoriaFiltrada(k).curvas;
                 nombreRuta = strrep(rutadato.tiempoRuta.Ruta{k}, '"', '');
                 try
                     pCurvas = PosCurvas.(nombreRuta);
@@ -339,11 +339,13 @@ for i = 1:numel(buses)
                 nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
                     indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
                     indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
-                    rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo},promriesgo, consumo_recorrido, consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k),...
+                    rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo},promriesgo, consumo_recorrido,...
+                    consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k), {curva_kalman}, rutadato.segmentoP60(k), rutadato.segmentoP20(k),...
                     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                     'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
-                    'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro'});
+                    'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas',...
+                    'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20'});
 
 
                 % Agregar la nueva fila a la tabla
@@ -352,8 +354,14 @@ for i = 1:numel(buses)
 
             end
         catch ME
-            fprintf('Error encontrado: %s\n', ME.message);
-        end
+    fprintf('Error encontrado: %s\n', ME.message);
+    if ~isempty(ME.stack)
+        fprintf('Archivo: %s\n', ME.stack(1).file);
+        fprintf('Función: %s\n', ME.stack(1).name);
+        fprintf('Línea: %d\n', ME.stack(1).line);
+    end
+end
+
 
     end
 end

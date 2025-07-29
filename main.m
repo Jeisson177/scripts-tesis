@@ -39,6 +39,9 @@ Calcular.resumenRecorridosPorRuta(datosBuses);
 datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
 datosBuses = Calculos.extraerP60(datosBuses);
 datosBuses = Calcular.calcularKilometroRutas(datosBuses);
+%% Extraer P20
+
+datosBuses = Calculos.extraerP20(datosBuses);
 
 %% Calcular velocidad por ruta
 % Calcula la velocidad, solo durante el tiempo de la ruta
