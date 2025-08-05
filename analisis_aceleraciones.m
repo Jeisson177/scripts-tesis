@@ -258,11 +258,11 @@ function TABLA = superTabla(datosBuses, PosCurvas)
 
 
 % Crear la tabla vacía con los nombres de columna adecuados
-TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],...
+TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],[],[],...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
     'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
-    'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20'});
+    'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman'});
 
 
 
@@ -309,7 +309,12 @@ for i = 1:numel(buses)
                 Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 %c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
-                curva_kalman = rutadato.trayectoriaFiltrada(k).curvas;
+                
+
+
+                curva_kalman  = {rutadato.trayectoriaFiltrada(k).curvas.v2_sobre_R_p80};
+
+
                 nombreRuta = strrep(rutadato.tiempoRuta.Ruta{k}, '"', '');
                 try
                     pCurvas = PosCurvas.(nombreRuta);
@@ -340,12 +345,13 @@ for i = 1:numel(buses)
                     indicesAceleracion(k,1), indicesAceleracion(k,2), indicesAceleracion(k,3), indicesAceleracion(k,4), ...
                     indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
                     rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo},promriesgo, consumo_recorrido,...
-                    consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k), {curva_kalman}, rutadato.segmentoP60(k), rutadato.segmentoP20(k),...
+                    consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k), {rutadato.trayectoriaFiltrada(k).curvas}, rutadato.segmentoP60(k), rutadato.segmentoP20(k),{curva_kalman},...
+                    mean(cell2mat(curva_kalman)),...
                     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                     'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
                     'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas',...
-                    'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20'});
+                    'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman'});
 
 
                 % Agregar la nueva fila a la tabla
@@ -369,3 +375,25 @@ end
 
 
 % Tabla = superTabla(datosBuses);
+
+%%
+cols = [1, 2];  
+exportarColumnasPorIndice(Tabla, cols, 'tabla_final.xlsx');
+
+function exportarColumnasPorIndice(tabla, indicesColumnas, nombreArchivo)
+    % Validar que los índices sean válidos
+    if any(indicesColumnas < 1 | indicesColumnas > width(tabla))
+        error('Índices fuera de rango.');
+    end
+
+    % Seleccionar columnas
+    tablaReducida = tabla(:, indicesColumnas);
+
+    % Exportar
+    try
+        writetable(tablaReducida, nombreArchivo);
+        fprintf('Exportación exitosa a "%s"\n', nombreArchivo);
+    catch ME
+        warning('Error al exportar: %s', ME.message);
+    end
+end
