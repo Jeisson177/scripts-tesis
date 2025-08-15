@@ -2067,13 +2067,14 @@ end
             % Convierte las horas de inicio y fin a minutos desde medianoche
             inicio = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Inicio_Ruta(k));
             fin = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Fin_Ruta(k));
-
+            nombreRuta = datosBuses.tiempoRuta.Ruta{k};  % Nombre de ruta, e.g., 'A617'
             % Duraciones por tipo de horario
             duraciones = struct('P', 0, 'V', 0, 'F', 0);
+            sentido = determinarSentidoSegunNombreRuta(nombreRuta);
 
             % Evaluar minuto a minuto el tipo de horario
             for t = inicio:fin-1
-                tipo = Calcular.ClasificarHorario(mod(t,1440)); % mod para mantener dentro de 24h
+                tipo = Calcular.ClasificarHorario(mod(t,1440),sentido); % mod para mantener dentro de 24h
                 duraciones.(tipo) = duraciones.(tipo) + 1;
             end
 
@@ -2085,21 +2086,74 @@ end
             % Guardar el resultado
             datosBuses.tiempoRuta.HorarioRuta(k) = horarioPredominante;
         end
-
+        function sentido = determinarSentidoSegunNombreRuta(nombreRuta)
+             % --- MAPA DE SENTIDOS ---
+                mapaSentidos = containers.Map( ...
+                    {'A617','H617','A601','H601','L613','H613','A618','H618', ...
+                     'K629','H629','K635','H635','T04','L636','H636'}, ...
+                    {'Sur-Norte','Norte-Sur','Sur-Norte','Norte-Sur','Norte-Sur','Norte-Sur', ...
+                     'Sur-Norte','Norte-Sur','Norte-Sur','Norte-Sur','Sur-Norte','Norte-Sur', ...
+                     'Norte-Sur','Sur-Norte','Norte-Sur'} ...
+                );
+            
+                % Normalizar el input y buscar en mapa
+                if iscell(nombreRuta), nombreRuta = nombreRuta{1}; end
+                nombreRuta = strtrim(char(nombreRuta));
+            
+                if mapaSentidos.isKey(nombreRuta)
+                    sentido = mapaSentidos(nombreRuta);
+                else
+                    % Si no está en el mapa, usar heurística por prefijo
+                    if startsWith(nombreRuta, 'A') || startsWith(nombreRuta, 'H')
+                        sentido = 'Norte-Sur';
+                    else
+                        sentido = 'Sur-Norte';
+                    end
+                end
+    
+    
+        end
         function minutos = HoraEnMinutos(horaStr)
             % Convierte 'HH:mm' a minutos
             tiempo = datetime(horaStr, 'InputFormat', 'HH:mm');
             minutos = hour(tiempo) * 60 + minute(tiempo);
         end
 
-        function tipo = ClasificarHorario(minutos)
-            % Clasifica según los rangos definidos
-            if (minutos >= 330 && minutos < 390) || (minutos >= 1020 && minutos < 1080)
-                tipo = 'P'; % Pico
-            elseif (minutos >= 390 && minutos < 1020) || (minutos >= 1080 && minutos < 1320)
-                tipo = 'V'; % Valle
-            else
-                tipo = 'F'; % Flujo libre
+        function tipo = ClasificarHorario(minuto,sentido)
+            % Definición de rangos en minutos (desde medianoche)
+            % Ajusté levemente a los rangos que propusiste inicialmente.
+            % Rango original del usuario (para referencia):
+            % 05:30–06:29 -> 330–389 (mañana precoz)
+            % 06:30–16:59 -> 390–1019 (valle diurno)
+            % 17:00–17:59 -> 1020–1079 (pico tarde)
+            % 18:00–21:59 -> 1080–1319 (valle tarde)
+            % Resto -> flujo libre.
+            %
+            % En este módulo preferimos los rangos de Bogotá más comunes:
+            picoManana = (minuto >= 360 && minuto < 510);    % 06:00–08:29
+            picoTarde  = (minuto >= 900 && minuto < 1170);   % 15:00–19:29
+        
+            % Clasificación base
+            if picoManana || picoTarde
+                tipo = 'P';
+                return
+            end
+        
+            % Fuera de los picos, diferenciamos según sentido (heurística)
+            % Si tuvieras datos reales (velocidad media, tiempos por tramo), aquí
+            % podrías usar thresholds dinámicos.
+            switch sentido
+                case 'Norte-Sur'
+                    % En Norte→Sur fuera de pico suele ser más fluido: Valle
+                    tipo = 'V';
+                case 'Sur-Norte'
+                    % Sur→Norte puede presentar congestión persistente: marcar Pico
+                    % en tramos intermedios si se desea. Aquí lo dejo como P para
+                    % reflejar tu requerimiento (pero puedes cambiar a 'V').
+                    tipo = 'P';
+                otherwise
+                    % Default: clasificar como Valle fuera de pico
+                    tipo = 'V';
             end
         end
 

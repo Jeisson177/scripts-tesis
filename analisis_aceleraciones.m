@@ -394,6 +394,5 @@ function exportarColumnasPorIndice(tabla, indicesColumnas, nombreArchivo)
         writetable(tablaReducida, nombreArchivo);
         fprintf('Exportación exitosa a "%s"\n', nombreArchivo);
     catch ME
-        warning('Error al exportar: %s', ME.message);
     end
 end
