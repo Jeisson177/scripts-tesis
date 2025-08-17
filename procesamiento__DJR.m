@@ -65,10 +65,10 @@ for ii = 1:length(rutas)
 
     % Gráfica de speed score vs hora de inicio
     r = hours(round(hours(minutes(minute(t_.(rutas(ii)).HoraInicio))))); % minutes round
-    scatter(hours(hour(t_.(rutas(ii)).HoraInicio))+r,speed_score,'DisplayName',rutas(ii))
+    % scatter(hours(hour(t_.(rutas(ii)).HoraInicio))+r,speed_score,'DisplayName',rutas(ii))
 
     % Gráfica de speed vs hora de inicio
-    scatter(hours(hour(t_.(rutas(ii)).HoraInicio))+r,speed,'DisplayName',rutas(ii))
+    % scatter(hours(hour(t_.(rutas(ii)).HoraInicio))+r,speed,'DisplayName',rutas(ii))
     % Es claro que la velocidad neta y el speed_score, dependen de la hora
     % de inicio
     
@@ -112,11 +112,12 @@ for ii = 1:length(rutas)
     % plot(hours(unique(tmp(:,1))),nonzeros(avg_speed_hr),'DisplayName',rutas(ii),'Color',s.CData,'LineStyle','-')
 
     %% Gráficas de análisis preliminares
-    % scatter(t_.(rutas(ii)).consumoPorKilometro,speed)
-    % scatter(t_.(rutas(ii)).consumoPorKilometro,T.Ace_km(idx))
-    % scatter(t_.(rutas(ii)).PromRiesgo,T.Cum_S_Score(idx))
-    % scatter(t_.(rutas(ii)).consumoPorKilometro,T.Desv_S_Score(idx))
-    scatter(t_.(rutas(ii)).Promedio_riesgo_kalman,T.Desv_S_Score(idx))
+    hold on
+    % scatter(t_.(rutas(ii)).consumoPorKilometro,speed,'DisplayName',rutas(ii))
+    % scatter(t_.(rutas(ii)).consumoPorKilometro,T.Ace_km(idx),'DisplayName',rutas(ii))
+    % scatter(t_.(rutas(ii)).PromRiesgo,T.Cum_S_Score(idx),'DisplayName',rutas(ii))
+    % scatter(t_.(rutas(ii)).consumoPorKilometro,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
+    scatter(t_.(rutas(ii)).Promedio_riesgo_kalman,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
 end
 T.Cum_S_Score(T.Cum_S_Score==0) = NaN;
 T.Desv_S_Score(T.Desv_S_Score==0) = NaN;
