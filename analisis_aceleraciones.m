@@ -360,13 +360,13 @@ for i = 1:numel(buses)
 
             end
         catch ME
-    fprintf('Error encontrado: %s\n', ME.message);
-    if ~isempty(ME.stack)
-        fprintf('Archivo: %s\n', ME.stack(1).file);
-        fprintf('Función: %s\n', ME.stack(1).name);
-        fprintf('Línea: %d\n', ME.stack(1).line);
-    end
-end
+            fprintf('Error encontrado: %s\n', ME.message);
+            if ~isempty(ME.stack)
+                fprintf('Archivo: %s\n', ME.stack(1).file);
+                fprintf('Función: %s\n', ME.stack(1).name);
+                fprintf('Línea: %d\n', ME.stack(1).line);
+            end
+        end
 
 
     end
@@ -394,6 +394,11 @@ function exportarColumnasPorIndice(tabla, indicesColumnas, nombreArchivo)
         writetable(tablaReducida, nombreArchivo);
         fprintf('Exportación exitosa a "%s"\n', nombreArchivo);
     catch ME
-        warning('Error al exportar: %s', ME.message);
-    end
+            fprintf('Error encontrado: %s\n', ME.message);
+            if ~isempty(ME.stack)
+                fprintf('Archivo: %s\n', ME.stack(1).file);
+                fprintf('Función: %s\n', ME.stack(1).name);
+                fprintf('Línea: %d\n', ME.stack(1).line);
+            end
+        end
 end

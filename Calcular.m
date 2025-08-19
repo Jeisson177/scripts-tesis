@@ -1,7 +1,5 @@
 classdef Calcular
     methods (Static)
-        %hola
-
 
         %%
         function datosBuses = velocidadTotal(datosBuses, unidades, filtro)
@@ -983,9 +981,7 @@ end
         %%
 
         function datosBuses = tiemposRutas(datosBuses, rutas, conductores)
-            % Esta función calcula todos los tiempos de ruta para los buses en los datos proporcionados
-            % y almacena los resultados directamente en la estructura de entrada datosBuses.
-            % Las rutas se pasan como un parámetro adicional.
+
 
             % Obtener los campos de los buses
             buses = fieldnames(datosBuses);
@@ -1007,22 +1003,24 @@ end
 
                 % Iterar sobre cada fecha
                 for j = 1:numel(fechas)
+
+
+
+
                     fecha = fechas{j};
                     datosSensor = datosBuses.(bus).(fecha).datosSensor;
-                    if isfield(datosBuses, bus) && isfield(datosBuses.(bus), fecha) && isfield(datosBuses.(bus).(fecha), 'P20') ...
-                            && istable(datosBuses.(bus).(fecha).P20) && ~isempty(datosBuses.(bus).(fecha).P20)
-                        p20 = datosBuses.(bus).(fecha).P20;
-                    else
-                        warning('El campo P20 no existe para el bus %s en la fecha %s', bus, fecha);
-                        continue
-                    end
 
-                    try
-                        p20 = datosBuses.(bus).(fecha).P20;
+
+
+
+                    % Extrae los P60
+
+                    if isfield(datosBuses, bus) && isfield(datosBuses.(bus), fecha) && isfield(datosBuses.(bus).(fecha), 'P60') ...
+                            && istable(datosBuses.(bus).(fecha).P60) && ~isempty(datosBuses.(bus).(fecha).P60)
                         p60 = datosBuses.(bus).(fecha).P60;
-                        p20 = sortrows(p20,"fechaHoraLecturaDato","ascend");
-                    catch
-                        2+2;
+                    else
+                        warning('El campo P60 no existe para el bus %s en la fecha %s', bus, fecha);
+                        continue
                     end
 
 
@@ -1031,7 +1029,7 @@ end
                         continue;
                     end
 
-                    if isempty(p20)
+                    if isempty(p60)
                         warning("No se encontraron los datos P60 " + bus +  " para el dia " + fecha)
                         continue;
                     end
@@ -1433,7 +1431,7 @@ end
 
                 % Si cumple el porcentaje mínimo, guardar la ruta ajustada
                 if porcentajeVisitadas >= porcentajeMinimoParadas
-                    tiempos = [tiempos; {tiempoInicioAjustado, tiempoFinAjustado, idRuta}];
+                    tiempos = [tiempos; {tiempoInicioAjustado, tiempoFinAjustado, idRuta, paradasVisitadas}];
                 end
             end
         end
@@ -2059,9 +2057,58 @@ end
 
 
         function datosBuses = ClasificarHorarioRuta(datosBuses)
-            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.ClasificarHorarioRutaW);
+            datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.ClasificarHorarioRutaWrapper);
         end
 
+        function datosBuses = ClasificarHorarioRutaWrapper(datosBuses, k)
+            % Convierte a minutos desde medianoche
+            inicio = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Inicio_Ruta(k));
+            fin    = Calcular.HoraEnMinutos(datosBuses.tiempoRuta.Fin_Ruta(k));
+
+            % Ajuste si cruza medianoche (intervalo medio-abierto [inicio, fin))
+            if fin <= inicio
+                fin = fin + 1440;
+            end
+
+            % Rangos diarios [min, max) en minutos
+            rangos.P = [330 390; 1020 1080];   % Pico
+            rangos.V = [390 1020; 1080 1320];  % Valle
+            rangos.F = [0 330; 1320 1440];     % Flujo libre
+
+            % Duración por tipo, sumando superposición con el día actual y el siguiente
+            d = struct('P',0,'V',0,'F',0);
+            tipos = fieldnames(d);
+
+            for tt = 1:numel(tipos)
+                t = tipos{tt};
+                d.(t) = Calcular.DuracionEnRangos(inicio, fin, rangos.(t));
+            end
+
+            % Determinar horario predominante (en caso de empate: P > V > F)
+            [~, idx] = max([d.P, d.V, d.F]);
+            orden = ['P','V','F'];
+            horarioPredominante = orden(idx);
+
+            % Guardar
+            datosBuses.tiempoRuta.HorarioRuta(k) = horarioPredominante;
+        end
+
+        function dTotal = DuracionEnRangos(inicio, fin, rangosDia)
+            shifts = [0 1440];  
+            dTotal = 0;
+            for s = shifts
+                r = rangosDia + s;
+                for i = 1:size(r,1)
+                    dTotal = dTotal + Calcular.Overlap(inicio, fin, r(i,1), r(i,2));
+                end
+            end
+        end
+
+        function d = Overlap(a1, a2, b1, b2)
+            s = max(a1, b1);
+            e = min(a2, b2);
+            d = max(0, e - s);
+        end
 
         function datosBuses = ClasificarHorarioRutaW(datosBuses, k)
             % Convierte las horas de inicio y fin a minutos desde medianoche
@@ -2104,6 +2151,7 @@ end
         end
 
 
+%%
 
 
         function datosBuses = corregirAceleracionPorRutas(datosBuses)

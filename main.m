@@ -20,6 +20,7 @@ curva4012=Calculos.riesgoCurva(datosBuses.bus_4012.f_03_07_2024.datosSensorRuta{
 %% Cargar datos
 Conductores = ImportarDatos.importarCSV("conductores_LaRolita.csv");
 load Rutas.mat
+load DatosBuses.mat
 
 %% Importar todos los datos
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos'); %#ok<NASGU>
@@ -106,8 +107,6 @@ Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
 %%
 
 Graficar.graficarRutasPorBus(datosBuses, 'bus_4012', 'f_03_07_2024');
-
-
 %%
 Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
 
