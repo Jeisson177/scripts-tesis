@@ -112,12 +112,16 @@ for ii = 1:length(rutas)
     % plot(hours(unique(tmp(:,1))),nonzeros(avg_speed_hr),'DisplayName',rutas(ii),'Color',s.CData,'LineStyle','-')
 
     %% Gráficas de análisis preliminares
-    hold on
+    % hold on
     % scatter(t_.(rutas(ii)).consumoPorKilometro,speed,'DisplayName',rutas(ii))
     % scatter(t_.(rutas(ii)).consumoPorKilometro,T.Ace_km(idx),'DisplayName',rutas(ii))
     % scatter(t_.(rutas(ii)).PromRiesgo,T.Cum_S_Score(idx),'DisplayName',rutas(ii))
     % scatter(t_.(rutas(ii)).consumoPorKilometro,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
-    scatter(t_.(rutas(ii)).Promedio_riesgo_kalman,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
+    % scatter(t_.(rutas(ii)).Promedio_riesgo_kalman,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
+    hold on
+    scatter(t_.(rutas(ii)).PromRiesgo,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
+    corr(t_.(rutas(ii)).PromRiesgo,T.Desv_S_Score(idx)),['DisplayName',rutas(ii)]
+    
 end
 T.Cum_S_Score(T.Cum_S_Score==0) = NaN;
 T.Desv_S_Score(T.Desv_S_Score==0) = NaN;
