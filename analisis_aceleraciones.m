@@ -258,11 +258,11 @@ function TABLA = superTabla(datosBuses, PosCurvas)
 
 
 % Crear la tabla vacía con los nombres de columna adecuados
-TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],[],[],...
+TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],[],[],[],[],...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
     'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
-    'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman'});
+    'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman', 'Paradas', 'Porcentaje paradas'});
 
 
 
@@ -308,6 +308,8 @@ for i = 1:numel(buses)
                 num_Fre = cell2mat(cellfun(@size, indicesAceleracion(k,2), 'UniformOutput', false));
                 Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
+                Paradas = rutadato.tiempoRuta.ParadasVisitadas(k);
+                PorcentajeParadas = ( sum(Paradas{1}) / numel(Paradas{1})) * 100;
                 %c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
                 
 
@@ -346,12 +348,12 @@ for i = 1:numel(buses)
                     indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
                     rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo},promriesgo, consumo_recorrido,...
                     consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k), {rutadato.trayectoriaFiltrada(k).curvas}, rutadato.segmentoP60(k), rutadato.segmentoP20(k),{curva_kalman},...
-                    mean(cell2mat(curva_kalman)),...
+                    mean(cell2mat(curva_kalman)), Paradas, PorcentajeParadas,...
                     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                     'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
                     'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas',...
-                    'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman'});
+                    'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman', 'Paradas',  'Porcentaje paradas'});
 
 
                 % Agregar la nueva fila a la tabla
@@ -402,3 +404,54 @@ function exportarColumnasPorIndice(tabla, indicesColumnas, nombreArchivo)
             end
         end
 end
+
+%% Resumen paradas
+
+
+function resumen = contarParadasPorRuta(TABLA)
+% TABLA: tabla devuelta por superTabla
+% Se asume que TABLA.Paradas es un vector lógico (bool) por fila
+
+RutaParada = table();
+
+for i = 1:height(TABLA)
+    ruta = TABLA.NombreRuta{i};
+    bools = TABLA.Paradas{i};   % vector lógico de paradas
+    
+    % Índices de las paradas que fueron visitadas
+    idxParadas = find(bools);
+    
+    if ~isempty(idxParadas)
+        % Crear tabla auxiliar con una fila por parada visitada
+        tAux = table(repmat({ruta}, numel(idxParadas), 1), ...
+                     idxParadas(:), ...
+                     'VariableNames', {'Ruta', 'Parada'});
+        RutaParada = [RutaParada; tAux];
+    end
+end
+
+% Contar recorridos por ruta y parada
+conteo = varfun(@numel, RutaParada, ...
+    'InputVariables','Parada', ...
+    'GroupingVariables',{'Ruta','Parada'});
+conteo.Properties.VariableNames{'numel_Parada'} = 'NumRecorridos';
+
+% Ahora agrupar por Ruta, y dejar las paradas como sub-tablas
+rutas = unique(conteo.Ruta);
+resumen = table();
+
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    sub = conteo(strcmp(conteo.Ruta,ruta), {'Parada','NumRecorridos'});
+    
+    % Guardar tabla de paradas dentro de una celda
+    resumen = [resumen; table({ruta}, {sub}, ...
+        'VariableNames', {'Ruta','ParadasResumen'})];
+end
+
+end
+
+
+
+resumenParadas = contarParadasPorRuta(Tabla);
+disp(resumenParadas);

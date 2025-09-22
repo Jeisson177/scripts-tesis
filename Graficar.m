@@ -296,7 +296,7 @@ end
             end
         end
 
-        function rutaMapa(datosBuses, busID, fecha, indiceRuta)
+        function rutaMapa(datosBuses, paradasStruct, busID, fecha, indiceRuta)
             % Esta función grafica la ruta de un bus en una fecha y ruta específicas
             % sobre un mapa con coordenadas geográficas.
         
@@ -306,7 +306,7 @@ end
             end
         
             % Obtener todas las fechas si no se especifica una
-            if nargin < 3 || isempty(fecha)
+            if nargin < 4 || isempty(fecha)
                 fechas = fieldnames(datosBuses.(busID));
             else
                 if ~isfield(datosBuses.(busID), fecha)
@@ -322,13 +322,14 @@ end
                 % Comprobar si existen datos de la ruta
                 if isfield(datosBuses.(busID).(fechaActual), 'datosSensorRuta')
                     rutas = datosBuses.(busID).(fechaActual).datosSensorRuta;
+                    nombresRutas = datosBuses.(busID).(fechaActual).tiempoRuta.Ruta;
                 else
                     warning('No hay datos de ruta disponibles para la fecha %s.', fechaActual);
                     continue;
                 end
         
                 % Obtener todos los índices si no se especifica uno
-                if nargin < 4 || isempty(indiceRuta)
+                if nargin < 5 || isempty(indiceRuta)
                     indicesRutas = 1:size(rutas, 1);
                 else
                     if indiceRuta < 1 || indiceRuta > size(rutas, 1)
@@ -361,9 +362,43 @@ end
                     % Marcar el punto de inicio y final
                     geoscatter(latitudes(1), longitudes(1), 100, 'g', 'filled'); % Inicio (verde)
                     geoscatter(latitudes(end), longitudes(end), 100, 'r', 'filled'); % Fin (rojo)
+
+
+                    % Buscar paradas asociadas a esta ruta
+                    idrutas = string({paradasStruct.idruta});  
+                    nombreRuta = strrep(nombresRutas{k}, '"',''); 
+                    nombreRuta = string(nombreRuta);
+                    idxParada = find(idrutas == nombreRuta, 1);
+
+
+                    stops = paradasStruct(idxParada).stops;
+                    
+                    % Si viene como celda, extraer el contenido
+                    if iscell(stops)
+                        stops = stops{1};
+                    end
+                    
+                    % Ahora sí: stops es tabla
+                    if istable(stops) && all(ismember({'lat','lon'}, stops.Properties.VariableNames))
+                        latStops = stops.lat;
+                        lonStops = stops.lon;
+                    
+                        geoscatter(latStops, lonStops, 80, 'm', 'filled', '^');
+                    
+                        % Etiquetar cada parada
+                        if ismember('stop_name', stops.Properties.VariableNames)
+                            for s = 1:height(stops)
+                                text(latStops(s), lonStops(s), string(stops.stop_name(s)), ...
+                                    'FontSize', 8, 'Color','k', 'HorizontalAlignment','left');
+                            end
+                        end
+                    end
+
+
+
         
                     % Agregar título
-                    title(sprintf('Ruta %d del bus %s en la fecha %s', k, busID, fechaActual), 'Interpreter', 'none');
+                    title(sprintf('Ruta %s #%d del bus %s en la fecha %s',nombreRuta, k, busID, fechaActual), 'Interpreter', 'none');
         
                     hold off;
                 end

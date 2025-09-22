@@ -1039,8 +1039,9 @@ end
 
 
                     % Inicializar el campo tiempoRuta como una tabla vacía con encabezados
-                    headers = {'Inicio_Ruta', 'Fin_Ruta', 'Ruta', 'Genero_Conductor', 'Id'};
-                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 5), 'VariableNames', headers);  % Inicializar tabla vacía
+
+                    headers = {'Inicio_Ruta','Fin_Ruta','Ruta','ParadasVisitadas','InicioOriginal','FinOriginal', 'Genero_Conductor', 'Id'};
+                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 8), 'VariableNames', headers);  % Inicializar tabla vacía
 
 
 
@@ -1431,7 +1432,7 @@ end
 
                 % Si cumple el porcentaje mínimo, guardar la ruta ajustada
                 if porcentajeVisitadas >= porcentajeMinimoParadas
-                    tiempos = [tiempos; {tiempoInicioAjustado, tiempoFinAjustado, idRuta, paradasVisitadas}];
+                    tiempos = [tiempos; {tiempoInicioAjustado, tiempoFinAjustado, idRuta, paradasVisitadas, inicioRuta, finRuta}];
                 end
             end
         end
@@ -2071,7 +2072,7 @@ end
             end
 
             % Rangos diarios [min, max) en minutos
-            rangos.P = [330 390; 1020 1080];   % Pico
+            rangos.P = [330 390; 1020 1080];   % Pico 5:30 a 8 4 a 6:30
             rangos.V = [390 1020; 1080 1320];  % Valle
             rangos.F = [0 330; 1320 1440];     % Flujo libre
 

@@ -28,9 +28,12 @@ datosBuses = ImportarDatos.importarTodosLosDatos('Datos'); %#ok<NASGU>
 %% Importar una muestra de datos
 clc
 datosBuses = ImportarDatos.importarMuestra('Datos', 3);
-%% Segmenta la ruta, optiene en nombre de la ruta y tiempos
+%% Segmenta la ruta, optiene en nombre de la ruta y tiempos (Deben procesarse juntos)
 datosBuses = Calcular.tiemposRutas(datosBuses, rutas, Conductores);
-
+%%
+datosBuses = Calcular.calcularKilometroRutas(datosBuses);
+%%
+datosBuses = Calcular.ClasificarHorarioRuta(datosBuses);
 %% Muestra un resumen de los datos totales a procesar
 Calcular.resumenRecorridosPorRuta(datosBuses);
 
@@ -39,7 +42,8 @@ Calcular.resumenRecorridosPorRuta(datosBuses);
 % Extraer datos P60
 datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
 datosBuses = Calculos.extraerP60(datosBuses);
-datosBuses = Calcular.calcularKilometroRutas(datosBuses);
+%%
+
 %% Extraer P20
 
 datosBuses = Calculos.extraerP20(datosBuses);
@@ -90,13 +94,13 @@ datosBuses = Calcular.RiesgoCurvaTodasRutas(datosBuses, PosCurvas);
 datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 
 %%
-datosBuses = Calcular.ClasificarHorarioRuta(datosBuses);
+
 
 
 
 %% Graficar----------------------------------------------------------------
 
-Graficar.rutaMapa(datosBuses,"bus_4012" ,"f_03_07_2024")
+Graficar.rutaMapa(datosBuses,rutas,"bus_4012" ,"f_11_07_2024")
 
 %%
 Graficar.rutaPorTiempo(datosBuses,"bus_4012" ,"f_10_07_2024", datetime(2024,7,10,14,25,0), datetime(2024,7,10,15,42,0), rutas(12).stops)
