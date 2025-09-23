@@ -100,10 +100,14 @@ datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 
 %% Graficar----------------------------------------------------------------
 
-Graficar.rutaMapa(datosBuses,rutas,"bus_4012" ,"f_11_07_2024")
+Graficar.rutaMapa(datosBuses,rutas,"bus_4020" ,"f_26_04_2024")
 
 %%
-Graficar.rutaPorTiempo(datosBuses,"bus_4012" ,"f_10_07_2024", datetime(2024,7,10,14,25,0), datetime(2024,7,10,15,42,0), rutas(12).stops)
+Graficar.rutaMapa(datosBuses, rutas, [], [], [], "L613")
+
+
+%%
+Graficar.rutaPorTiempo(datosBuses,"bus_4020" ,"f_17_04_2024", datetime(2024,4,17,9,37,0), datetime(2024,4,17,11,34,0), rutas(12).stops)
 
 %%
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024")

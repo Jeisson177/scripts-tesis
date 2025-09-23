@@ -296,96 +296,110 @@ end
             end
         end
 
-        function rutaMapa(datosBuses, paradasStruct, busID, fecha, indiceRuta)
-            % Esta función grafica la ruta de un bus en una fecha y ruta específicas
-            % sobre un mapa con coordenadas geográficas.
-        
-            % Verificar si el bus existe
-            if ~isfield(datosBuses, busID)
-                error('El bus especificado no existe en los datos.');
+        function rutaMapa(datosBuses, paradasStruct, busID, fecha, indiceRuta, nombreRutaFiltro)
+    % Esta función grafica la ruta de un bus (o varios buses) en una fecha
+    % y ruta específicas sobre un mapa con coordenadas geográficas.
+    %
+    % Parámetros:
+    % datosBuses       -> estructura con datos de buses
+    % paradasStruct    -> estructura con paradas
+    % busID (opcional) -> identificador del bus
+    % fecha (opcional) -> fecha específica
+    % indiceRuta (opcional) -> índice de ruta
+    % nombreRutaFiltro (opcional) -> nombre de ruta a filtrar
+
+    % ---------------------------
+    % Si no se pasa busID -> usar todos
+    % ---------------------------
+    if nargin < 3 || isempty(busID)
+        listaBuses = fieldnames(datosBuses);
+    else
+        if ~isfield(datosBuses, busID)
+            error('El bus especificado no existe en los datos.');
+        end
+        listaBuses = {busID};
+    end
+
+    % ---------------------------
+    % Recorremos los buses
+    % ---------------------------
+    for i = 1:numel(listaBuses)
+        busIDactual = listaBuses{i};
+
+        % Obtener fechas
+        if nargin < 4 || isempty(fecha)
+            fechas = fieldnames(datosBuses.(busIDactual));
+        else
+            if ~isfield(datosBuses.(busIDactual), fecha)
+                warning('La fecha %s no existe para el bus %s.', fecha, busIDactual);
+                continue;
             end
-        
-            % Obtener todas las fechas si no se especifica una
-            if nargin < 4 || isempty(fecha)
-                fechas = fieldnames(datosBuses.(busID));
+            fechas = {fecha};
+        end
+
+        for j = 1:numel(fechas)
+            fechaActual = fechas{j};
+
+            % Comprobar si existen datos de la ruta
+            if isfield(datosBuses.(busIDactual).(fechaActual), 'datosSensorRuta')
+                rutas = datosBuses.(busIDactual).(fechaActual).datosSensorRuta;
+                nombresRutas = datosBuses.(busIDactual).(fechaActual).tiempoRuta.Ruta;
             else
-                if ~isfield(datosBuses.(busID), fecha)
-                    error('La fecha especificada no existe para el bus dado.');
-                end
-                fechas = {fecha};
+                warning('No hay datos de ruta disponibles para %s (%s).', busIDactual, fechaActual);
+                continue;
             end
-        
-            % Iterar sobre las fechas
-            for j = 1:numel(fechas)
-                fechaActual = fechas{j};
-        
-                % Comprobar si existen datos de la ruta
-                if isfield(datosBuses.(busID).(fechaActual), 'datosSensorRuta')
-                    rutas = datosBuses.(busID).(fechaActual).datosSensorRuta;
-                    nombresRutas = datosBuses.(busID).(fechaActual).tiempoRuta.Ruta;
-                else
-                    warning('No hay datos de ruta disponibles para la fecha %s.', fechaActual);
+
+            % Definir los índices de rutas
+            if nargin < 5 || isempty(indiceRuta)
+                indicesRutas = 1:size(rutas, 1);
+            else
+                if indiceRuta < 1 || indiceRuta > size(rutas, 1)
+                    error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(rutas, 1));
+                end
+                indicesRutas = indiceRuta;
+            end
+
+            for k = indicesRutas
+                nombreRuta = strrep(nombresRutas{k}, '"',''); 
+                nombreRuta = string(nombreRuta);
+
+                % ---------------------------
+                % Filtrar por nombreRutaFiltro (si se da)
+                % ---------------------------
+                if nargin >= 6 && ~isempty(nombreRutaFiltro)
+                    if nombreRuta ~= nombreRutaFiltro
+                        continue; % saltar esta ruta
+                    end
+                end
+
+                % Crear figura
+                figure;
+                geobasemap('streets-light'); hold on;
+
+                % Obtener coordenadas
+                latitudes = rutas{k, 2}.lat;
+                longitudes = rutas{k, 2}.lon;
+
+                if isempty(latitudes) || isempty(longitudes)
+                    warning('No hay coordenadas para ruta %d en %s (%s).', k, busIDactual, fechaActual);
                     continue;
                 end
-        
-                % Obtener todos los índices si no se especifica uno
-                if nargin < 5 || isempty(indiceRuta)
-                    indicesRutas = 1:size(rutas, 1);
-                else
-                    if indiceRuta < 1 || indiceRuta > size(rutas, 1)
-                        error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(rutas, 1));
-                    end
-                    indicesRutas = indiceRuta;
-                end
-        
-                % Iterar sobre los índices de ruta
-                for k = indicesRutas
-                    % Crear una nueva figura para cada ruta
-                    figure;
-        
-                    % Configurar el mapa base
-                    geobasemap('streets-light'); % Puedes cambiar a 'satellite', 'topographic', etc.
-                    hold on;
-        
-                    % Obtener las coordenadas de la ruta
-                    latitudes = rutas{k, 2}.lat;
-                    longitudes = rutas{k, 2}.lon;
-        
-                    if isempty(latitudes) || isempty(longitudes)
-                        warning('No hay datos de coordenadas para la ruta %d en la fecha %s.', k, fechaActual);
-                        continue;
-                    end
-        
-                    % Graficar la ruta en el mapa
-                    geoplot(latitudes, longitudes, '-o', 'MarkerSize', 1, 'LineWidth', 0.5, 'Color', 'b');
-        
-                    % Marcar el punto de inicio y final
-                    geoscatter(latitudes(1), longitudes(1), 100, 'g', 'filled'); % Inicio (verde)
-                    geoscatter(latitudes(end), longitudes(end), 100, 'r', 'filled'); % Fin (rojo)
 
+                % Dibujar ruta
+                geoplot(latitudes, longitudes, '-o', 'MarkerSize', 1, 'LineWidth', 0.5, 'Color', 'b');
+                geoscatter(latitudes(1), longitudes(1), 100, 'g', 'filled'); % inicio
+                geoscatter(latitudes(end), longitudes(end), 100, 'r', 'filled'); % fin
 
-                    % Buscar paradas asociadas a esta ruta
-                    idrutas = string({paradasStruct.idruta});  
-                    nombreRuta = strrep(nombresRutas{k}, '"',''); 
-                    nombreRuta = string(nombreRuta);
-                    idxParada = find(idrutas == nombreRuta, 1);
-
-
+                % Buscar paradas
+                idrutas = string({paradasStruct.idruta});  
+                idxParada = find(idrutas == nombreRuta, 1);
+                if ~isempty(idxParada)
                     stops = paradasStruct(idxParada).stops;
-                    
-                    % Si viene como celda, extraer el contenido
-                    if iscell(stops)
-                        stops = stops{1};
-                    end
-                    
-                    % Ahora sí: stops es tabla
+                    if iscell(stops), stops = stops{1}; end
                     if istable(stops) && all(ismember({'lat','lon'}, stops.Properties.VariableNames))
                         latStops = stops.lat;
                         lonStops = stops.lon;
-                    
                         geoscatter(latStops, lonStops, 80, 'm', 'filled', '^');
-                    
-                        % Etiquetar cada parada
                         if ismember('stop_name', stops.Properties.VariableNames)
                             for s = 1:height(stops)
                                 text(latStops(s), lonStops(s), string(stops.stop_name(s)), ...
@@ -393,17 +407,16 @@ end
                             end
                         end
                     end
-
-
-
-        
-                    % Agregar título
-                    title(sprintf('Ruta %s #%d del bus %s en la fecha %s',nombreRuta, k, busID, fechaActual), 'Interpreter', 'none');
-        
-                    hold off;
                 end
+
+                % Título
+                title(sprintf('Ruta %s #%d del bus %s en %s', ...
+                    nombreRuta, k, busIDactual, fechaActual), 'Interpreter', 'none');
+                hold off;
             end
         end
+    end
+end
 
         function rutaPorTiempo(datosBuses, busID, fecha, tiempoInicio, tiempoFin, paradas)
             % Graficar la ruta de un bus en un rango de tiempo específico y opcionalmente sus paradas.
