@@ -30,8 +30,7 @@ clc
 datosBuses = ImportarDatos.importarMuestra('Datos', 3);
 %% Segmenta la ruta, optiene en nombre de la ruta y tiempos (Deben procesarse juntos)
 datosBuses = Calcular.tiemposRutas(datosBuses, rutas, Conductores);
-%%
-datosBuses = Calcular.calcularKilometroRutas(datosBuses);
+
 %%
 datosBuses = Calcular.ClasificarHorarioRuta(datosBuses);
 %% Muestra un resumen de los datos totales a procesar
@@ -39,15 +38,13 @@ Calcular.resumenRecorridosPorRuta(datosBuses);
 
 %% Calcular los kilometros por ruta
 % Extrer datos sensor por ruta
-% Extraer datos P60
+% Extraer datos P6
+% Extraer P20
+
 datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
 datosBuses = Calculos.extraerP60(datosBuses);
-%%
-
-%% Extraer P20
-
 datosBuses = Calculos.extraerP20(datosBuses);
-
+datosBuses = Calcular.calcularKilometroRutas(datosBuses);
 %% Calcular velocidad por ruta
 % Calcula la velocidad, solo durante el tiempo de la ruta
 datosBuses = Calcular.calcularVelocidadPorRutas(datosBuses);
@@ -61,6 +58,7 @@ datosBuses = Calcular.corregirAceleracionPorRutas(datosBuses);
 %%
 datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 %% Aceleraciones por kilometro
+% Posiblemente este mal
 datosBuses = Calcular.aceleracionesKilometroRutas(datosBuses);
 
 %% Velocidad vs distancia
@@ -100,14 +98,14 @@ datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 
 %% Graficar----------------------------------------------------------------
 
-Graficar.rutaMapa(datosBuses,rutas,"bus_4020" ,"f_26_04_2024")
+Graficar.rutaMapa(datosBuses,rutas,"bus_4025" ,"f_04_07_2024", 6)
 
 %%
 Graficar.rutaMapa(datosBuses, rutas, [], [], [], "L613")
 
 
 %%
-Graficar.rutaPorTiempo(datosBuses,"bus_4020" ,"f_17_04_2024", datetime(2024,4,17,9,37,0), datetime(2024,4,17,11,34,0), rutas(12).stops)
+Graficar.rutaPorTiempo(datosBuses,"bus_4025" ,"f_04_07_2024", datetime(2024,7,4,11,39,0), datetime(2024,7,4,13,29,0), rutas(4).stops)
 
 %%
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024")

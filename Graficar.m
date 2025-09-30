@@ -363,6 +363,11 @@ end
                 nombreRuta = strrep(nombresRutas{k}, '"',''); 
                 nombreRuta = string(nombreRuta);
 
+                inicioHora = datosBuses.(busIDactual).(fechaActual).tiempoRuta.Inicio_Ruta(k);
+                finHora = datosBuses.(busIDactual).(fechaActual).tiempoRuta.Fin_Ruta(k);
+
+                inicioHora = datestr(inicioHora, 'HH:MM');
+                finHora = datestr(finHora, 'HH:MM');
                 % ---------------------------
                 % Filtrar por nombreRutaFiltro (si se da)
                 % ---------------------------
@@ -410,8 +415,8 @@ end
                 end
 
                 % Título
-                title(sprintf('Ruta %s #%d del bus %s en %s', ...
-                    nombreRuta, k, busIDactual, fechaActual), 'Interpreter', 'none');
+                title(sprintf('Ruta %s #%d del bus %s en %s %s - %s', ...
+                    nombreRuta, k, busIDactual, fechaActual, inicioHora, finHora ), 'Interpreter', 'none');
                 hold off;
             end
         end

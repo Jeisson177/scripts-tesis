@@ -140,6 +140,8 @@ classdef Calcular
 
         %%
         function datosBuses = kalmanFiltro2D(datosBuses, k)
+
+
             lat = datosBuses.datosSensorRuta{k, 2}.lat(:);
             lon = datosBuses.datosSensorRuta{k, 2}.lon(:);
             t = datosBuses.datosSensorRuta{k, 2}.time(:);
@@ -232,10 +234,28 @@ classdef Calcular
             trayectoria_filtrada.lon = lon_f;
             trayectoria_filtrada.time = t;
 
-            if ~isfield(datosBuses, 'trayectoriaFiltrada')
-                datosBuses.trayectoriaFiltrada = repmat(struct('lat',[], 'lon',[], 'time',[]), size(datosBuses.datosSensorRuta,1), 1);
+            % Si no existe, inicializar vacío
+            if ~isfield(datosBuses,'trayectoriaFiltrada')
+                datosBuses.trayectoriaFiltrada = repmat(struct(), size(datosBuses.datosSensorRuta,1), 1);
             end
+
+            % Unificar campos entre plantilla existente y nueva estructura
+            todos = union(fieldnames(datosBuses.trayectoriaFiltrada), fieldnames(trayectoria_filtrada));
+
+            % Asegurar que todos los elementos de trayectoriaFiltrada tengan los mismos campos
+            for f = 1:numel(todos)
+                nombre = todos{f};
+                if ~isfield(trayectoria_filtrada,nombre)
+                    trayectoria_filtrada.(nombre) = [];
+                end
+                if ~isfield(datosBuses.trayectoriaFiltrada, nombre)
+                    [datosBuses.trayectoriaFiltrada.(nombre)] = deal([]);
+                end
+            end
+
+            % Ahora sí: asignación segura
             datosBuses.trayectoriaFiltrada(k) = trayectoria_filtrada;
+
 
 
 
@@ -256,6 +276,7 @@ classdef Calcular
             % axis equal
 
         end
+        
         %%
 
         function datosBuses = detectar_curvas_multi_escala(datosBuses, k)
@@ -474,22 +495,22 @@ classdef Calcular
 
 
         function v2_sobre_R_p80 = calcular_v2_sobre_R_p80(velocidad, radio_curvatura_grados, latitud_media)
-    metros_por_grado = 111320;
-    factor_lon = cosd(latitud_media);
-    escala_metros = metros_por_grado * factor_lon;
+            metros_por_grado = 111320;
+            factor_lon = cosd(latitud_media);
+            escala_metros = metros_por_grado * factor_lon;
 
-    radio_curvatura_metros = radio_curvatura_grados * escala_metros;
+            radio_curvatura_metros = radio_curvatura_grados * escala_metros;
 
-    % Validación y cálculo
-    mascara = ~isnan(radio_curvatura_metros) & radio_curvatura_metros > 0;
-    v2_sobre_R = (velocidad(mascara).^2) ./ radio_curvatura_metros(mascara);
+            % Validación y cálculo
+            mascara = ~isnan(radio_curvatura_metros) & radio_curvatura_metros > 0;
+            v2_sobre_R = (velocidad(mascara).^2) ./ radio_curvatura_metros(mascara);
 
-    if isempty(v2_sobre_R)
-        v2_sobre_R_p80 = NaN;
-    else
-        v2_sobre_R_p80 = prctile(v2_sobre_R, 80);
-    end
-end
+            if isempty(v2_sobre_R)
+                v2_sobre_R_p80 = NaN;
+            else
+                v2_sobre_R_p80 = prctile(v2_sobre_R, 80);
+            end
+        end
 
 
         %%
@@ -1046,7 +1067,6 @@ end
 
 
                     for k = 1:numel(1)
-                        ruta = rutas(k).idruta;
 
                         % Busca una ruta especifica y retorna todas las
                         % coincidencias
@@ -1345,15 +1365,38 @@ end
                 finRuta = inicioRuta; % Inicializar finRuta con inicioRuta
 
                 % Buscar el último timestamp donde idRuta sigue siendo la misma
-                for j = i+1:height(datosP60)
-                    if strcmp(datosP60.idRuta(j), idRuta) % Sigue en la misma ruta
+                j = i + 1;
+                while j <= height(datosP60)
+                    if strcmp(datosP60.idRuta(j), idRuta)
                         finRuta = datosP60.fechaHoraLecturaDato(j);
+                        j = j + 1;
+
+                    elseif ismember(datosP60.idRuta(j), ["RET","DES"])
+                        % mirar hacia adelante ignorando RETs consecutivos
+                        k = j + 1;
+                        while k <= height(datosP60) && ismember(datosP60.idRuta(k), ["RET","DES"])
+                            k = k + 1;
+                        end
+
+                        if k <= height(datosP60) && strcmp(datosP60.idRuta(k), idRuta)
+                            % RET intermedio: continuar
+                            finRuta = datosP60.fechaHoraLecturaDato(j);
+                            j = k ; % saltar los RETs ya revisados
+                            continue;
+                        else
+                            % RET terminal o fin de datos: cortar
+                            finRuta = datosP60.fechaHoraLecturaDato(j);
+                            break;
+                        end
+
                     else
-                        break; % Se terminó la ruta
+                        % cambio a otra ruta → cortar
+                        break;
                     end
                 end
 
-                i = j;
+i = j; % avanzar el índice externo al último usado
+
 
                 % Filtrar datosSensor en el rango de la ruta
                 indicesSensor = (datosSensor.time >= inicioRuta) & (datosSensor.time <= finRuta);
@@ -1370,13 +1413,14 @@ end
                 tiempoFinAjustado = finRuta;
                 indiceRuta = find(strcmp(string({paradas.idruta}), string(idRuta)));
 
-                try
-                    rutaParadas = paradas(indiceRuta).stops;
-                catch
-                    indiceRuta
-                    idRuta
+                if isempty(indiceRuta)
+                    % Saltar si no existe esa ruta en 'paradas'
+                    disp("No se encontro: " + idRuta)
                     continue;
                 end
+
+                rutaParadas = paradas(indiceRuta).stops;
+
 
                 % Buscar el punto más cercano a la primera y última parada visitada
                 minDistanciaInicio = inf;
@@ -1432,7 +1476,7 @@ end
 
                 % Si cumple el porcentaje mínimo, guardar la ruta ajustada
                 if porcentajeVisitadas >= porcentajeMinimoParadas
-                    tiempos = [tiempos; {tiempoInicioAjustado, tiempoFinAjustado, idRuta, paradasVisitadas, inicioRuta, finRuta}];
+                    tiempos = [tiempos; {inicioRuta, finRuta, idRuta, paradasVisitadas, inicioRuta, finRuta}];
                 end
             end
         end
@@ -1472,6 +1516,9 @@ end
                         if ~isfield(datosBuses.(bus).(fecha), 'velocidadRuta') || isempty(datosBuses.(bus).(fecha).velocidadRuta)
                             datosBuses.(bus).(fecha).velocidadRuta = {}; % Inicializar como celda vacía si no existe
                         end
+
+                        datosBuses.(bus).(fecha).velocidadRuta = {};
+
 
                         % Calcular la velocidad para cada ruta completa
                         for k = 1:size(tiempoRuta, 1)
@@ -1717,6 +1764,9 @@ end
                             datosBuses.(bus).(fecha).aceleracionRuta = {}; % Inicializar como celda vacía si no existe
                         end
 
+                        datosBuses.(bus).(fecha).aceleracionRuta = {};
+
+
                         % Calcular la velocidad para cada ruta completa (ida y vuelta)
                         for k = 1:size(tiempoRuta, 1)
 
@@ -1776,7 +1826,9 @@ end
             deltaDistancia = cumsum(deltaTiempo); % Usar los tiempos del sensor
             deltaDistanciaNorm = (deltaDistancia - min(deltaDistancia)) / ...
                 (max(deltaDistancia) - min(deltaDistancia));
-            datosBuses.datosSensorRuta{k, 2}.deltaTiempoAcum
+            datosBuses.datosSensorRuta{k, 2}.deltaTiempoAcum = deltaDistancia;
+            datosBuses.datosSensorRuta{k, 2}.deltaTiempoAcumNorm = deltaDistanciaNorm;
+
         end
 
 
@@ -1878,6 +1930,8 @@ end
                             datosBuses.(bus).(fecha).datosSensorRuta = {}; % Inicializar como celda vacía si no existe
                         end
 
+                        datosBuses.(bus).(fecha).datosSensorRuta = {};
+
                         % Extraer los datos del sensor para cada ruta completa (ida y vuelta)
                         for k = 1:size(tiempoRuta, 1)
                             ruta = tiempoRuta{k, 3}; % El nombre de la ruta está en la última columna
@@ -1977,8 +2031,8 @@ end
         end
 
         function datosBuses = PorcentajesAceleracionW(datosBuses, k)
-            acelepercent1 = sum(datosBuses.indicesAceleracionRuta{k, 1}>1)/sum(datosBuses.indicesAceleracionRuta{k, 1}>0);
-            acelepercent2 = sum(datosBuses.indicesAceleracionRuta{k, 1}>2)/sum(datosBuses.indicesAceleracionRuta{k, 1}>0);
+            acelepercent1 = sum(datosBuses.indicesAceleracionRuta{k, 1}{1}>1)/sum(datosBuses.indicesAceleracionRuta{k, 1}{1}>0);
+            acelepercent2 = sum(datosBuses.indicesAceleracionRuta{k, 1}{1}>2)/sum(datosBuses.indicesAceleracionRuta{k, 1}{1}>0);
 
             datosBuses.tiempoRuta.PorcentajeAceleracion1(k) = acelepercent1;
             datosBuses.tiempoRuta.PorcentajeAceleracion2(k) = acelepercent2;
@@ -2095,7 +2149,7 @@ end
         end
 
         function dTotal = DuracionEnRangos(inicio, fin, rangosDia)
-            shifts = [0 1440];  
+            shifts = [0 1440];
             dTotal = 0;
             for s = shifts
                 r = rangosDia + s;
@@ -2152,7 +2206,7 @@ end
         end
 
 
-%%
+        %%
 
 
         function datosBuses = corregirAceleracionPorRutas(datosBuses)
@@ -2184,10 +2238,10 @@ end
                         % Obtener las rutas disponibles
                         numRutas = size(datosBuses.(bus).(fecha).aceleracionRuta, 1);
 
-                        if ~isfield(datosBuses.(bus).(fecha), 'indicesAceleracionRuta')
-                            datosBuses.(bus).(fecha).indicesAceleracionRuta = table([], [], [], [], ...
-                                'VariableNames', {'MagnitudesPositivas', 'MagnitudesNegativas', 'TiemposPositivos', 'TiemposNegativos'});
-                        end
+                        
+                        datosBuses.(bus).(fecha).indicesAceleracionRuta = table([], [], [], [], ...
+                            'VariableNames', {'MagnitudesPositivas', 'MagnitudesNegativas', 'TiemposPositivos', 'TiemposNegativos'});
+
 
                         % Iterar sobre cada ruta en la fecha
                         for k = 1:numRutas

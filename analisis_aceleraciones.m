@@ -298,14 +298,18 @@ for i = 1:numel(buses)
                 hora_inicio = rutadato.tiempoRuta.Inicio_Ruta(k);
                 hora_final = rutadato.tiempoRuta.Fin_Ruta(k);
                 distancia = {rutadato.datosSensorRuta{k, 2}.distancia};
-                acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>0);
-                acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>0);
-                frepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}<-1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}<0);
-                frepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}<-2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}<0);
+                acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>1)/...
+                sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>0);
+                acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>2)/...
+                    sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>0);
+                frepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}{1}<-1)/...}
+                    sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}{1}<0);
+                frepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}{1}<-2)/...
+                    sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}{1}<0);
                 tiempo = {rutadato.datosSensorRuta{k,2}.deltaTiempo};
                 velocidad = rutadato.velocidadRuta(k,2);
-                num_Acc = cell2mat(cellfun(@size, indicesAceleracion(k,1), 'UniformOutput', false));
-                num_Fre = cell2mat(cellfun(@size, indicesAceleracion(k,2), 'UniformOutput', false));
+                num_Acc = cell2mat(cellfun(@size, indicesAceleracion{k,1}, 'UniformOutput', false));
+                num_Fre = cell2mat(cellfun(@size, indicesAceleracion{k,2}, 'UniformOutput', false));
                 Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 Paradas = rutadato.tiempoRuta.ParadasVisitadas(k);
