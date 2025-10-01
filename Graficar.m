@@ -454,6 +454,251 @@ end
     end
 end
 
+
+function graficarCurvas(datosBuses, busID, fecha, indiceRuta, nombreRutaFiltro)
+    % Esta función grafica la ruta filtrada y las curvas detectadas
+    % usando la información en datosBuses.trayectoriaFiltrada.
+    %
+    % Parámetros:
+    % datosBuses       -> estructura con datos de buses
+    % busID (opcional) -> identificador del bus
+    % fecha (opcional) -> fecha específica
+    % indiceRuta (opcional) -> índice de ruta
+    % nombreRutaFiltro (opcional) -> nombre de ruta a filtrar
+
+    % ---------------------------
+    % Si no se pasa busID -> usar todos
+    % ---------------------------
+    if nargin < 2 || isempty(busID)
+        listaBuses = fieldnames(datosBuses);
+    else
+        if ~isfield(datosBuses, busID)
+            error('El bus especificado no existe en los datos.');
+        end
+        listaBuses = {busID};
+    end
+
+    for i = 1:numel(listaBuses)
+        busIDactual = listaBuses{i};
+
+        % Fechas
+        if nargin < 3 || isempty(fecha)
+            fechas = fieldnames(datosBuses.(busIDactual));
+        else
+            if ~isfield(datosBuses.(busIDactual), fecha)
+                warning('La fecha %s no existe para el bus %s.', fecha, busIDactual);
+                continue;
+            end
+            fechas = {fecha};
+        end
+
+        for j = 1:numel(fechas)
+            fechaActual = fechas{j};
+
+            if ~isfield(datosBuses.(busIDactual).(fechaActual), 'datosSensorRuta')
+                warning('No hay datos de ruta disponibles para %s (%s).', busIDactual, fechaActual);
+                continue;
+            end
+
+            rutas = datosBuses.(busIDactual).(fechaActual).datosSensorRuta;
+            nombresRutas = datosBuses.(busIDactual).(fechaActual).tiempoRuta.Ruta;
+
+            if nargin < 4 || isempty(indiceRuta)
+                indicesRutas = 1:size(rutas,1);
+            else
+                if indiceRuta < 1 || indiceRuta > size(rutas,1)
+                    error('Índice de ruta no válido.');
+                end
+                indicesRutas = indiceRuta;
+            end
+
+            for k = indicesRutas
+                nombreRuta = strrep(nombresRutas{k}, '"','');
+                nombreRuta = string(nombreRuta);
+
+                if nargin >= 5 && ~isempty(nombreRutaFiltro)
+                    if nombreRuta ~= nombreRutaFiltro
+                        continue;
+                    end
+                end
+
+                % Extraer trayectoria filtrada
+                if k > numel(datosBuses.(busIDactual).(fechaActual).trayectoriaFiltrada)
+                    warning('No hay trayectoria filtrada para la ruta %d', k);
+                    continue;
+                end
+                tray = datosBuses.(busIDactual).(fechaActual).trayectoriaFiltrada(k);
+
+                if isempty(tray.lat) || isempty(tray.lon)
+                    warning('Trayectoria vacía en ruta %d', k);
+                    continue;
+                end
+
+                % Crear figura
+                figure;
+                geobasemap('streets-light'); hold on;
+
+                % Dibujar ruta base
+                geoplot(tray.lat, tray.lon, '-b', 'LineWidth', 1);
+                geoscatter(tray.lat(1), tray.lon(1), 100, 'g', 'filled'); % inicio
+                geoscatter(tray.lat(end), tray.lon(end), 100, 'r', 'filled'); % fin
+
+                % Dibujar curvas si existen
+                if isfield(tray, 'curvas') && ~isempty(tray.curvas)
+                    curvas = tray.curvas;
+                    for c = 1:numel(curvas)
+                        idx = curvas(c).idx;
+                        geoplot(tray.lat(idx), tray.lon(idx), 'r-', 'LineWidth', 2);
+
+                        % centro del círculo
+                        [xc, yc, R] = deal(curvas(c).xc, curvas(c).yc, curvas(c).R);
+                        theta = linspace(0, 2*pi, 200);
+                        latCirc = yc + R*sin(theta); % ojo: depende si usaste lat/lon directo
+                        lonCirc = xc + R*cos(theta);
+                        geoplot(latCirc, lonCirc, 'g--', 'LineWidth', 1);
+                    end
+                end
+
+                title(sprintf('Curvas detectadas - Ruta %s #%d (%s)', ...
+                    nombreRuta, k, fechaActual), 'Interpreter','none');
+                hold off;
+            end
+        end
+    end
+end
+
+
+function graficarSegmentos(datosBuses, busID, fecha, indiceRuta, nombreRutaFiltro, campoHeatmap)
+    % Graficar segmentos de recorridos sobre un mapa.
+    %
+    % Parámetros:
+    % datosBuses        -> estructura con datos de buses
+    % busID (opcional)  -> identificador del bus
+    % fecha (opcional)  -> fecha específica
+    % indiceRuta (opcional) -> índice de ruta
+    % nombreRutaFiltro (opcional) -> nombre de ruta a filtrar
+    % campoHeatmap (opcional) -> nombre de columna en la tabla de segmentos para usar como mapa de calor
+    %
+    % Si no se pasa campoHeatmap, se usan colores categóricos diferentes para cada segmento.
+
+    if nargin < 2 || isempty(busID)
+        listaBuses = fieldnames(datosBuses);
+    else
+        if ~isfield(datosBuses, busID)
+            error('El bus especificado no existe en los datos.');
+        end
+        listaBuses = {busID};
+    end
+
+    for i = 1:numel(listaBuses)
+        busIDactual = listaBuses{i};
+
+        if nargin < 3 || isempty(fecha)
+            fechas = fieldnames(datosBuses.(busIDactual));
+        else
+            if ~isfield(datosBuses.(busIDactual), fecha)
+                warning('La fecha %s no existe para el bus %s.', fecha, busIDactual);
+                continue;
+            end
+            fechas = {fecha};
+        end
+
+        for j = 1:numel(fechas)
+            fechaActual = fechas{j};
+
+            if ~isfield(datosBuses.(busIDactual).(fechaActual), 'segmentos')
+                warning('No hay segmentos para %s (%s).', busIDactual, fechaActual);
+                continue;
+            end
+
+            segs = datosBuses.(busIDactual).(fechaActual).segmentos;
+            rutas = datosBuses.(busIDactual).(fechaActual).datosSensorRuta;
+            nombresRutas = datosBuses.(busIDactual).(fechaActual).tiempoRuta.Ruta;
+
+            if nargin < 4 || isempty(indiceRuta)
+                indicesRutas = 1:numel(segs);
+            else
+                indicesRutas = indiceRuta;
+            end
+
+            for k = indicesRutas
+                nombreRuta = strrep(nombresRutas{k}, '"','');
+                nombreRuta = string(nombreRuta);
+
+                if nargin >= 5 && ~isempty(nombreRutaFiltro)
+                    if nombreRuta ~= nombreRutaFiltro
+                        continue;
+                    end
+                end
+
+                tablaSeg = segs{k};
+                if isempty(tablaSeg)
+                    warning('Segmentos vacíos en ruta %d', k);
+                    continue;
+                end
+
+                % Crear figura
+                figure;
+                geobasemap('streets-light'); hold on;
+
+                % Si se pasó campoHeatmap, obtener los valores
+                usarHeatmap = (nargin >= 6 && ~isempty(campoHeatmap) ...
+                    && ismember(campoHeatmap, tablaSeg.Properties.VariableNames));
+
+                if usarHeatmap
+                    valores = tablaSeg.(campoHeatmap);
+                    cmap = parula(256);
+                    vmin = min(valores, [], 'omitnan');
+                    vmax = max(valores, [], 'omitnan');
+                else
+                    colores = lines(height(tablaSeg)); % colores categóricos
+                end
+
+                % Dibujar cada segmento
+                for s = 1:height(tablaSeg)
+                    tIni = tablaSeg.tiempoInicio(s);
+                    tFin = tablaSeg.tiempoFin(s);
+
+                    datosSensor = rutas{k,2};
+                    idx = (datosSensor.time >= tIni & datosSensor.time <= tFin);
+
+                    lat = datosSensor.lat(idx);
+                    lon = datosSensor.lon(idx);
+
+                    if usarHeatmap
+                        val = valores(s);
+                        if isnan(val)
+                            c = [0.5 0.5 0.5]; % gris si no hay valor
+                        else
+                            ci = round(1 + (val - vmin) / (vmax - vmin) * 255);
+                            ci = max(min(ci,256),1);
+                            c = cmap(ci,:);
+                        end
+                    else
+                        c = colores(s,:);
+                    end
+
+                    geoplot(lat, lon, '-', 'LineWidth', 2, 'Color', c);
+                end
+
+                % Añadir barra de color si es heatmap
+                if usarHeatmap
+                    colormap(cmap);
+                    cb = colorbar;
+                    cb.Label.String = campoHeatmap;
+                end
+
+                % Título
+                title(sprintf('Segmentos - Ruta %s #%d del bus %s en %s', ...
+                    nombreRuta, k, busIDactual, fechaActual), 'Interpreter','none');
+                hold off;
+            end
+        end
+    end
+end
+
+
+
         function rutaPorTiempo(datosBuses, busID, fecha, tiempoInicio, tiempoFin, paradas)
             % Graficar la ruta de un bus en un rango de tiempo específico y opcionalmente sus paradas.
             
