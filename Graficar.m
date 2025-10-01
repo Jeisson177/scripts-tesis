@@ -80,9 +80,12 @@ classdef Graficar
             title('Gráfico de aceleraciones y frenadas por Sexo');
         end
         
-        function graficarVelocidadPorRutas(datosBuses, busID, fecha, indiceRuta)
+        function graficarVelocidadPorRutas(datosBuses, busID, fecha, indiceRuta, tipoVelocidad)
             % Esta función grafica las velocidades para rutas de un bus en fechas dadas
-            % usando los parámetros proporcionados, con manejo de omisiones.
+
+            if nargin < 5 || isempty(tipoVelocidad)
+                tipoVelocidad = 'filtrada'; % valor por defecto
+            end
 
             % Comprobar si el bus existe
             if ~isfield(datosBuses, busID)
@@ -131,9 +134,30 @@ classdef Graficar
                     datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 2}; % Datos del sensor para la ruta
                     tiempos = datosSensorRuta.time(2:end-1); % Usar los tiempos del sensor
                     velocidades = velocidades(1:end-1); % cambio porque estaba dando error con lo de arriba
+
+
                     % Graficar las velocidades
-                    figure;
-                    plot(tiempos, velocidades, '-'); % Usar solo '-' para una línea continua
+                    figure; hold on;
+                    switch tipoVelocidad
+                        case 'filtrada'
+                            velFiltrada = velocidadRutas{k, 2};
+                            plot(tiempos, velFiltrada(1:end-1), 'b-', 'DisplayName', 'Filtrada');
+
+                        case 'original'
+                            velOriginal = velocidadRutas{k, 5};
+                            plot(tiempos, velOriginal(1:end-1), 'r--', 'DisplayName', 'Original');
+
+                        case 'ambas'
+                            velFiltrada = velocidadRutas{k, 2};
+                            velOriginal = velocidadRutas{k, 5};
+                            plot(tiempos, velOriginal(1:end-1), 'r--', 'DisplayName', 'Original');
+                            plot(tiempos, velFiltrada(1:end-1), 'b-', 'DisplayName', 'Filtrada');
+
+                        otherwise
+                            error('Valor no válido para tipoVelocidad. Use "filtrada", "original" o "ambas".');
+                    end
+
+
 
                     % Ajustar el título de la gráfica para evitar subíndices
                     ruta = strrep(ruta, '_', '\_'); % Escapar guiones bajos
@@ -145,6 +169,8 @@ classdef Graficar
                     xlabel('Tiempo');
                     ylabel('Velocidad (m/s)');
                     grid on;
+                    legend show
+                    hold off;
                 end
             end
         end
@@ -296,7 +322,7 @@ end
             end
         end
 
-        function rutaMapa(datosBuses, paradasStruct, busID, fecha, indiceRuta, nombreRutaFiltro)
+        function rutaMapa(datosBuses, paradasStruct, busID, fecha, indiceRuta, nombreRutaFiltro, mostrarNombresParadas)
     % Esta función grafica la ruta de un bus (o varios buses) en una fecha
     % y ruta específicas sobre un mapa con coordenadas geográficas.
     %
@@ -311,6 +337,11 @@ end
     % ---------------------------
     % Si no se pasa busID -> usar todos
     % ---------------------------
+
+    if nargin < 7 || isempty(mostrarNombresParadas)
+        mostrarNombresParadas = false; % por defecto no muestra
+    end
+
     if nargin < 3 || isempty(busID)
         listaBuses = fieldnames(datosBuses);
     else
@@ -405,7 +436,7 @@ end
                         latStops = stops.lat;
                         lonStops = stops.lon;
                         geoscatter(latStops, lonStops, 80, 'm', 'filled', '^');
-                        if ismember('stop_name', stops.Properties.VariableNames)
+                        if mostrarNombresParadas && ismember('stop_name', stops.Properties.VariableNames)
                             for s = 1:height(stops)
                                 text(latStops(s), lonStops(s), string(stops.stop_name(s)), ...
                                     'FontSize', 8, 'Color','k', 'HorizontalAlignment','left');

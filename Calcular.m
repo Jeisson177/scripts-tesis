@@ -917,31 +917,111 @@ classdef Calcular
 
         %%
 
-        function velocidad = velocidadConFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, filtro)
+
+        function datosBuses = GenerarSegmentos(datosBuses, k)
+            % Obtener la info de paradas del recorrido k
+            infoParadas = datosBuses.tiempoRuta.InfoParadas{k};
+            validas = datosBuses.tiempoRuta.ParadasVisitadas{k}; % vector lógico
+
+            % Verificar que existan paradas suficientes
+            if isempty(infoParadas) || height(infoParadas) < 2
+                datosBuses.segmentos{k} = table();
+                return;
+            end
+
+            % Inicializar celdas para los segmentos
+            nSeg = height(infoParadas) - 1;
+            nombresSegmentos = strings(nSeg,1);
+            paradaInicio = strings(nSeg,1);
+            paradaFin = strings(nSeg,1);
+            tiempoInicio = NaT(nSeg,1);
+            tiempoFin = NaT(nSeg,1);
+            duracion = NaN(nSeg,1);
+            promedioVelocidad = NaN(nSeg, 1);
+
+
+            
+
+            valido = false(nSeg,1);
+
+            datosSensor = datosBuses.datosSensorRuta{k,2};
+            velocidades = datosBuses.velocidadRuta{k,2};
+
+            % Extraer información de las paradas
+            nombresParadas = string(infoParadas.Parada);
+            tiemposParadas = infoParadas.TiempoLlegada;
+
+            % Iterar sobre pares consecutivos de paradas
+            for s = 1:nSeg
+                paradaInicio(s) = nombresParadas(s);
+                paradaFin(s) = nombresParadas(s+1);
+
+                
+
+                nombresSegmentos(s) = paradaInicio(s) + "-" + paradaFin(s);
+
+                % Validación: ambas paradas deben ser válidas
+                if validas(s) && validas(s+1)
+                    tiempoInicio(s) = tiemposParadas(s);
+                    tiempoFin(s) = tiemposParadas(s+1);
+
+                    tInicio = tiempoInicio(s);
+                    tFin = tiempoFin(s);
+
+                    tiempos = datosSensor.time;
+                    idx = find(tiempos >= tInicio & tiempos <= tFin);
+
+                    duracion(s) = seconds(tiempoFin(s) - tiempoInicio(s));
+
+
+                            if numel(idx) > 1
+                                % Velocidades entre esos tiempos
+                                velSeg = velocidades(idx(1):idx(end)-1);
+
+                                if ~isempty(velSeg)
+                                    promedioVelocidad(s) = mean(velSeg, 'omitnan');
+                                end
+                            end
+
+
+                    valido(s) = true;
+                end
+            end
+
+            % Construir tabla de segmentos
+            tablaSegmentos = table(nombresSegmentos, paradaInicio, paradaFin, ...
+                tiempoInicio, tiempoFin, duracion, valido, promedioVelocidad);
+
+            % Guardar en la estructura
+            datosBuses.segmentos{k} = tablaSegmentos;
+        end
+
+
+        %%
+
+        function [velocidadOriginal, velocidad] = velocidadConFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, filtro)
             switch filtro
                 case 'pendiente'
-                    velocidad = Calcular.corregirVelocidadPendiente(datos, 3);
+                    [velocidadOriginal, velocidad] = Calcular.corregirVelocidadPendiente(datos, 3);
                 case 'sin_filtro'
                     velocidad = Calcular.velocidadSinFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud);
+                    velocidadOriginal = [];
                 otherwise
                     error('Filtro no reconocido: %s. Use "media_movil", "kalman", "pendiente", "sin_filtro" u otros filtros disponibles.', filtro);
             end
         end
 
 
+
         %%
 
-        function velocidadCorregida = corregirVelocidadPendiente(datos, umbral)
+        function [velocidadOriginal, velocidadCorregida] = corregirVelocidadPendiente(datos, umbral)
             tiempo = datos.time;
-            velocidad = Calculos.calcularVelocidadMS(datos);
+            velocidadOriginal = Calculos.calcularVelocidadMS(datos);
 
-
-            Acele = Calcular.aceleracion(velocidad, tiempo);
-
-            plot(tiempo(1:end-1), velocidad)
-            hold on
-            n = length(velocidad);
-            velocidadCorregida = velocidad;
+         
+            n = length(velocidadOriginal);
+            velocidadCorregida = velocidadOriginal;
 
 
 
@@ -987,15 +1067,6 @@ classdef Calcular
                     i = i + 1;
                 end
             end
-
-
-
-
-            Acele = Calcular.aceleracion(velocidadCorregida, tiempo);
-            plot(tiempo(1:end-1), velocidadCorregida)
-
-            % Retornar el vector de velocidad corregida
-            return;
         end
 
 
@@ -1061,8 +1132,8 @@ classdef Calcular
 
                     % Inicializar el campo tiempoRuta como una tabla vacía con encabezados
 
-                    headers = {'Inicio_Ruta','Fin_Ruta','Ruta','ParadasVisitadas','InicioOriginal','FinOriginal', 'Genero_Conductor', 'Id'};
-                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 8), 'VariableNames', headers);  % Inicializar tabla vacía
+                    headers = {'Inicio_Ruta','Fin_Ruta','Ruta','ParadasVisitadas','InfoParadas', 'Genero_Conductor', 'Id'};
+                    datosBuses.(bus).(fecha).tiempoRuta = cell2table(cell(0, 7), 'VariableNames', headers);  % Inicializar tabla vacía
 
 
 
@@ -1367,10 +1438,13 @@ classdef Calcular
                 % Buscar el último timestamp donde idRuta sigue siendo la misma
                 j = i + 1;
                 while j <= height(datosP60)
+                    % mientras siga siendo la misma ruta
                     if strcmp(datosP60.idRuta(j), idRuta)
                         finRuta = datosP60.fechaHoraLecturaDato(j);
                         j = j + 1;
 
+                        %En caso de que aparezca ret o des en medio de una
+                        %ruta
                     elseif ismember(datosP60.idRuta(j), ["RET","DES"])
                         % mirar hacia adelante ignorando RETs consecutivos
                         k = j + 1;
@@ -1378,6 +1452,7 @@ classdef Calcular
                             k = k + 1;
                         end
 
+                        %Comprobamos que sigue siendo la misma ruta
                         if k <= height(datosP60) && strcmp(datosP60.idRuta(k), idRuta)
                             % RET intermedio: continuar
                             finRuta = datosP60.fechaHoraLecturaDato(j);
@@ -1390,12 +1465,12 @@ classdef Calcular
                         end
 
                     else
-                        % cambio a otra ruta → cortar
+                        % cambio a otra ruta -> cortar
                         break;
                     end
                 end
 
-i = j; % avanzar el índice externo al último usado
+                i = j; % avanzar el índice externo al último usado
 
 
                 % Filtrar datosSensor en el rango de la ruta
@@ -1407,10 +1482,11 @@ i = j; % avanzar el índice externo al último usado
                     continue;
                 end
 
-                % Inicializar variables de ajuste de tiempo
-                paradasVisitadas = false(height(paradas), 1);
+                
+
                 tiempoInicioAjustado = inicioRuta;
                 tiempoFinAjustado = finRuta;
+
                 indiceRuta = find(strcmp(string({paradas.idruta}), string(idRuta)));
 
                 if isempty(indiceRuta)
@@ -1420,6 +1496,12 @@ i = j; % avanzar el índice externo al último usado
                 end
 
                 rutaParadas = paradas(indiceRuta).stops;
+
+                % Inicializar variables de ajuste de tiempo
+                paradasVisitadas = false(height(rutaParadas), 1);
+                distMinParadas = inf(height(rutaParadas), 1);
+                tiemposParadas = NaT(height(rutaParadas), 1);
+                nombresParadas = strings(height(rutaParadas), 1);
 
 
                 % Buscar el punto más cercano a la primera y última parada visitada
@@ -1437,6 +1519,7 @@ i = j; % avanzar el índice externo al último usado
                 for k = 1:height(rutaParadas)
                     latParada = rutaParadas.lat(k);
                     lonParada = rutaParadas.lon(k);
+                    nombresParadas(k) = rutaParadas.stop_name(k);
 
                     for j = 1:height(datosSensorRuta)
                         latBus = datosSensorRuta.lat(j);
@@ -1445,27 +1528,14 @@ i = j; % avanzar el índice externo al último usado
 
                         distParada = Calculos.geodist(latBus, lonBus, latParada, lonParada);
 
+                        if distParada < distMinParadas(k)
+                            distMinParadas(k) = distParada;     % actualizar mínima distancia
+                            tiemposParadas(k) = tiempoActual;   % registrar hora asociada
+                        end
+
                         if distParada < distanciaUmbral
                             paradasVisitadas(k) = true;
 
-                        end
-
-                        if false
-                            % Calcular distancia a la primera parada
-                            distPrimeraParada = Calculos.geodist(latBus, lonBus, latPrimeraParada, lonPrimeraParada);
-
-                            if distPrimeraParada < minDistanciaInicio
-                                minDistanciaInicio = distPrimeraParada;
-                                tiempoInicioAjustado = tiempoActual;
-                            end
-
-                            % Calcular distancia a la última parada
-                            distUltimaParada = Calculos.geodist(latBus, lonBus, latUltimaParada, lonUltimaParada);
-
-                            if distUltimaParada < minDistanciaFin
-                                minDistanciaFin = distUltimaParada;
-                                tiempoFinAjustado = tiempoActual;
-                            end
                         end
 
                     end
@@ -1473,11 +1543,14 @@ i = j; % avanzar el índice externo al último usado
 
                 % Calcular porcentaje de paradas cubiertas
                 porcentajeVisitadas = sum(paradasVisitadas) / height(paradas(indiceRuta).stops);
+                tablaParadas = table(nombresParadas, distMinParadas, tiemposParadas, ...
+                    'VariableNames', {'Parada', 'DistanciaMin', 'TiempoLlegada'});
 
                 % Si cumple el porcentaje mínimo, guardar la ruta ajustada
                 if porcentajeVisitadas >= porcentajeMinimoParadas
-                    tiempos = [tiempos; {inicioRuta, finRuta, idRuta, paradasVisitadas, inicioRuta, finRuta}];
+                    tiempos = [tiempos; {inicioRuta, finRuta, idRuta, paradasVisitadas, tablaParadas}];
                 end
+
             end
         end
 
@@ -1529,10 +1602,11 @@ i = j; % avanzar el índice externo al último usado
                             inicioIda = tiempoRuta{k, 1};
                             finIda = tiempoRuta{k, 2};
                             datosIda = datosSensor(datosSensor{:, 'time'} >= inicioIda & datosSensor{:, 'time'} <= finIda, :);
-                            velocidadIda = Calcular.velocidadConFiltro(datosIda, 'time', 'lat', 'lon', 'pendiente');
+                            [velocidadOriginal, velocidadCorregida] = Calcular.velocidadConFiltro(datosIda, 'time', 'lat', 'lon', 'pendiente');
+
 
                             % Guardar las velocidades para la ruta
-                            tiempoVelocidad = {inicioIda, velocidadIda, ruta, genero};
+                            tiempoVelocidad = {inicioIda, velocidadCorregida, ruta, genero, velocidadOriginal};
 
                             % Concatenar los resultados en el campo velocidadRuta
                             datosBuses.(bus).(fecha).velocidadRuta = [datosBuses.(bus).(fecha).velocidadRuta; tiempoVelocidad];

@@ -92,13 +92,17 @@ datosBuses = Calcular.RiesgoCurvaTodasRutas(datosBuses, PosCurvas);
 datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 
 %%
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses,@Calcular.GenerarSegmentos);
+
+
+
 
 
 
 
 %% Graficar----------------------------------------------------------------
 
-Graficar.rutaMapa(datosBuses,rutas,"bus_4025" ,"f_04_07_2024", 6)
+Graficar.rutaMapa(datosBuses,rutas,"bus_4012" ,"f_03_07_2024", 1)
 
 %%
 Graficar.rutaMapa(datosBuses, rutas, [], [], [], "L613")
@@ -108,7 +112,7 @@ Graficar.rutaMapa(datosBuses, rutas, [], [], [], "L613")
 Graficar.rutaPorTiempo(datosBuses,"bus_4025" ,"f_04_07_2024", datetime(2024,7,4,11,39,0), datetime(2024,7,4,13,29,0), rutas(4).stops)
 
 %%
-Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
+Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1, 'ambas')
 
 %%
 
