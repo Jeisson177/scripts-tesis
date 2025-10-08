@@ -99,9 +99,10 @@ datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses,@Calcular.GenerarSegmen
 datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses,@Calcular.GenerarSegmentosEquilibrados,8);
 
 %%
-datosBuses = Calcular.iterarSobreBusesyFechas(datosBuses, @Calcular.DuracionParadas);
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.DuracionParadas, 2);
 
-
+%%
+datosBuses = Calcular.EventosRutas(datosBuses);
 
 
 %% Graficar----------------------------------------------------------------

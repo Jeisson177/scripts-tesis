@@ -17,6 +17,8 @@ Graficar.graficarVelocidadMapa(datosBuses, rutas, "bus_4012", "f_03_07_2024", 1,
 %% Ver velocidad
 Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1, 'filtrada', true, rutas);
 
+%% Ver aceleracion
+Graficar.graficarAceleracionPorRutas(datosBuses,"bus_4012" ,"f_03_07_2024", 1,[])
 
 %% Ver curvas
 %TODO: pasar a metros y graficar en funcion del riesgo curva

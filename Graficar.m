@@ -176,45 +176,132 @@ end
             end
 
             % --- NUEVO BLOQUE: Mostrar paradas ---
+
+            
             if mostrarParadas
-                nombreRuta = string(datosBuses.(busID).(fechaActual).tiempoRuta.Ruta{k});
-                idrutas = string({paradasStruct.idruta});
-                idxParada = find(idrutas == nombreRuta, 1);
 
-                if ~isempty(idxParada)
-                    stops = paradasStruct(idxParada).stops;
-                    if iscell(stops), stops = stops{1}; end
 
-                    latBus = datosSensorRuta.lat;
-                    lonBus = datosSensorRuta.lon;
+                
 
-                    for s = 1:height(stops)
-                        % Calcular distancia mínima entre parada y trayecto
-                        dists = arrayfun(@(i) Calculos.geodist(latBus(i), lonBus(i), ...
-                                        stops.lat(s), stops.lon(s)), 1:numel(latBus));
-                        [~, idxMin] = min(dists);
+                % --- BLOQUE: usar InfoParadas desde tiempoRuta ---
+if istable(datosBuses.(busID).(fechaActual).tiempoRuta) && ...
+   ismember('InfoParadas', datosBuses.(busID).(fechaActual).tiempoRuta.Properties.VariableNames)
 
-                        % Línea vertical en el tiempo correspondiente
-                        xline(tiempos(idxMin), '--r', 'LineWidth', 1, ...
-      'HandleVisibility', 'off');
+    infoParadasCell = datosBuses.(busID).(fechaActual).tiempoRuta.InfoParadas;
 
-                        % Etiqueta de parada
-                        % Etiqueta de parada
-if ismember('stop_name', stops.Properties.VariableNames)
-    switch tipoVelocidad
-    case {'filtrada', 'original'}
-        yMax = max(velocidad);
-    case 'ambas'
-        yMax = max([max(velFiltrada), max(velOriginal)]);
+    if size(infoParadasCell,1) >= k && ~isempty(infoParadasCell{k})
+        infoParadasRuta = infoParadasCell{k};
+
+        % Convertir tiempos a datetime si no lo son
+        varsT = {'TiempoLlegada','TiempoPrimeraDeteccion','TiempoUltimaDeteccion'};
+        for v = varsT
+            if ~isdatetime(infoParadasRuta.(v{1}))
+                infoParadasRuta.(v{1}) = datetime(infoParadasRuta.(v{1}));
+            end
+        end
+
+        % Rango vertical para las franjas
+        yL = ylim;
+
+        % Iterar sobre cada parada
+        for s = 1:height(infoParadasRuta)
+            tLlegada = infoParadasRuta.TiempoLlegada(s);
+            tInicio  = infoParadasRuta.TiempoPrimeraDeteccion(s);
+            tFin     = infoParadasRuta.TiempoUltimaDeteccion(s);
+
+            % Sombrear detección
+            if ~isnat(tInicio) && ~isnat(tFin) && tFin > tInicio
+                fill([tInicio tFin tFin tInicio], ...
+                     [yL(1) yL(1) yL(2) yL(2)], ...
+                     [0.9 0.9 0.5], 'FaceAlpha', 0.3, ...
+                     'EdgeColor','none', 'HandleVisibility','off');
+            end
+
+            % Línea vertical para tiempo de llegada
+            if ~isnat(tLlegada)
+                xline(tLlegada, '--r', 'LineWidth', 1, 'HandleVisibility','off');
+            end
+
+            % Etiqueta con el nombre de la parada
+            if ismember('Parada', infoParadasRuta.Properties.VariableNames)
+                text(tLlegada, yL(2), string(infoParadasRuta.Parada(s)), ...
+                    'Rotation', 90, 'VerticalAlignment','bottom', ...
+                    'FontSize', 8, 'Color', [0.2 0.2 0.2]);
+            end
+        end
+    end
 end
 
 
-    text(tiempos(idxMin), yMax, string(stops.stop_name(s)), ...
-         'Rotation', 90, 'VerticalAlignment','bottom', 'FontSize',8);
+
+% --- NUEVO BLOQUE: Mostrar eventos de puertas (EV2) ---
+if isfield(datosBuses.(busID).(fechaActual), 'segmentoEV2') && ...
+        numel(datosBuses.(busID).(fechaActual).segmentoEV2) >= k && ...
+        ~isempty(datosBuses.(busID).(fechaActual).segmentoEV2{k})
+
+    ev2 = datosBuses.(busID).(fechaActual).segmentoEV2{k};
+
+    % Validar que existan columnas esperadas
+    if istable(ev2) && all(ismember({'fechaHoraLecturaDato','estadoAperturaCierrePuertas'}, ...
+                                     ev2.Properties.VariableNames))
+
+        % Convertir a datetime si no lo es
+        if ~isdatetime(ev2.fechaHoraLecturaDato)
+            ev2.fechaHoraLecturaDato = datetime(ev2.fechaHoraLecturaDato);
+        end
+
+        % Convertir estado lógico
+        if iscell(ev2.estadoAperturaCierrePuertas)
+            estado = strcmpi(ev2.estadoAperturaCierrePuertas, 'True');
+        elseif isstring(ev2.estadoAperturaCierrePuertas) || ischar(ev2.estadoAperturaCierrePuertas)
+            estado = strcmpi(string(ev2.estadoAperturaCierrePuertas), 'True');
+        elseif islogical(ev2.estadoAperturaCierrePuertas)
+            estado = ev2.estadoAperturaCierrePuertas;
+        else
+            estado = false(height(ev2),1);
+        end
+
+        % Detectar intervalos donde las puertas están abiertas
+        puertasAbiertas = estado(:);
+        tiemposEV = ev2.fechaHoraLecturaDato(:);
+        yL = ylim;
+
+        % Buscar transiciones (inicio y fin de apertura)
+        cambios = [false; diff(puertasAbiertas) ~= 0];
+        indicesInicio = find(cambios & puertasAbiertas);
+        indicesFin = find(cambios & ~puertasAbiertas);
+
+        % Manejar caso en que se abre pero no se vuelve a cerrar
+        if ~isempty(indicesInicio)
+            if isempty(indicesFin) || indicesFin(1) < indicesInicio(1)
+                indicesFin = [indicesFin; numel(tiemposEV)];
+            end
+            if numel(indicesFin) < numel(indicesInicio)
+                indicesFin = [indicesFin; numel(tiemposEV)];
+            end
+        end
+
+        % Dibujar áreas de puertas abiertas
+        for e = 1:min(numel(indicesInicio), numel(indicesFin))
+            t1 = tiemposEV(indicesInicio(e));
+            t2 = tiemposEV(indicesFin(e));
+
+            fill([t1 t2 t2 t1], ...
+                 [yL(1) yL(1) yL(2) yL(2)], ...
+                 [0.7 1.0 0.7], 'FaceAlpha', 0.25, ...
+                 'EdgeColor', 'none', ...
+                 'HandleVisibility', 'off');
+        end
+
+        % Añadir etiqueta de leyenda
+        patch(NaN, NaN, [0.7 1.0 0.7], 'FaceAlpha', 0.25, ...
+              'EdgeColor', 'none', 'DisplayName', 'Puertas abiertas');
+    end
 end
 
-                    end
-                end
+
+      
+             
             end
             % -------------------------------------
 
@@ -539,6 +626,130 @@ end
             end
         end
 
+function graficarAceleracionPorRutas(datosBuses, busID, fecha, indiceRuta, nombreRutaFiltro)
+    % graficarAceleracionPorRutas
+    % ---------------------------------------------------------------
+    % Grafica la aceleración (m/s²) en función del tiempo para rutas 
+    % específicas de un bus en una o varias fechas.
+    %
+    % Parámetros:
+    %   datosBuses        -> estructura con los datos
+    %   busID (opcional)  -> identificador del bus (string)
+    %   fecha (opcional)  -> fecha específica (string)
+    %   indiceRuta (opt.) -> índice numérico de ruta
+    %   nombreRutaFiltro  -> nombre exacto de ruta a graficar
+    %
+    % Ejemplo:
+    %   graficarAceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1, "P60A")
+    %
+    % ---------------------------------------------------------------
+
+    % ---------------------------------------------------------------
+    % Validaciones iniciales
+    % ---------------------------------------------------------------
+    if nargin < 2 || isempty(busID)
+        listaBuses = fieldnames(datosBuses);
+        listaBuses(strcmp(listaBuses, 'info')) = [];
+    else
+        if ~isfield(datosBuses, busID)
+            error('El bus especificado no existe en los datos.');
+        end
+        listaBuses = {busID};
+    end
+
+    % ---------------------------------------------------------------
+    % Iterar sobre los buses y fechas
+    % ---------------------------------------------------------------
+    for i = 1:numel(listaBuses)
+        bus = listaBuses{i};
+        fechas = fieldnames(datosBuses.(bus));
+
+        if nargin >= 3 && ~isempty(fecha)
+            if ~isfield(datosBuses.(bus), fecha)
+                warning('La fecha %s no existe para el bus %s.', fecha, bus);
+                continue;
+            end
+            fechas = {fecha};
+        end
+
+        for j = 1:numel(fechas)
+            fechaActual = fechas{j};
+
+            if ~isfield(datosBuses.(bus).(fechaActual), 'aceleracionRuta')
+                warning('No hay datos de aceleración para %s (%s).', bus, fechaActual);
+                continue;
+            end
+
+            aceleracionRutas = datosBuses.(bus).(fechaActual).aceleracionRuta;
+            datosSensorRuta  = datosBuses.(bus).(fechaActual).datosSensorRuta;
+            nombresRutas     = datosBuses.(bus).(fechaActual).tiempoRuta.Ruta;
+
+            % ---------------------------------------------------------------
+            % Índices de ruta
+            % ---------------------------------------------------------------
+            if nargin < 4 || isempty(indiceRuta)
+                indicesRutas = 1:size(aceleracionRutas, 1);
+            else
+                if indiceRuta < 1 || indiceRuta > size(aceleracionRutas, 1)
+                    error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(aceleracionRutas, 1));
+                end
+                indicesRutas = indiceRuta;
+            end
+
+            % ---------------------------------------------------------------
+            % Recorrer rutas seleccionadas
+            % ---------------------------------------------------------------
+            for k = indicesRutas
+                nombreRuta = string(strrep(nombresRutas{k}, '"', ''));
+
+                % Filtro opcional por nombre de ruta
+                if nargin >= 5 && ~isempty(nombreRutaFiltro)
+                    if nombreRuta ~= nombreRutaFiltro
+                        continue;
+                    end
+                end
+
+                % Verificar existencia de datos
+                if isempty(aceleracionRutas{k,2}) || isempty(datosSensorRuta{k,2})
+                    warning('No hay datos válidos para la ruta %d (%s - %s).', k, bus, fechaActual);
+                    continue;
+                end
+
+                % ---------------------------------------------------------------
+                % Obtener datos de aceleración y tiempo
+                % ---------------------------------------------------------------
+                aceleracion = aceleracionRutas{k,2};
+                tiempos = datosSensorRuta{k,2}.time;
+
+                % Alinear tamaños
+                n = min(numel(aceleracion), numel(tiempos));
+                aceleracion = aceleracion(1:n);
+                tiempos = tiempos(1:n);
+
+                % ---------------------------------------------------------------
+                % Graficar
+                % ---------------------------------------------------------------
+                figure; hold on;
+                plot(tiempos, aceleracion, 'k-', 'LineWidth', 1.2);
+
+                % Título formateado
+                rutaEsc = strrep(nombreRuta, '_', '\_');
+                fechaEsc = strrep(fechaActual, '_', '\_');
+                busEsc = strrep(bus, '_', '\_');
+
+                title(sprintf('Aceleración vs Tiempo - %s (Ruta %d) %s %s', ...
+                    rutaEsc, k, busEsc, fechaEsc), 'Interpreter','none');
+                xlabel('Tiempo');
+                ylabel('Aceleración (m/s²)');
+                grid on;
+                legend('Aceleración', 'Location', 'best');
+                hold off;
+            end
+        end
+    end
+end
+
+
         function rutaMapa(datosBuses, paradasStruct, busID, fecha, indiceRuta, nombreRutaFiltro, mostrarNombresParadas)
     % Esta función grafica la ruta de un bus (o varios buses) en una fecha
     % y ruta específicas sobre un mapa con coordenadas geográficas.
@@ -779,6 +990,17 @@ end
 
             % Paradas como triángulos magenta
             geoscatter(latStops, lonStops, 80, 'm', 'filled', '^');
+
+            % --- Dibujar círculos de 50 m alrededor de cada parada ---
+        radio_m = 50; % radio en metros
+        radio_deg = radio_m / 111320; % conversión aproximada a grados
+        for s = 1:height(stops)
+            % Generar círculo geodésico de 50 m de radio
+            [latC, lonC] = scircle1('rh', latStops(s), lonStops(s), radio_deg, [], 'degrees');
+
+
+            geoplot(latC, lonC, 'm-', 'LineWidth', 1);
+        end
 
             % Mostrar nombres si se pide
             if mostrarNombresParadas && ismember('stop_name', stops.Properties.VariableNames)
@@ -1792,29 +2014,69 @@ function velocidadvsdistancia(datosBuses, busID, fecha, indiceRuta, usarP60, mos
 
             % Marcar paradas con líneas verticales
             if mostrarParadas
-                nombreRuta = string(datosBuses.(busID).(fechaActual).tiempoRuta.Ruta{k});
-                idrutas = string({paradasStruct.idruta});
-                idxParada = find(idrutas == nombreRuta, 1);
+                
+% --- Mostrar paradas (basado en InfoParadas) ---
+if mostrarParadas
+    tiempoRutaVar = datosBuses.(busID).(fechaActual).tiempoRuta;
 
-                if ~isempty(idxParada)
-                    stops = paradasStruct(idxParada).stops;
-                    if iscell(stops), stops = stops{1}; end
+    if istable(tiempoRutaVar) && ismember('InfoParadas', tiempoRutaVar.Properties.VariableNames)
+        infoParadasCell = tiempoRutaVar.InfoParadas;
 
-                    for s = 1:height(stops)
-                        % Buscar punto más cercano del bus a la parada
-                        latBus = datosSensorRuta.lat;
-                        lonBus = datosSensorRuta.lon;
-                        dists = arrayfun(@(i) Calculos.geodist(latBus(i), lonBus(i), ...
-                                        stops.lat(s), stops.lon(s)), 1:numel(latBus));
-                        [~, idxMin] = min(dists);
+        if size(infoParadasCell,1) >= k && ~isempty(infoParadasCell{k})
+            infoParadasRuta = infoParadasCell{k};
 
-                        xline(distancias(idxMin), '--r'); % línea vertical
-                        if ismember('stop_name', stops.Properties.VariableNames)
-                            text(distancias(idxMin), max(velocidad), string(stops.stop_name(s)), ...
-                                 'Rotation', 90, 'VerticalAlignment','bottom', 'FontSize',8);
-                        end
-                    end
+            % Convertir columnas a datetime si no lo son
+            varsT = {'TiempoPrimeraDeteccion','TiempoUltimaDeteccion','TiempoLlegada'};
+            for v = varsT
+                if ~isdatetime(infoParadasRuta.(v{1}))
+                    infoParadasRuta.(v{1}) = datetime(infoParadasRuta.(v{1}));
                 end
+            end
+
+            % Variables del recorrido
+            tiempos = datosSensorRuta.time;
+            dist = distancias; % eje X
+            yL = ylim;
+
+            % Iterar sobre cada parada detectada
+            for s = 1:height(infoParadasRuta)
+                tInicio = infoParadasRuta.TiempoPrimeraDeteccion(s);
+                tFin    = infoParadasRuta.TiempoUltimaDeteccion(s);
+                tLleg   = infoParadasRuta.TiempoLlegada(s);
+
+                % Buscar índices más cercanos a los tiempos
+                [~, idxInicio] = min(abs(tiempos - tInicio));
+                [~, idxFin]    = min(abs(tiempos - tFin));
+                [~, idxLleg]   = min(abs(tiempos - tLleg));
+
+                if idxFin > idxInicio
+                    xInicio = dist(idxInicio);
+                    xFin = dist(idxFin);
+
+                    % Sombrear el tramo donde estuvo detenido
+                    fill([xInicio xFin xFin xInicio], ...
+                         [yL(1) yL(1) yL(2) yL(2)], ...
+                         [0.9 0.9 0.5], 'FaceAlpha', 0.3, ...
+                         'EdgeColor','none', 'HandleVisibility','off');
+                end
+
+                % Línea vertical en llegada
+                if ~isnat(tLleg)
+                    xline(dist(idxLleg), '--r', 'HandleVisibility','off');
+                end
+
+                % Etiqueta
+                if ismember('Parada', infoParadasRuta.Properties.VariableNames)
+                    text(dist(idxLleg), yL(2), string(infoParadasRuta.Parada(s)), ...
+                         'Rotation', 90, 'VerticalAlignment','bottom', ...
+                         'FontSize', 8, 'Color', [0.2 0.2 0.2]);
+                end
+            end
+        end
+    end
+end
+
+
             end
 
             % Título

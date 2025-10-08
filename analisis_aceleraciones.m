@@ -256,6 +256,8 @@ Tabla = superTabla(datosBuses,PosCurvas);
 
 function TABLA = superTabla(datosBuses, PosCurvas)
 
+warnState = warning('off', 'MATLAB:singularMatrix');
+warnState2 = warning('off', 'MATLAB:nearlySingularMatrix');
 
 % Crear la tabla vacía con los nombres de columna adecuados
 TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],[],[],[],[],...

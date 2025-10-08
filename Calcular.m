@@ -1077,6 +1077,178 @@ function datosBuses = GenerarSegmentosEquilibrados(datosBuses, k, nSeg)
 end
 
 
+%%
+function datosBuses = DuracionParadas(datosBuses, k, umbral)
+    % Calcula la duración de cada parada (en segundos) del recorrido k,
+    % usando las velocidades del bus y los intervalos de detección de parada.
+    %
+    % Parámetros:
+    %   datosBuses -> estructura con datos de buses (ya cargada)
+    %   k          -> índice del recorrido
+    %   umbral     -> umbral de velocidad en m/s (por defecto 2)
+    %
+    % Resultado:
+    %   Agrega una nueva columna 'DuracionParada' a InfoParadas{k}
+    %   (0 si no hay detención dentro del intervalo)
+
+    if nargin < 3
+        umbral = 2; % m/s
+    end
+
+    % Validaciones
+    if ~isfield(datosBuses, 'tiempoRuta') || ...
+       ~iscell(datosBuses.tiempoRuta.InfoParadas) || ...
+       k > numel(datosBuses.tiempoRuta.InfoParadas)
+        error('No existe InfoParadas para el recorrido %d.', k);
+    end
+
+    infoParadas = datosBuses.tiempoRuta.InfoParadas{k};
+    if isempty(infoParadas) || ~istable(infoParadas)
+        warning('No hay datos de paradas válidos para k=%d.', k);
+        return;
+    end
+
+    if ~isfield(datosBuses, 'datosSensorRuta') || ...
+       k > size(datosBuses.datosSensorRuta,1)
+        error('No existen datos de sensor para el recorrido %d.', k);
+    end
+
+    datosSensor = datosBuses.datosSensorRuta{k,2};
+    velocidades = datosBuses.velocidadRuta{k,2};
+    tiempos = datosSensor.time;
+
+    if isempty(velocidades) || isempty(tiempos)
+        warning('No hay datos de velocidad o tiempo para el recorrido %d.', k);
+        return;
+    end
+
+    % Asegurar longitudes consistentes
+    n = min(length(velocidades), length(tiempos));
+    velocidades = velocidades(1:n);
+    tiempos = tiempos(1:n);
+
+    % Inicializar columna de duración
+    duracionSegundos = zeros(height(infoParadas), 1);
+
+    % Calcular duración por cada parada
+    for i = 1:height(infoParadas)
+        tInicio = infoParadas.TiempoPrimeraDeteccion(i);
+        tFin    = infoParadas.TiempoUltimaDeteccion(i);
+
+        % Buscar índices dentro del intervalo
+        idx = tiempos >= tInicio & tiempos <= tFin;
+
+        if any(idx)
+            % Calcular tiempo total donde velocidad ≤ umbral
+            vSegmento = velocidades(idx);
+            tSegmento = tiempos(idx);
+
+            if numel(tSegmento) > 1
+                % Diferencias de tiempo en segundos
+                dt = seconds(diff(tSegmento));
+                lento = vSegmento(1:end-1) <= umbral;
+                duracionSegundos(i) = sum(dt(lento));
+            else
+                duracionSegundos(i) = 0;
+            end
+        else
+            duracionSegundos(i) = 0;
+        end
+    end
+
+    % Añadir columna a la tabla InfoParadas
+    infoParadas.DuracionParada = duracionSegundos;
+
+    % Actualizar estructura original
+    datosBuses.tiempoRuta.InfoParadas{k} = infoParadas;
+
+end
+
+%%
+
+function datosBuses = EventosRutas(datosBuses)
+    % Extrae los segmentos de EV1 y EV2 correspondientes a cada ruta de cada bus y fecha.
+    % 
+    % Los eventos se delimitan por los tiempos de inicio y fin de cada recorrido
+    % registrados en la tabla tiempoRuta.
+    %
+    % Resultado:
+    %   Se crean campos:
+    %       datosBuses.(fecha).(bus).segmentoEV1{k}
+    %       datosBuses.(fecha).(bus).segmentoEV2{k}
+    %
+    % Ejemplo:
+    %   datosBuses = EventosRutas(datosBuses);
+
+    % Listar todas las fechas disponibles
+    fechas = fieldnames(datosBuses);
+
+    for i = 1:numel(fechas)
+        fecha = fechas{i};
+
+        % Listar buses para la fecha actual
+        buses = fieldnames(datosBuses.(fecha));
+
+        for j = 1:numel(buses)
+            bus = buses{j};
+
+            % Verificar que existan datos relevantes
+            if ~isfield(datosBuses.(fecha).(bus), 'tiempoRuta')
+                continue;
+            end
+
+            tiempoRuta = datosBuses.(fecha).(bus).tiempoRuta;
+
+            % Verificar si existen tablas EV1 o EV2
+            tieneEV1 = isfield(datosBuses.(fecha).(bus), 'EV1');
+            tieneEV2 = isfield(datosBuses.(fecha).(bus), 'EV2');
+
+            if ~tieneEV1 && ~tieneEV2
+                continue;
+            end
+
+            % Iterar sobre los recorridos (filas de tiempoRuta)
+            for k = 1:size(tiempoRuta, 1)
+                % Determinar inicio y fin del recorrido
+                inicioRuta = tiempoRuta{k, 1};
+                finRuta    = tiempoRuta{k, 2};
+
+                % --- EV1 ---
+                if tieneEV1
+                    datosEV1 = datosBuses.(fecha).(bus).EV1;
+
+                    if istable(datosEV1) && ismember('fechaHoraLecturaDato', datosEV1.Properties.VariableNames)
+                        segmentoEV1 = datosEV1(datosEV1.fechaHoraLecturaDato >= inicioRuta & ...
+                                               datosEV1.fechaHoraLecturaDato <= finRuta, :);
+                    else
+                        segmentoEV1 = table();
+                    end
+
+                    % Guardar en estructura
+                    datosBuses.(fecha).(bus).segmentoEV1{k,1} = segmentoEV1;
+                end
+
+                % --- EV2 ---
+                if tieneEV2
+                    datosEV2 = datosBuses.(fecha).(bus).EV2;
+
+                    if istable(datosEV2) && ismember('fechaHoraLecturaDato', datosEV2.Properties.VariableNames)
+                        segmentoEV2 = datosEV2(datosEV2.fechaHoraLecturaDato >= inicioRuta & ...
+                                               datosEV2.fechaHoraLecturaDato <= finRuta, :);
+                    else
+                        segmentoEV2 = table();
+                    end
+
+                    % Guardar en estructura
+                    datosBuses.(fecha).(bus).segmentoEV2{k,1} = segmentoEV2;
+                end
+            end
+        end
+    end
+
+    fprintf('Segmentos EV1 y EV2 extraídos por ruta y almacenados en datosBuses.\n');
+end
+
 
         %%
 
