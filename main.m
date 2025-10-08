@@ -94,8 +94,12 @@ datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 %%
 datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses,@Calcular.GenerarSegmentos);
 
+%%
 
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses,@Calcular.GenerarSegmentosEquilibrados,8);
 
+%%
+datosBuses = Calcular.iterarSobreBusesyFechas(datosBuses, @Calcular.DuracionParadas);
 
 
 
@@ -126,7 +130,7 @@ Graficar.graficarMagnitudesVsDuraciones(datosBuses, 'bus_4012', 'f_03_07_2024', 
 Graficar.HistogramasMagnitudesVsDuraciones(datosBuses, 'bus_4012', 'f_03_07_2024', 1);
 
 %%
-Graficar.velocidadvsdistancia(datosBuses, 'bus_4012', 'f_03_07_2024');
+Graficar.velocidadvsdistancia(datosBuses, 'bus_4012', 'f_03_07_2024', 1, false, true, rutas);
 
 %% ---------------Funciones viejas--------------------------
 

@@ -80,100 +80,159 @@ classdef Graficar
             title('Gráfico de aceleraciones y frenadas por Sexo');
         end
         
-        function graficarVelocidadPorRutas(datosBuses, busID, fecha, indiceRuta, tipoVelocidad)
-            % Esta función grafica las velocidades para rutas de un bus en fechas dadas
+        function graficarVelocidadPorRutas(datosBuses, busID, fecha, indiceRuta, tipoVelocidad, mostrarParadas, paradasStruct)
+    % Esta función grafica las velocidades para rutas de un bus en fechas dadas
+    % y opcionalmente muestra las paradas en el tiempo.
 
-            if nargin < 5 || isempty(tipoVelocidad)
-                tipoVelocidad = 'filtrada'; % valor por defecto
-            end
+    if nargin < 5 || isempty(tipoVelocidad)
+        tipoVelocidad = 'filtrada'; % valor por defecto
+    end
+    if nargin < 6
+        mostrarParadas = false;
+    end
 
-            % Comprobar si el bus existe
-            if ~isfield(datosBuses, busID)
-                error('El bus especificado no existe en los datos.');
-            end
+    % Comprobar si el bus existe
+    if ~isfield(datosBuses, busID)
+        error('El bus especificado no existe en los datos.');
+    end
 
-            % Obtener todas las fechas si no se especifica una
-            if nargin < 3 || isempty(fecha)
-                fechas = fieldnames(datosBuses.(busID));
-            else
-                if ~isfield(datosBuses.(busID), fecha)
-                    error('La fecha especificada no existe para el bus dado.');
-                end
-                fechas = {fecha};
-            end
-
-            % Iterar sobre las fechas
-            for j = 1:numel(fechas)
-                fechaActual = fechas{j};
-
-                % Obtener los datos de velocidad para la fecha especificada
-                if isfield(datosBuses.(busID).(fechaActual), 'velocidadRuta')
-                    velocidadRutas = datosBuses.(busID).(fechaActual).velocidadRuta;
-                else
-                    warning('No hay datos de velocidad disponibles para la fecha %s.', fechaActual);
-                    continue;
-                end
-
-                % Obtener todos los índices si no se especifica uno
-                if nargin < 4 || isempty(indiceRuta)
-                    indicesRutas = 1:size(velocidadRutas, 1);
-                else
-                    if indiceRuta < 1 || indiceRuta > size(velocidadRutas, 1)
-                        error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(velocidadRutas, 1));
-                    end
-                    indicesRutas = indiceRuta;
-                end
-
-                % Iterar sobre los índices de ruta
-                for k = indicesRutas
-                    % Obtener las velocidades y los datos del sensor para el índice de ruta especificado
-                    velocidades = velocidadRutas{k, 2}; % Velocidades calculadas
-                    ruta = velocidadRutas{k, 3}; % Nombre de la ruta
-
-                    % Obtener los tiempos asociados a las velocidades
-                    datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 2}; % Datos del sensor para la ruta
-                    tiempos = datosSensorRuta.time(2:end-1); % Usar los tiempos del sensor
-                    velocidades = velocidades(1:end-1); % cambio porque estaba dando error con lo de arriba
-
-
-                    % Graficar las velocidades
-                    figure; hold on;
-                    switch tipoVelocidad
-                        case 'filtrada'
-                            velFiltrada = velocidadRutas{k, 2};
-                            plot(tiempos, velFiltrada(1:end-1), 'b-', 'DisplayName', 'Filtrada');
-
-                        case 'original'
-                            velOriginal = velocidadRutas{k, 5};
-                            plot(tiempos, velOriginal(1:end-1), 'r--', 'DisplayName', 'Original');
-
-                        case 'ambas'
-                            velFiltrada = velocidadRutas{k, 2};
-                            velOriginal = velocidadRutas{k, 5};
-                            plot(tiempos, velOriginal(1:end-1), 'r--', 'DisplayName', 'Original');
-                            plot(tiempos, velFiltrada(1:end-1), 'b-', 'DisplayName', 'Filtrada');
-
-                        otherwise
-                            error('Valor no válido para tipoVelocidad. Use "filtrada", "original" o "ambas".');
-                    end
-
-
-
-                    % Ajustar el título de la gráfica para evitar subíndices
-                    ruta = strrep(ruta, '_', '\_'); % Escapar guiones bajos
-                    fechaActualEscapada = strrep(fechaActual, '_', '\_'); % Escapar guiones bajos
-                    busIDEscapado = strrep(busID, '_', '\_'); % Escapar guiones bajos
-
-                    % Crear el título usando sprintf para evitar problemas de formato
-                    title(sprintf('Velocidades para la ruta %s (Índice: %d) en el bus %s en la fecha %s', ruta, k, busIDEscapado, fechaActualEscapada));
-                    xlabel('Tiempo');
-                    ylabel('Velocidad (m/s)');
-                    grid on;
-                    legend show
-                    hold off;
-                end
-            end
+    % Obtener todas las fechas si no se especifica una
+    if nargin < 3 || isempty(fecha)
+        fechas = fieldnames(datosBuses.(busID));
+    else
+        if ~isfield(datosBuses.(busID), fecha)
+            error('La fecha especificada no existe para el bus dado.');
         end
+        fechas = {fecha};
+    end
+
+    % Iterar sobre las fechas
+    for j = 1:numel(fechas)
+        fechaActual = fechas{j};
+
+        % Obtener los datos de velocidad para la fecha especificada
+        if isfield(datosBuses.(busID).(fechaActual), 'velocidadRuta')
+            velocidadRutas = datosBuses.(busID).(fechaActual).velocidadRuta;
+        else
+            warning('No hay datos de velocidad disponibles para la fecha %s.', fechaActual);
+            continue;
+        end
+
+        % Obtener todos los índices si no se especifica uno
+        if nargin < 4 || isempty(indiceRuta)
+            indicesRutas = 1:size(velocidadRutas, 1);
+        else
+            if indiceRuta < 1 || indiceRuta > size(velocidadRutas, 1)
+                error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(velocidadRutas, 1));
+            end
+            indicesRutas = indiceRuta;
+        end
+
+        % Iterar sobre los índices de ruta
+        for k = indicesRutas
+            % Obtener las velocidades y los datos del sensor para el índice de ruta especificado
+            datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 2};
+            tiempos = datosSensorRuta.time(2:end-1);
+
+            switch tipoVelocidad
+                case 'filtrada'
+                    velocidad = velocidadRutas{k, 2};
+                case 'original'
+                    velocidad = velocidadRutas{k, 5};
+                case 'ambas'
+                    velFiltrada = velocidadRutas{k, 2};
+                    velOriginal = velocidadRutas{k, 5};
+                otherwise
+                    error('Valor no válido para tipoVelocidad. Use "filtrada", "original" o "ambas".');
+            end
+
+            % Asegurar tamaños iguales
+            % Asegurar tamaños iguales según el tipo de velocidad
+switch tipoVelocidad
+    case {'filtrada', 'original'}
+        n = min(length(velocidad), length(tiempos));
+        velocidad = velocidad(1:n);
+        tiempos = tiempos(1:n);
+    case 'ambas'
+        n = min([length(velFiltrada), length(velOriginal), length(tiempos)]);
+        velFiltrada = velFiltrada(1:n);
+        velOriginal = velOriginal(1:n);
+        tiempos = tiempos(1:n);
+end
+
+
+            % Crear figura
+            figure; hold on;
+
+            % Graficar velocidad
+            switch tipoVelocidad
+                case 'filtrada'
+                    plot(tiempos, velocidad, 'b-', 'DisplayName', 'Filtrada');
+                case 'original'
+                    plot(tiempos, velocidad, 'r--', 'DisplayName', 'Original');
+                case 'ambas'
+                    plot(tiempos, velOriginal(1:n), 'r--', 'DisplayName', 'Original');
+                    plot(tiempos, velFiltrada(1:n), 'b-', 'DisplayName', 'Filtrada');
+            end
+
+            % --- NUEVO BLOQUE: Mostrar paradas ---
+            if mostrarParadas
+                nombreRuta = string(datosBuses.(busID).(fechaActual).tiempoRuta.Ruta{k});
+                idrutas = string({paradasStruct.idruta});
+                idxParada = find(idrutas == nombreRuta, 1);
+
+                if ~isempty(idxParada)
+                    stops = paradasStruct(idxParada).stops;
+                    if iscell(stops), stops = stops{1}; end
+
+                    latBus = datosSensorRuta.lat;
+                    lonBus = datosSensorRuta.lon;
+
+                    for s = 1:height(stops)
+                        % Calcular distancia mínima entre parada y trayecto
+                        dists = arrayfun(@(i) Calculos.geodist(latBus(i), lonBus(i), ...
+                                        stops.lat(s), stops.lon(s)), 1:numel(latBus));
+                        [~, idxMin] = min(dists);
+
+                        % Línea vertical en el tiempo correspondiente
+                        xline(tiempos(idxMin), '--r', 'LineWidth', 1, ...
+      'HandleVisibility', 'off');
+
+                        % Etiqueta de parada
+                        % Etiqueta de parada
+if ismember('stop_name', stops.Properties.VariableNames)
+    switch tipoVelocidad
+    case {'filtrada', 'original'}
+        yMax = max(velocidad);
+    case 'ambas'
+        yMax = max([max(velFiltrada), max(velOriginal)]);
+end
+
+
+    text(tiempos(idxMin), yMax, string(stops.stop_name(s)), ...
+         'Rotation', 90, 'VerticalAlignment','bottom', 'FontSize',8);
+end
+
+                    end
+                end
+            end
+            % -------------------------------------
+
+            % Título y ejes
+            ruta = strrep(velocidadRutas{k,3}, '_', '\_');
+            fechaEsc = strrep(fechaActual, '_', '\_');
+            busEsc = strrep(busID, '_', '\_');
+
+            title(sprintf('Velocidad vs Tiempo - %s (Ruta %d) %s %s', ...
+                ruta, k, busEsc, fechaEsc), 'Interpreter','none');
+            xlabel('Tiempo');
+            ylabel('Velocidad (m/s)');
+            grid on;
+            legend show;
+            hold off;
+        end
+    end
+end
 
 
         function graficarRutasPorBus(datosBuses, busID, fecha, indicesRuta)
@@ -251,6 +310,164 @@ classdef Graficar
     end
 end
 
+function graficarVelocidadPromedioDia(datosBuses, busID, fecha, nombreRutaFiltro)
+    % Graficar la velocidad promedio a lo largo del día para una o varias rutas.
+    %
+    % Parámetros:
+    % datosBuses        -> estructura con datos de buses
+    % busID (opcional)  -> identificador del bus. Si se omite, usa todos
+    % fecha (opcional)  -> fecha específica. Si se omite, usa todas las disponibles
+    % nombreRutaFiltro (opcional) -> nombre de ruta específico. Si se omite, usa todas
+    %
+    % Ejemplo:
+    % graficarVelocidadPromedioDia(datosBuses, "bus_4012", "f_03_07_2024", "P60A")
+
+    % -----------------------------
+    % Inicialización
+    % -----------------------------
+    if nargin < 2 || isempty(busID)
+        listaBuses = fieldnames(datosBuses);
+        listaBuses(strcmp(listaBuses, 'info')) = [];
+    else
+        if ~isfield(datosBuses, busID)
+            error('El bus especificado no existe en los datos.');
+        end
+        listaBuses = {busID};
+    end
+
+    velocidadesTotales = [];
+    horasTotales = [];
+
+    % -----------------------------
+    % Recorrer buses y fechas
+    % -----------------------------
+    for i = 1:numel(listaBuses)
+        bus = listaBuses{i};
+        fechas = fieldnames(datosBuses.(bus));
+
+        if nargin >= 3 && ~isempty(fecha)
+            if ~isfield(datosBuses.(bus), fecha)
+                warning('La fecha %s no existe para el bus %s.', fecha, bus);
+                continue;
+            end
+            fechas = {fecha};
+        end
+
+        for j = 1:numel(fechas)
+            fechaActual = fechas{j};
+
+            if ~isfield(datosBuses.(bus).(fechaActual), 'velocidadRuta')
+                continue;
+            end
+
+            velocidadRuta = datosBuses.(bus).(fechaActual).velocidadRuta;
+            datosSensorRuta = datosBuses.(bus).(fechaActual).datosSensorRuta;
+            nombresRutas = datosBuses.(bus).(fechaActual).tiempoRuta.Ruta;
+
+            for k = 1:size(velocidadRuta, 1)
+                nombreRuta = string(strrep(nombresRutas{k}, '"',''));
+
+                % Filtro opcional por ruta
+                if nargin >= 4 && ~isempty(nombreRutaFiltro)
+                    if nombreRuta ~= nombreRutaFiltro
+                        continue;
+                    end
+                end
+
+                % Validar existencia de datos
+                if isempty(velocidadRuta{k,2}) || isempty(datosSensorRuta{k,2})
+                    continue;
+                end
+
+                vel = velocidadRuta{k,2}; % Velocidad filtrada
+                t = datosSensorRuta{k,2}.time;
+
+                % Asegurar dimensiones consistentes
+                n = min(numel(vel), numel(t));
+                vel = vel(1:n);
+                t = t(1:n);
+
+                % Convertir tiempos a horas del día (0–24)
+                horas = hour(t) + minute(t)/60 + second(t)/3600;
+
+                % Filtrar valores no válidos
+                mask = ~isnan(vel) & vel > 0 & horas >= 0 & horas <= 24;
+                vel = vel(mask);
+                horas = horas(mask);
+
+                % Acumular
+                velocidadesTotales = [velocidadesTotales; vel];
+                horasTotales = [horasTotales; horas];
+            end
+        end
+    end
+
+    % -----------------------------
+    % Verificar datos
+    % -----------------------------
+    if isempty(velocidadesTotales)
+        warning('No se encontraron datos válidos para la velocidad.');
+        return;
+    end
+
+    % -----------------------------
+    % Agrupar por hora (promedio y desviación)
+    % -----------------------------
+    edges = 0:0.25:24; % cada 15 minutos
+    [N,~,bin] = histcounts(horasTotales, edges);
+    medias = accumarray(bin, velocidadesTotales, [numel(edges)-1, 1], @mean, NaN);
+    desv = accumarray(bin, velocidadesTotales, [numel(edges)-1, 1], @std, NaN);
+    centros = (edges(1:end-1) + edges(2:end))/2;
+
+    % -----------------------------
+    % Graficar
+    % -----------------------------
+figure; hold on;
+
+% Filtrar valores válidos (sin NaN)
+valid = ~isnan(medias) & ~isnan(desv);
+centrosValid = centros(valid);
+mediasValid = medias(valid);
+desvValid = desv(valid);
+
+% Graficar la banda de desviación estándar solo si hay datos válidos
+if ~isempty(centrosValid)
+    % Asegurar vectores fila del mismo tamaño
+    x = [centrosValid(:)', fliplr(centrosValid(:)')];
+    y = [ (mediasValid + desvValid)' , fliplr((mediasValid - desvValid)') ];
+
+    % Verificar tamaños iguales antes de graficar
+    if numel(x) == numel(y)
+        fill(x, y, [0.8 0.9 1.0], 'EdgeColor', 'none', 'FaceAlpha', 0.4);
+    else
+        warning('Dimensiones inconsistentes entre x e y. No se graficó la banda de desviación.');
+    end
+end
+
+
+% Graficar línea promedio
+plot(centrosValid, mediasValid, 'b', 'LineWidth', 2);
+
+xlabel('Hora del día');
+ylabel('Velocidad promedio (m/s)');
+
+% Título informativo
+if exist('nombreRutaFiltro','var') && ~isempty(nombreRutaFiltro)
+    titulo = sprintf('Velocidad promedio diaria (%s)', nombreRutaFiltro);
+else
+    titulo = 'Velocidad promedio diaria (todas las rutas)';
+end
+title(titulo, 'Interpreter', 'none');
+
+grid on;
+xlim([0 24]);
+legend('Desviación estándar', 'Promedio', 'Location', 'best');
+hold off;
+end
+
+function r = iff(cond, a, b)
+    if cond, r = a; else, r = b; end
+end
 
 
         function aceleracionPorRutas(datosBuses, busID, fecha, indiceRuta)
@@ -455,6 +672,137 @@ end
 end
 
 
+function graficarVelocidadMapa(datosBuses, paradasStruct, busID, fecha, indiceRuta, tipoVelocidad, mostrarNombresParadas)
+% Graficar mapa de calor de la velocidad (no por segmentos)
+% con opción de mostrar paradas sobre la ruta.
+%
+% datosBuses          -> estructura con datos de buses
+% paradasStruct       -> estructura con paradas
+% busID               -> identificador del bus
+% fecha               -> fecha específica
+% indiceRuta          -> índice de ruta (numérico)
+% tipoVelocidad       -> 'filtrada', 'original' o 'ambas'
+% mostrarNombresParadas -> true/false para mostrar nombres de paradas
+
+    if nargin < 7 || isempty(mostrarNombresParadas)
+        mostrarNombresParadas = false;
+    end
+    if nargin < 6 || isempty(tipoVelocidad)
+        tipoVelocidad = 'filtrada';
+    end
+
+    % --- Verificaciones básicas ---
+    if ~isfield(datosBuses, busID)
+        error('El bus especificado no existe en los datos.');
+    end
+    if ~isfield(datosBuses.(busID), fecha)
+        error('La fecha especificada no existe para el bus dado.');
+    end
+
+    % --- Extraer datos ---
+    datosRuta     = datosBuses.(busID).(fecha).datosSensorRuta;
+    velRuta       = datosBuses.(busID).(fecha).velocidadRuta;
+    nombresRutas  = datosBuses.(busID).(fecha).tiempoRuta.Ruta;
+
+    if indiceRuta < 1 || indiceRuta > size(velRuta,1)
+        error('Índice de ruta fuera de rango.');
+    end
+
+    % --- Seleccionar datos de ruta ---
+    datosSensor = datosRuta{indiceRuta,2};
+    lat = datosSensor.lat(:);
+    lon = datosSensor.lon(:);
+    tiempos = datosSensor.time(:);
+
+    switch tipoVelocidad
+        case 'filtrada'
+            velocidad = velRuta{indiceRuta,2};
+        case 'original'
+            velocidad = velRuta{indiceRuta,5};
+        case 'ambas'
+            velocidad = velRuta{indiceRuta,2};
+            warning('Tipo "ambas": se graficará solo la velocidad filtrada en mapa.');
+        otherwise
+            error('tipoVelocidad no válido. Use "filtrada", "original" o "ambas".');
+    end
+
+    % --- Alinear longitudes ---
+    n = min([numel(lat), numel(lon), numel(velocidad)]);
+    lat = lat(1:n);
+    lon = lon(1:n);
+    velocidad = velocidad(1:n);
+
+    % --- Crear figura geográfica ---
+    figure;
+    geobasemap('streets-light'); hold on;
+
+    % --- Normalizar valores para color ---
+    vmin = min(velocidad, [], 'omitnan');
+    vmax = max(velocidad, [], 'omitnan');
+    cmap = jet(256);
+    cidx = round(1 + (velocidad - vmin) / (vmax - vmin) * 255);
+    cidx = max(min(cidx,256),1);
+
+    % --- Dibujar la ruta con mapa de calor ---
+    h = geoscatter(lat, lon, 15, velocidad, 'filled');
+
+
+    % --- Añadir colorbar ---
+    colormap(jet);
+    cb = colorbar;
+    cb.Label.String = sprintf('Velocidad (%s)', tipoVelocidad);
+    cb.Label.FontSize = 10;
+
+    % Personalizar DataTip
+h.DataTipTemplate.DataTipRows(1).Label = 'Latitud';
+h.DataTipTemplate.DataTipRows(2).Label = 'Longitud';
+h.DataTipTemplate.DataTipRows(3).Label = 'Velocidad (m/s)';
+
+if istable(datosSensor) && ismember('time', datosSensor.Properties.VariableNames)
+    % Convertir el datetime a cadena con formato HH:MM
+    horasStr = string(datestr(datosSensor.time(1:numel(lat)), 'HH:MM:SS'));
+    dtHora = dataTipTextRow('Hora', horasStr);
+    h.DataTipTemplate.DataTipRows(end+1) = dtHora;
+end
+
+    % --- Añadir paradas ---
+    nombreRuta = string(strrep(nombresRutas{indiceRuta}, '"',''));
+    idrutas = string({paradasStruct.idruta});
+    idxParada = find(idrutas == nombreRuta, 1);
+
+    if ~isempty(idxParada)
+        stops = paradasStruct(idxParada).stops;
+        if iscell(stops), stops = stops{1}; end
+        if istable(stops) && all(ismember({'lat','lon'}, stops.Properties.VariableNames))
+            latStops = stops.lat;
+            lonStops = stops.lon;
+
+            % Paradas como triángulos magenta
+            geoscatter(latStops, lonStops, 80, 'm', 'filled', '^');
+
+            % Mostrar nombres si se pide
+            if mostrarNombresParadas && ismember('stop_name', stops.Properties.VariableNames)
+                for s = 1:height(stops)
+                    text(latStops(s), lonStops(s), string(stops.stop_name(s)), ...
+                         'FontSize', 8, 'Color','k', 'HorizontalAlignment','left');
+                end
+            end
+        end
+    end
+
+    % --- Marcar inicio y fin de ruta ---
+    geoscatter(lat(1), lon(1), 100, 'g', 'filled'); % inicio
+    geoscatter(lat(end), lon(end), 100, 'r', 'filled'); % fin
+
+    % --- Título ---
+    title(sprintf('Mapa de calor de velocidad - Bus %s (%s) Ruta %s', ...
+        busID, fecha, nombreRuta), 'Interpreter','none');
+
+    hold off;
+end
+
+
+
 function graficarCurvas(datosBuses, busID, fecha, indiceRuta, nombreRutaFiltro)
     % Esta función grafica la ruta filtrada y las curvas detectadas
     % usando la información en datosBuses.trayectoriaFiltrada.
@@ -565,6 +913,206 @@ function graficarCurvas(datosBuses, busID, fecha, indiceRuta, nombreRutaFiltro)
             end
         end
     end
+end
+
+function graficarDistribucionGenero(datosBuses, campoMetricas, nombreRutaFiltro, tipoDistribucion)
+    % Graficar la distribución de un campo (por género), ya sea:
+    %   - "empirica"  -> usando ksdensity (densidad suavizada real)
+    %   - "teorica"   -> usando media y desviación estándar (gaussiana ideal)
+    %
+    % Parámetros:
+    % datosBuses -> estructura con los datos
+    % campoMetricas -> nombre del campo (por ejemplo 'promedioVelocidad')
+    % nombreRutaFiltro (opcional) -> nombre de la ruta (si se omite o [], usa todas)
+    % tipoDistribucion (opcional) -> 'empirica' (por defecto) o 'teorica'
+
+    if nargin < 3
+        nombreRutaFiltro = [];
+    end
+    if nargin < 4 || isempty(tipoDistribucion)
+        tipoDistribucion = "empirica"; % por defecto
+    end
+
+    valoresH = [];
+    valoresM = [];
+
+    buses = fieldnames(datosBuses);
+    for i = 1:numel(buses)
+        bus = buses{i};
+        if strcmp(bus, 'info')
+            continue;
+        end
+
+        fechas = fieldnames(datosBuses.(bus));
+        for j = 1:numel(fechas)
+            fecha = fechas{j};
+
+            if ~isfield(datosBuses.(bus).(fecha), 'segmentos8')
+                continue;
+            end
+
+            rutas = datosBuses.(bus).(fecha).tiempoRuta.Ruta;
+            generos = datosBuses.(bus).(fecha).tiempoRuta.Genero_Conductor;
+            segs = datosBuses.(bus).(fecha).segmentos8;
+
+            for k = 1:numel(rutas)
+                nombreRuta = strrep(rutas{k}, '"', '');
+                nombreRuta = string(nombreRuta);
+
+                % Filtrar por ruta si aplica
+                if ~isempty(nombreRutaFiltro) && nombreRuta ~= nombreRutaFiltro
+                    continue;
+                end
+
+                genero = string(generos{k});
+                if isempty(segs{k}) || ~ismember(campoMetricas, segs{k}.Properties.VariableNames)
+                    continue;
+                end
+
+                datos = segs{k}.(campoMetricas);
+                datos = datos(~isnan(datos)); % eliminar NaN
+
+                if genero == "H"
+                    valoresH = [valoresH; datos];
+                elseif genero == "M"
+                    valoresM = [valoresM; datos];
+                end
+            end
+        end
+    end
+
+    if isempty(valoresH) && isempty(valoresM)
+        warning('No hay datos válidos para graficar la distribución.');
+        return;
+    end
+
+    % -------------------------------
+    % Gráfica
+    % -------------------------------
+    figure;
+    hold on;
+
+    switch lower(tipoDistribucion)
+        case "empirica"
+            % === Distribución empírica (ksdensity) ===
+            if ~isempty(valoresH)
+                [fH, xH] = ksdensity(valoresH);
+                plot(xH, fH, 'b', 'LineWidth', 2, 'DisplayName', 'Hombres');
+            end
+            if ~isempty(valoresM)
+                [fM, xM] = ksdensity(valoresM);
+                plot(xM, fM, 'r', 'LineWidth', 2, 'DisplayName', 'Mujeres');
+            end
+            tituloTipo = 'Distribución Empírica (ksdensity)';
+
+        case "teorica"
+            % === Distribución teórica (media y desviación) ===
+            if ~isempty(valoresH)
+                muH = mean(valoresH);
+                sigmaH = std(valoresH);
+            end
+            if ~isempty(valoresM)
+                muM = mean(valoresM);
+                sigmaM = std(valoresM);
+            end
+
+            % Eje común
+            xMin = min([valoresH; valoresM]);
+            xMax = max([valoresH; valoresM]);
+            x = linspace(xMin, xMax, 300);
+
+            % Gaussianas teóricas
+            if ~isempty(valoresH)
+                fH = (1/(sqrt(2*pi)*sigmaH)) * exp(-0.5*((x - muH)/sigmaH).^2);
+                plot(x, fH, 'b', 'LineWidth', 2, 'DisplayName', ...
+                    sprintf('Hombres (μ=%.2f, σ=%.2f)', muH, sigmaH));
+                xline(muH, '--b');
+            end
+            if ~isempty(valoresM)
+                fM = (1/(sqrt(2*pi)*sigmaM)) * exp(-0.5*((x - muM)/sigmaM).^2);
+                plot(x, fM, 'r', 'LineWidth', 2, 'DisplayName', ...
+                    sprintf('Mujeres (μ=%.2f, σ=%.2f)', muM, sigmaM));
+                xline(muM, '--r');
+            end
+            tituloTipo = 'Distribución Normal Teórica (μ, σ)';
+
+        otherwise
+            error('tipoDistribucion debe ser "empirica" o "teorica".');
+    end
+
+    % -------------------------------
+    % Estilo de la figura
+    % -------------------------------
+    xlabel(strrep(campoMetricas, '_', '\_'));
+    ylabel('Densidad de probabilidad');
+    if isempty(nombreRutaFiltro)
+        tituloRuta = 'Todas las rutas';
+    else
+        tituloRuta = sprintf('Ruta %s', nombreRutaFiltro);
+    end
+    title(sprintf('%s de %s (%s)', tituloTipo, campoMetricas, tituloRuta), 'Interpreter', 'none');
+    legend('show', 'Location', 'best');
+    grid on;
+    hold off;
+end
+
+
+function graficarHistogramaMuestreo(datosBuses)
+    % Graficar histograma de la precisión del muestreo (deltaTiempo)
+    % usando todos los datos disponibles en datosSensorRuta.
+    %
+    % Descarta valores NaN, negativos y mayores a 30 s.
+
+    deltaT_todos = [];
+
+    buses = fieldnames(datosBuses);
+    for i = 1:numel(buses)
+        bus = buses{i};
+        if strcmp(bus, 'info')
+            continue;
+        end
+
+        fechas = fieldnames(datosBuses.(bus));
+        for j = 1:numel(fechas)
+            fecha = fechas{j};
+
+            if ~isfield(datosBuses.(bus).(fecha), 'datosSensorRuta')
+                continue;
+            end
+
+            rutas = datosBuses.(bus).(fecha).datosSensorRuta;
+
+            for k = 1:size(rutas, 1)
+                if istable(rutas{k, 2}) && ismember('deltaTiempo', rutas{k, 2}.Properties.VariableNames)
+                    dT = rutas{k, 2}.deltaTiempo;
+                    % Quitar NaN, negativos y valores > 30 s
+                    dT = dT(~isnan(dT) & dT > 0 & dT <= 30);
+                    deltaT_todos = [deltaT_todos; dT];
+                end
+            end
+        end
+    end
+
+    % Si no hay datos válidos, salir
+    if isempty(deltaT_todos)
+        warning('No se encontraron datos válidos de deltaTiempo.');
+        return;
+    end
+
+    % Graficar histograma
+    figure;
+    histogram(deltaT_todos, 50, 'FaceColor', [0.2 0.4 0.7], 'EdgeColor', 'none');
+    xlabel('Δt (s)');
+    ylabel('Frecuencia');
+    title('Histograma de precisión del muestreo (filtrado, Δt ≤ 30 s)');
+    grid on;
+
+    % Mostrar estadísticas básicas
+    media = mean(deltaT_todos);
+    desviacion = std(deltaT_todos);
+    texto = sprintf('Media: %.3f s\nDesv.: %.3f s', media, desviacion);
+    annotation('textbox', [0.65 0.7 0.3 0.15], 'String', texto, ...
+        'FitBoxToText', 'on', 'BackgroundColor', 'w');
 end
 
 
@@ -696,6 +1244,281 @@ function graficarSegmentos(datosBuses, busID, fecha, indiceRuta, nombreRutaFiltr
         end
     end
 end
+
+
+
+function graficarBarrasSegmentos(datosBuses, nombreRutaFiltro, campoMetricas, filtroGenero, modoAgrupacion)
+    % Graficar diagramas de barras agrupados por segmento y conductor.
+    %
+    % Parámetros:
+    % datosBuses          -> estructura completa con los datos
+    % nombreRutaFiltro    -> nombre de la ruta a filtrar (string)
+    % campoMetricas       -> nombre del campo en los segmentos a graficar (ej. 'promedioVelocidad')
+    % filtroGenero (opcional) -> 'M', 'F' o 'ambos' (por defecto 'ambos')
+    % modoAgrupacion (opcional) -> 'porSegmento' o 'porConductor' (por defecto 'porSegmento')
+    %
+    % Ejemplo:
+    % graficarBarrasSegmentos(datosBuses, "P60A", "promedioVelocidad", "F", "porConductor")
+
+    % -----------------------------
+    % Parámetros por defecto
+    % -----------------------------
+    if nargin < 4 || isempty(filtroGenero)
+        filtroGenero = "ambos";
+    end
+    if nargin < 5 || isempty(modoAgrupacion)
+        modoAgrupacion = "porSegmento";
+    end
+
+    % -----------------------------
+    % Recolectar datos
+    % -----------------------------
+    datosGraficos = table();
+    buses = fieldnames(datosBuses);
+
+    for i = 1:numel(buses)
+        bus = buses{i};
+        if strcmp(bus, 'info')
+            continue;
+        end
+
+        fechas = fieldnames(datosBuses.(bus));
+        for j = 1:numel(fechas)
+            fecha = fechas{j};
+
+            if ~isfield(datosBuses.(bus).(fecha), 'segmentos8')
+                continue;
+            end
+
+            rutas = datosBuses.(bus).(fecha).tiempoRuta.Ruta;
+            generos = datosBuses.(bus).(fecha).tiempoRuta.Genero_Conductor;
+            ids = datosBuses.(bus).(fecha).tiempoRuta.Id;
+            segs = datosBuses.(bus).(fecha).segmentos8;
+
+            for k = 1:numel(rutas)
+                nombreRuta = strrep(rutas{k}, '"','');
+                nombreRuta = string(nombreRuta);
+
+                % Filtro de ruta
+                if nombreRuta ~= nombreRutaFiltro
+                    continue;
+                end
+
+                % Filtro de género
+                genero = string(generos{k});
+                if filtroGenero ~= "ambos" && genero ~= filtroGenero
+                    continue;
+                end
+
+                % Excluir conductores no registrados
+                idConductor = ids(k);
+                if isnumeric(idConductor)
+                    if idConductor == 0, continue; end
+                elseif ischar(idConductor) || isstring(idConductor)
+                    if idConductor == "0" || idConductor == "Conductor no registrado", continue; end
+                end
+
+                % Validar estructura de datos
+                if isempty(segs{k}) || ~ismember(campoMetricas, segs{k}.Properties.VariableNames)
+                    continue;
+                end
+
+                % Añadir metadatos
+                t = segs{k};
+                t.Bus = repmat(string(bus), height(t), 1);
+                t.Fecha = repmat(string(fecha), height(t), 1);
+                t.Conductor = repmat(string(ids(k)), height(t), 1);
+                t.Genero = repmat(genero, height(t), 1);
+                t.Ruta = repmat(nombreRuta, height(t), 1);
+
+                datosGraficos = [datosGraficos; t];
+            end
+        end
+    end
+
+    if isempty(datosGraficos)
+        warning('No se encontraron datos para la ruta "%s" con el filtro especificado.', nombreRutaFiltro);
+        return;
+    end
+
+    % -----------------------------
+    % Calcular promedios por segmento y conductor
+    % -----------------------------
+    resumen = groupsummary(datosGraficos, {'nombresSegmentos','Conductor'}, 'mean', campoMetricas);
+
+    % -----------------------------
+    % Definir agrupación (eje X y subgrupos)
+    % -----------------------------
+    switch modoAgrupacion
+        case "porSegmento"
+            etiquetasX = unique(resumen.nombresSegmentos, 'stable');
+            subgrupos = unique(resumen.Conductor, 'stable');
+            xlabelX = 'Segmento';
+            legendLabel = subgrupos;
+            ejePrimario = "nombresSegmentos";
+            ejeSecundario = "Conductor";
+
+        case "porConductor"
+            etiquetasX = unique(resumen.Conductor, 'stable');
+            subgrupos = unique(resumen.nombresSegmentos, 'stable');
+            xlabelX = 'Conductor';
+            legendLabel = subgrupos;
+            ejePrimario = "Conductor";
+            ejeSecundario = "nombresSegmentos";
+
+        otherwise
+            error('Valor no válido para modoAgrupacion. Use "porSegmento" o "porConductor".');
+    end
+
+    % -----------------------------
+    % Construir matriz de valores
+    % -----------------------------
+    matrizValores = NaN(numel(etiquetasX), numel(subgrupos));
+    for s = 1:numel(etiquetasX)
+        for c = 1:numel(subgrupos)
+            mask = strcmp(resumen.(ejePrimario), etiquetasX(s)) & strcmp(resumen.(ejeSecundario), subgrupos(c));
+            fila = resumen(mask, :);
+            if ~isempty(fila)
+                nombreVar = "mean_" + strtrim(campoMetricas);
+                matrizValores(s,c) = fila{1, nombreVar};
+            end
+        end
+    end
+
+    % -----------------------------
+    % Graficar
+    % -----------------------------
+    figure;
+    bar(matrizValores, 'grouped');
+    set(gca, 'XTickLabel', etiquetasX, 'XTickLabelRotation', 45);
+    xlabel(xlabelX);
+    ylabel(strrep(campoMetricas, '_', '\_'));
+    legend(legendLabel, 'Location', 'bestoutside');
+    title(sprintf('Comparación %s (%s - %s)', ...
+        modoAgrupacion, nombreRutaFiltro, filtroGenero));
+    grid on;
+end
+
+
+function graficarBoxplotSegmentos(datosBuses, nombreRutaFiltro, campoMetricas, filtroGenero, modoAgrupacion)
+    % Graficar diagramas de cajas y bigotes agrupados solo por segmento o por conductor.
+    %
+    % Parámetros:
+    % datosBuses          -> estructura completa con los datos
+    % nombreRutaFiltro    -> nombre de la ruta a filtrar (string)
+    % campoMetricas       -> nombre del campo en los segmentos (ej. 'promedioVelocidad')
+    % filtroGenero (opcional) -> 'M', 'F' o 'ambos' (por defecto 'ambos')
+    % modoAgrupacion (opcional) -> 'porSegmento' o 'porConductor' (por defecto 'porSegmento')
+    %
+    % Ejemplo:
+    % graficarBoxplotSegmentos(datosBuses, "L613", "promedioVelocidad", "H", "porSegmento")
+
+    if nargin < 4 || isempty(filtroGenero)
+        filtroGenero = "ambos";
+    end
+    if nargin < 5 || isempty(modoAgrupacion)
+        modoAgrupacion = "porSegmento";
+    end
+
+    % -----------------------------
+    % Recolectar datos
+    % -----------------------------
+    datosGraficos = table();
+    buses = fieldnames(datosBuses);
+
+    for i = 1:numel(buses)
+        bus = buses{i};
+        if strcmp(bus, 'info')
+            continue;
+        end
+
+        fechas = fieldnames(datosBuses.(bus));
+        for j = 1:numel(fechas)
+            fecha = fechas{j};
+
+            if ~isfield(datosBuses.(bus).(fecha), 'segmentos8')
+                continue;
+            end
+
+            rutas = datosBuses.(bus).(fecha).tiempoRuta.Ruta;
+            generos = datosBuses.(bus).(fecha).tiempoRuta.Genero_Conductor;
+            ids = datosBuses.(bus).(fecha).tiempoRuta.Id;
+            segs = datosBuses.(bus).(fecha).segmentos8;
+
+            for k = 1:numel(rutas)
+                nombreRuta = strrep(rutas{k}, '"','');
+                nombreRuta = string(nombreRuta);
+
+                % Filtro de ruta
+                if nombreRuta ~= nombreRutaFiltro
+                    continue;
+                end
+
+                % Filtro de género
+                genero = string(generos{k});
+                if filtroGenero ~= "ambos" && genero ~= filtroGenero
+                    continue;
+                end
+
+                % Excluir conductores no registrados
+                idConductor = ids(k);
+                if isnumeric(idConductor)
+                    if idConductor == 0, continue; end
+                elseif ischar(idConductor) || isstring(idConductor)
+                    if idConductor == "0" || idConductor == "Conductor no registrado", continue; end
+                end
+
+                % Validar datos
+                if isempty(segs{k}) || ~ismember(campoMetricas, segs{k}.Properties.VariableNames)
+                    continue;
+                end
+
+                % Añadir metadatos
+                t = segs{k};
+                t.Bus = repmat(string(bus), height(t), 1);
+                t.Fecha = repmat(string(fecha), height(t), 1);
+                t.Conductor = repmat(string(ids(k)), height(t), 1);
+                t.Genero = repmat(genero, height(t), 1);
+                t.Ruta = repmat(nombreRuta, height(t), 1);
+
+                datosGraficos = [datosGraficos; t];
+            end
+        end
+    end
+
+    if isempty(datosGraficos)
+        warning('No se encontraron datos para la ruta "%s" con el filtro especificado.', nombreRutaFiltro);
+        return;
+    end
+
+    % -----------------------------
+    % Seleccionar agrupación única
+    % -----------------------------
+    switch modoAgrupacion
+        case "porSegmento"
+            grupo = datosGraficos.nombresSegmentos;
+            xlabelTexto = 'Segmento';
+        case "porConductor"
+            grupo = datosGraficos.Conductor;
+            xlabelTexto = 'Conductor';
+        otherwise
+            error('modoAgrupacion debe ser "porSegmento" o "porConductor".');
+    end
+
+    % -----------------------------
+    % Extraer valores y graficar
+    % -----------------------------
+    valores = datosGraficos.(campoMetricas);
+
+    figure;
+    boxplot(valores, grupo, 'PlotStyle', 'traditional', 'Whisker', 1.5);
+    ylabel(strrep(campoMetricas, '_', '\_'));
+    xlabel(xlabelTexto);
+    title(sprintf('Distribución de %s por %s (%s - %s)', ...
+        campoMetricas, xlabelTexto, nombreRutaFiltro, filtroGenero));
+    grid on;
+end
+
 
 
 
@@ -902,82 +1725,104 @@ end
         strrep(busID, '_', '\_'), strrep(fecha, '_', '\_'), indiceRuta));
 end
 
-function velocidadvsdistancia(datosBuses, busID, fecha, indiceRuta)
-            % Esta función grafica las velocidades para rutas de un bus en fechas dadas
-            % usando los parámetros proporcionados, con manejo de omisiones.
+function velocidadvsdistancia(datosBuses, busID, fecha, indiceRuta, usarP60, mostrarParadas, paradasStruct)
 
-            % Comprobar si el bus existe
-            if ~isfield(datosBuses, busID)
-                error('El bus especificado no existe en los datos.');
-            end
+    % Verificar bus
+    if ~isfield(datosBuses, busID)
+        error('El bus especificado no existe en los datos.');
+    end
 
-            % Obtener todas las fechas si no se especifica una
-            if nargin < 3 || isempty(fecha)
-                fechas = fieldnames(datosBuses.(busID));
-            else
-                if ~isfield(datosBuses.(busID), fecha)
-                    error('La fecha especificada no existe para el bus dado.');
-                end
-                fechas = {fecha};
-            end
-
-            % Iterar sobre las fechas
-            for j = 1:numel(fechas)
-                fechaActual = fechas{j};
-
-                % Obtener los datos de velocidad para la fecha especificada
-                if isfield(datosBuses.(busID).(fechaActual), 'velocidadRuta')
-                    aceleracionRutas = datosBuses.(busID).(fechaActual).aceleracionRuta;
-                else
-                    warning('No hay datos de velocidad disponibles para la fecha %s.', fechaActual);
-                    continue;
-                end
-
-                % Obtener todos los índices si no se especifica uno
-                if nargin < 4 || isempty(indiceRuta)
-                    indicesRutas = 1:size(aceleracionRutas, 1);
-                else
-                    if indiceRuta < 1 || indiceRuta > size(aceleracionRutas, 1)
-                        error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(aceleracionRutas, 1));
-                    end
-                    indicesRutas = indiceRuta;
-                end
-
-                % Iterar sobre los índices de ruta
-                for k = indicesRutas
-                    % Obtener las velocidades y los datos del sensor para el índice de ruta especificado
-                    ruta = aceleracionRutas{k, 3}; % Nombre de la ruta
-
-                    % Obtener los tiempos asociados a las velocidades
-                    datosSensorRuta = datosBuses.(busID).(fechaActual).datosSensorRuta{k, 2}; % Datos del sensor para la ruta
-                    P60 = (datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro - datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro(1))/...
-                        (datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro(numel(datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro)) - datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro(1));
-                    velocidadP60 = datosBuses.(busID).(fechaActual).segmentoP60{k}.velocidadVehiculo;
-                    deltaDistancia = cumsum(datosSensorRuta.deltaTiempo(2:end-1)); % Usar los tiempos del sensor
-                    deltaDistanciaNorm = (deltaDistancia - min(deltaDistancia)) / ...
-                     (max(deltaDistancia) - min(deltaDistancia));
-
-                    
-
-                    velocidad = datosBuses.(busID).(fechaActual).velocidadRuta{k, 2};
-
-                    % Graficar las velocidades
-                    figure;
-                    plot(P60, velocidadP60, '-'); %(1:end-1)
-
-                    % Ajustar el título de la gráfica para evitar subíndices
-                    ruta = strrep(ruta, '_', '\_'); % Escapar guiones bajos
-                    fechaActualEscapada = strrep(fechaActual, '_', '\_'); % Escapar guiones bajos
-                    busIDEscapado = strrep(busID, '_', '\_'); % Escapar guiones bajos
-
-                    % Crear el título usando sprintf para evitar problemas de formato
-                    title(sprintf('Velocidades para la ruta %s (Índice: %d) en el bus %s en la fecha %s', ruta, k, busIDEscapado, fechaActualEscapada));
-                    xlabel('Distancia');
-                    ylabel('Velocidad (m/s)');
-                    grid on;
-                end
-            end
+    % Fechas
+    if nargin < 3 || isempty(fecha)
+        fechas = fieldnames(datosBuses.(busID));
+    else
+        if ~isfield(datosBuses.(busID), fecha)
+            error('La fecha especificada no existe para el bus dado.');
         end
+        fechas = {fecha};
+    end
+
+    for j = 1:numel(fechas)
+        fechaActual = fechas{j};
+
+        % Comprobar que existan datos
+        if ~isfield(datosBuses.(busID).(fechaActual), 'velocidadRuta')
+            warning('No hay datos de velocidad para %s.', fechaActual);
+            continue;
+        end
+
+        rutas = datosBuses.(busID).(fechaActual).datosSensorRuta;
+        velocidadRutas = datosBuses.(busID).(fechaActual).velocidadRuta;
+
+        % Índices de ruta
+        if nargin < 4 || isempty(indiceRuta)
+            indicesRutas = 1:size(velocidadRutas, 1);
+        else
+            if indiceRuta < 1 || indiceRuta > size(velocidadRutas, 1)
+                error('Índice de ruta no válido. Debe estar entre 1 y %d.', size(velocidadRutas, 1));
+            end
+            indicesRutas = indiceRuta;
+        end
+
+        for k = indicesRutas
+            % Selección de datos según usarP60
+            if usarP60
+                % Caso P60
+                distancias = (datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro - ...
+                              datosBuses.(busID).(fechaActual).segmentoP60{k}.kilometrosOdometro(1));
+                velocidad = datosBuses.(busID).(fechaActual).segmentoP60{k}.velocidadVehiculo;
+            else
+                % Caso datosSensor
+                datosSensorRuta = rutas{k,2};
+                distancias = datosSensorRuta.distanciaAcum;   % usar distancia acumulada del sensor
+                velocidad = velocidadRutas{k,2};
+
+                % Asegurar longitudes iguales
+                n = min(length(distancias), length(velocidad));
+                distancias = distancias(1:n);
+                velocidad = velocidad(1:n);
+            end
+
+            % Graficar
+            figure; hold on;
+            plot(distancias, velocidad, '-', 'LineWidth', 1.5);
+            xlabel('Distancia (km)');
+            ylabel('Velocidad (m/s)');
+            grid on;
+
+            % Marcar paradas con líneas verticales
+            if mostrarParadas
+                nombreRuta = string(datosBuses.(busID).(fechaActual).tiempoRuta.Ruta{k});
+                idrutas = string({paradasStruct.idruta});
+                idxParada = find(idrutas == nombreRuta, 1);
+
+                if ~isempty(idxParada)
+                    stops = paradasStruct(idxParada).stops;
+                    if iscell(stops), stops = stops{1}; end
+
+                    for s = 1:height(stops)
+                        % Buscar punto más cercano del bus a la parada
+                        latBus = datosSensorRuta.lat;
+                        lonBus = datosSensorRuta.lon;
+                        dists = arrayfun(@(i) Calculos.geodist(latBus(i), lonBus(i), ...
+                                        stops.lat(s), stops.lon(s)), 1:numel(latBus));
+                        [~, idxMin] = min(dists);
+
+                        xline(distancias(idxMin), '--r'); % línea vertical
+                        if ismember('stop_name', stops.Properties.VariableNames)
+                            text(distancias(idxMin), max(velocidad), string(stops.stop_name(s)), ...
+                                 'Rotation', 90, 'VerticalAlignment','bottom', 'FontSize',8);
+                        end
+                    end
+                end
+            end
+
+            % Título
+            title(sprintf('Velocidad vs distancia - Ruta %s (Índice %d) %s %s', ...
+                nombreRuta, k, busID, fechaActual), 'Interpreter','none');
+        end
+    end
+end
 
 %% ---- Función auxiliar para convertir a valores numéricos ----
 function valoresNumericos = convertirADouble(datos)

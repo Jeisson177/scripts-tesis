@@ -999,6 +999,87 @@ classdef Calcular
 
         %%
 
+
+function datosBuses = GenerarSegmentosEquilibrados(datosBuses, k, nSeg)
+    % Obtener la info de paradas del recorrido k
+    infoParadas = datosBuses.tiempoRuta.InfoParadas{k};
+    validas = datosBuses.tiempoRuta.ParadasVisitadas{k}; % vector lógico
+
+    nParadas = height(infoParadas);
+
+    if isempty(infoParadas) || nParadas < 2
+        datosBuses.segmentos{k} = table();
+        return;
+    end
+
+    % División equilibrada de paradas
+    base = floor(nParadas / nSeg);
+    resto = mod(nParadas, nSeg);
+    bloques = repmat(base, nSeg, 1);
+    bloques(1:resto) = bloques(1:resto) + 1; % repartir resto a los primeros segmentos
+
+    % Inicializar
+    nombresSegmentos = strings(nSeg,1);
+    paradaInicio = strings(nSeg,1);
+    paradaFin = strings(nSeg,1);
+    tiempoInicio = NaT(nSeg,1);
+    tiempoFin = NaT(nSeg,1);
+    duracion = NaN(nSeg,1);
+    promedioVelocidad = NaN(nSeg,1);
+    fiabilidad = NaN(nSeg,1);
+    valido = false(nSeg,1);
+
+    datosSensor = datosBuses.datosSensorRuta{k,2};
+    velocidades = datosBuses.velocidadRuta{k,2};
+
+    nombresParadas = string(infoParadas.Parada);
+    tiemposParadas = infoParadas.TiempoLlegada;
+
+    % Recorrer segmentos con bloques
+    idxStart = 1;
+    for s = 1:nSeg
+        idxEnd = idxStart + bloques(s) - 1;
+
+        % Definir inicio y fin de segmento
+        paradaInicio(s) = nombresParadas(idxStart);
+        paradaFin(s)   = nombresParadas(idxEnd);
+        nombresSegmentos(s) = paradaInicio(s) + "-" + paradaFin(s);
+
+        tiempoInicio(s) = tiemposParadas(idxStart);
+        tiempoFin(s)   = tiemposParadas(idxEnd);
+        duracion(s)    = seconds(tiempoFin(s) - tiempoInicio(s));
+
+        % Velocidades en el rango
+        tInicio = tiempoInicio(s);
+        tFin = tiempoFin(s);
+        tiempos = datosSensor.time;
+        idx = find(tiempos >= tInicio & tiempos <= tFin);
+
+        if numel(idx) > 1
+            velSeg = velocidades(idx(1):idx(end)-1);
+            if ~isempty(velSeg)
+                promedioVelocidad(s) = mean(velSeg, 'omitnan');
+            end
+        end
+
+        % Calcular fiabilidad = % de paradas válidas en el segmento
+        fiabilidad(s) = mean(validas(idxStart:idxEnd));
+        valido(s) = fiabilidad(s) > 0.5; % ejemplo: válido si más de la mitad son buenas
+
+        idxStart = idxEnd; % avanzar
+    end
+
+    % Construir tabla
+    tablaSegmentos = table(nombresSegmentos, paradaInicio, paradaFin, ...
+        tiempoInicio, tiempoFin, duracion, valido, promedioVelocidad, fiabilidad);
+
+    datosBuses.segmentos8{k} = tablaSegmentos;
+end
+
+
+
+        %%
+
         function [velocidadOriginal, velocidad] = velocidadConFiltro(datos, etiquetaTiempo, etiquetaLatitud, etiquetaLongitud, filtro)
             switch filtro
                 case 'pendiente'
@@ -1541,10 +1622,35 @@ classdef Calcular
                     end
                 end
 
+                tiempoPrimera = NaT(height(rutaParadas),1);
+tiempoUltima  = NaT(height(rutaParadas),1);
+
+for k = 1:height(rutaParadas)
+    latParada = rutaParadas.lat(k);
+    lonParada = rutaParadas.lon(k);
+
+    % Calcular distancias de todos los puntos del bus a la parada k
+    dists = arrayfun(@(j) Calculos.geodist(datosSensorRuta.lat(j), ...
+                                           datosSensorRuta.lon(j), ...
+                                           latParada, lonParada), ...
+                                           1:height(datosSensorRuta));
+
+    % Índices donde el bus estuvo dentro del rango
+    idxDentro = find(dists < distanciaUmbral);
+
+    if ~isempty(idxDentro)
+        tiempoPrimera(k) = datosSensorRuta.time(idxDentro(1));
+        tiempoUltima(k)  = datosSensorRuta.time(idxDentro(end));
+    end
+end
+
                 % Calcular porcentaje de paradas cubiertas
                 porcentajeVisitadas = sum(paradasVisitadas) / height(paradas(indiceRuta).stops);
-                tablaParadas = table(nombresParadas, distMinParadas, tiemposParadas, ...
-                    'VariableNames', {'Parada', 'DistanciaMin', 'TiempoLlegada'});
+                tablaParadas = table( ...
+    nombresParadas, distMinParadas, tiemposParadas, ...
+    tiempoPrimera, tiempoUltima, ...
+    'VariableNames', {'Parada', 'DistanciaMin', 'TiempoLlegada', ...
+                      'TiempoPrimeraDeteccion', 'TiempoUltimaDeteccion'});
 
                 % Si cumple el porcentaje mínimo, guardar la ruta ajustada
                 if porcentajeVisitadas >= porcentajeMinimoParadas
@@ -2033,7 +2139,7 @@ classdef Calcular
         end
 
 
-        function datosBuses = iterarSobreBusesYFechas(datosBuses, funcionAplicar)
+        function datosBuses = iterarSobreBusesYFechas(datosBuses, funcionAplicar, varargin)
             % Obtener los campos de los buses
             buses = fieldnames(datosBuses);
 
@@ -2056,7 +2162,7 @@ classdef Calcular
 
                     try
                         for k = 1:numel(datosBuses.(bus).(fecha).tiempoRuta(:, 1))
-                            datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k);  % Aplicar la función pasada como argumento
+                            datosBuses.(bus).(fecha) = funcionAplicar(datosBuses.(bus).(fecha), k, varargin{:});  % Aplicar la función pasada como argumento
 
                         end
                     catch ME
