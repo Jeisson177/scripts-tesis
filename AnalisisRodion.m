@@ -15,7 +15,7 @@ Graficar.graficarVelocidadMapa(datosBuses, rutas, "bus_4012", "f_03_07_2024", 1,
 
 
 %% Ver velocidad
-Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1, 'filtrada', true, rutas);
+Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1, 'ambas', true, rutas);
 
 %% Ver aceleracion
 Graficar.graficarAceleracionPorRutas(datosBuses,"bus_4012" ,"f_03_07_2024", 1,[])
