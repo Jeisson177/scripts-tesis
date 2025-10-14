@@ -11,11 +11,11 @@ Graficar.graficarHistogramaMuestreo(datosBuses);
 Graficar.rutaMapa(datosBuses,rutas,"bus_4012" ,"f_03_07_2024", 1,[], true)
 
 %% Ver velocidad mapa de calor
-Graficar.graficarVelocidadMapa(datosBuses, rutas, "bus_4012", "f_03_07_2024", 1, 'filtrada', true);
+Graficar.graficarVelocidadMapa(datosBuses, rutas, "bus_4012", "f_10_07_2024", 8, 'filtrada', true);
 
 
 %% Ver velocidad
-Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1, 'ambas', true, rutas);
+Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_10_07_2024", 8, 'filtrada', true, rutas);
 
 %% Ver aceleracion
 Graficar.graficarAceleracionPorRutas(datosBuses,"bus_4012" ,"f_03_07_2024", 1,[])

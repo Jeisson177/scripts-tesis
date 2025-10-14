@@ -1156,11 +1156,170 @@ function datosBuses = DuracionParadas(datosBuses, k, umbral)
         end
     end
 
+    % --- NUEVO BLOQUE: Calcular duración de aperturas de puertas (EV2) ---
+if isfield(datosBuses, 'segmentoEV2') && ...
+        numel(datosBuses.segmentoEV2) >= k && ...
+        ~isempty(datosBuses.segmentoEV2{k})
+
+    ev2 = datosBuses.segmentoEV2{k};
+
+    % Validar que existan columnas esperadas
+    if istable(ev2) && all(ismember({'fechaHoraLecturaDato','estadoAperturaCierrePuertas'}, ...
+                                     ev2.Properties.VariableNames))
+
+        % Convertir fecha a datetime
+        if ~isdatetime(ev2.fechaHoraLecturaDato)
+            ev2.fechaHoraLecturaDato = datetime(ev2.fechaHoraLecturaDato);
+        end
+
+        % 🔹 ORDENAR LA TABLA POR FECHA (nuevo)
+        ev2 = sortrows(ev2, 'fechaHoraLecturaDato');
+
+        % Convertir estado a lógico (true/false)
+        if iscell(ev2.estadoAperturaCierrePuertas)
+            estado = strcmpi(ev2.estadoAperturaCierrePuertas, 'True');
+        elseif isstring(ev2.estadoAperturaCierrePuertas) || ischar(ev2.estadoAperturaCierrePuertas)
+            estado = strcmpi(string(ev2.estadoAperturaCierrePuertas), 'True');
+        elseif islogical(ev2.estadoAperturaCierrePuertas)
+            estado = ev2.estadoAperturaCierrePuertas;
+        else
+            estado = false(height(ev2),1);
+        end
+
+        puertasAbiertas = estado(:);
+        tiemposEV = ev2.fechaHoraLecturaDato(:);
+
+        % Buscar transiciones (inicio y fin)
+        cambios = [false; diff(puertasAbiertas) ~= 0];
+        indicesInicio = find(cambios & puertasAbiertas);
+        indicesFin = find(cambios & ~puertasAbiertas);
+
+        % Ajustar casos especiales
+        if isempty(indicesInicio)
+            ev2.DuracionAperturaSeg = zeros(height(ev2),1);
+            datosBuses.segmentoEV2{k} = ev2;
+            return;
+        end
+        while ~isempty(indicesFin) && ~isempty(indicesInicio) && indicesFin(1) < indicesInicio(1)
+            indicesFin(1) = [];
+        end
+        if numel(indicesFin) < numel(indicesInicio)
+            indicesFin(end+1) = numel(tiemposEV);
+        end
+
+        % Emparejar
+        n = min(numel(indicesInicio), numel(indicesFin));
+        indicesInicio = indicesInicio(1:n);
+        indicesFin = indicesFin(1:n);
+
+        % Calcular duración por evento
+        duracionesApertura = seconds(tiemposEV(indicesFin) - tiemposEV(indicesInicio));
+
+        % Inicializar columna nueva
+        ev2.DuracionAperturaSeg = zeros(height(ev2),1);
+
+        % Solo marcar en el instante del cierre
+        for e = 1:n
+            ev2.DuracionAperturaSeg(indicesFin(e)) = duracionesApertura(e);
+        end
+
+        % Guardar directamente en la misma tabla original
+        datosBuses.segmentoEV2{k} = ev2;
+
+    else
+        warning('segmentoEV2{%d} no tiene las columnas esperadas.', k);
+    end
+else
+    warning('No existe segmentoEV2 válido para k=%d.', k);
+end
+
+
     % Añadir columna a la tabla InfoParadas
     infoParadas.DuracionParada = duracionSegundos;
 
     % Actualizar estructura original
     datosBuses.tiempoRuta.InfoParadas{k} = infoParadas;
+
+
+
+
+
+    % --- Paso 1: suavizado de señal de velocidad ---
+    ventana = 5; % puntos de ventana para mediana (~5s)
+    vSuave = movmedian(velocidades, ventana, 'omitnan');
+
+    % --- Paso 2: histéresis (evita cambios falsos cerca del umbral) ---
+    vStop = 1;  % m/s: consideramos detenido
+    vMove = 2;  % m/s: consideramos que volvió a moverse
+    detenido = false(size(vSuave));
+    for i = 2:numel(vSuave)
+        if detenido(i-1)
+            detenido(i) = vSuave(i) <= vMove;
+        else
+            detenido(i) = vSuave(i) <= vStop;
+        end
+    end
+
+    % --- Paso 3: detección de intervalos detenido/movimiento ---
+    cambios = [false; diff(detenido) ~= 0];
+    idxInicio = find(cambios & detenido);
+    idxFin = find(cambios & ~detenido);
+
+    % Ajustar extremos
+    if ~isempty(idxInicio)
+        if isempty(idxFin) || idxFin(1) < idxInicio(1)
+            idxFin = [idxFin; numel(tiempos)];
+        end
+        if numel(idxFin) < numel(idxInicio)
+            idxFin = [idxFin; numel(tiempos)];
+        end
+    end
+
+    % --- Paso 4: fusionar detenciones muy próximas (ruido residual GPS) ---
+    gapThreshold = 5; % segundos
+    detStart = tiempos(idxInicio);
+    detEnd = tiempos(idxFin);
+    if ~isempty(detStart)
+        curStart = detStart(1);
+        curEnd = detEnd(1);
+        mergedStart = datetime.empty(0,1);
+mergedEnd = datetime.empty(0,1);
+
+        for i = 2:numel(detStart)
+            gap = seconds(detStart(i) - curEnd);
+            if gap <= gapThreshold
+                curEnd = detEnd(i); % fusionar
+            else
+                mergedStart(end+1) = curStart;
+                mergedEnd(end+1) = curEnd;
+                curStart = detStart(i);
+                curEnd = detEnd(i);
+            end
+        end
+        mergedStart(end+1) = curStart;
+        mergedEnd(end+1) = curEnd;
+
+        detStart = mergedStart(:);
+        detEnd = mergedEnd(:);
+    end
+
+    % --- Paso 5: calcular duración de detenciones ---
+    if ~isempty(detStart)
+        DuracionSeg = seconds(detEnd - detStart);
+
+        % Filtrar extremos
+        mask = DuracionSeg >= 3 & DuracionSeg <= 600;
+        detStart = detStart(mask);
+        detEnd = detEnd(mask);
+        DuracionSeg = DuracionSeg(mask);
+
+        datosBuses.detenciones{k} = table(detStart, detEnd, DuracionSeg, ...
+            'VariableNames', {'InicioDetencion','FinDetencion','DuracionSegundos'});
+    else
+        datosBuses.detenciones{k} = table();
+    end
+
+
 
 end
 
