@@ -1,26 +1,7 @@
-%posiciones curvasLcurvas
-%se usan los metodos para saber donde empiezan y donde acaba cada curva
-%Lcurvasida4020()
-%LcurvasVuelta4020()
-%Lcurvasida4104s2()
-%LcurvasVuelta4104s2()
-%Lcurvasida4020s2()
-%LcurvasVuelta4020s2()
-%Lcurvasida4104()
-%LcurvasVuelta4104()
-
-
-
-%% pruebas para ver curvas 
-% faltan 4012 y 4025
-curva4012=Calculos.riesgoCurva(datosBuses.bus_4012.f_03_07_2024.datosSensorRuta{5,2},datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Inicio_Ruta(5), datosBuses.bus_4012.f_03_07_2024.tiempoRuta.Fin_Ruta(5));
-%marcador=Calculos.LcurvasH617(datosBuses);
-
-
 %% Cargar datos
 Conductores = ImportarDatos.importarCSV("conductores_LaRolita.csv");
 load Rutas.mat
-load DatosBuses.mat
+load DatosBusesLast.mat
 
 %% Importar todos los datos
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos'); %#ok<NASGU>
@@ -28,6 +9,9 @@ datosBuses = ImportarDatos.importarTodosLosDatos('Datos'); %#ok<NASGU>
 %% Importar una muestra de datos
 clc
 datosBuses = ImportarDatos.importarMuestra('Datos', 3);
+
+
+
 %% Segmenta la ruta, optiene en nombre de la ruta y tiempos (Deben procesarse juntos)
 datosBuses = Calcular.tiemposRutas(datosBuses, rutas, Conductores);
 
