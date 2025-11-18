@@ -2187,6 +2187,65 @@ end
 
         %%
 
+        function datosBuses = regeneracionEnergia(datosBuses)
+            % Esta función calcula la diferencia de regeneración de energía entre primera y última muestra
+            % en kWh para cada ruta y la almacena en una nueva columna 'regeneracionEnergiaDiferencia'.
+            %
+            % La diferencia se calcula usando nivelBateriaSuavizado: (primera - última) * capacidad / 100
+            % Esto representa el cambio neto de energía en kWh durante la ruta
+            % NOTA: No modifica la columna original 'regeneracionEnergia' que viene de los datos
+            
+            buses = fieldnames(datosBuses);
+            
+            for i = 1:numel(buses)
+                bus = buses{i};
+                if strcmp(bus, 'info')
+                    continue;
+                end
+                
+                fechas = fieldnames(datosBuses.(bus));
+                for j = 1:numel(fechas)
+                    fecha = fechas{j};
+                    if isfield(datosBuses.(bus).(fecha), 'segmentoP60')
+                        segmentos = datosBuses.(bus).(fecha).segmentoP60;
+                        for k = 1:numel(segmentos)
+                            datosP60 = datosBuses.(bus).(fecha).segmentoP60{k};
+                            
+                            % Usar la columna original regeneracionEnergia para calcular la diferencia
+                            if ismember('regeneracionEnergia', datosP60.Properties.VariableNames) && ~isempty(datosP60.regeneracionEnergia)
+                                regeneracionEnergia = datosP60.regeneracionEnergia;
+                                
+                                % Calcular diferencia: última muestra - primera muestra
+                                if length(regeneracionEnergia) > 1
+                                    primeraMuestra = regeneracionEnergia(1);
+                                    ultimaMuestra = regeneracionEnergia(end);
+                                    
+                                    % Solo calcular si ambas muestras no son NaN
+                                    if ~isnan(primeraMuestra) && ~isnan(ultimaMuestra)
+                                        diferencia_kWh = ultimaMuestra - primeraMuestra;
+                                    else
+                                        diferencia_kWh = NaN;
+                                    end
+                                else
+                                    diferencia_kWh = NaN; % No hay suficientes muestras
+                                end
+                                
+                                % Almacenar en una NUEVA columna sin modificar la original
+                                n = height(datosP60);
+                                datosBuses.(bus).(fecha).segmentoP60{k}.regeneracionEnergiaDiferencia = repmat(diferencia_kWh, n, 1);
+                            else
+                                n = height(datosP60);
+                                datosBuses.(bus).(fecha).segmentoP60{k}.regeneracionEnergiaDiferencia = NaN(n, 1);
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+
+        %%
+
         function datosBuses = RiesgoCurvaTodasRutas(datosBuses, PosCurvas)
             buses = fieldnames(datosBuses);
 

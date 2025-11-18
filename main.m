@@ -85,6 +85,9 @@ datosBuses = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
 %% Calcula el consumo electrico kw/h
 datosBuses = Calcular.ConsumoPorRuta(datosBuses, 280);
 
+%% Calcula la regeneracion de energia
+datosBuses = Calcular.regeneracionEnergia(datosBuses);
+
 %% Riesgo curva 
 datosBuses = Calcular.RiesgoCurvaTodasRutas(datosBuses, PosCurvas);
 

@@ -260,12 +260,12 @@ warnState = warning('off', 'MATLAB:singularMatrix');
 warnState2 = warning('off', 'MATLAB:nearlySingularMatrix');
 
 % Crear la tabla vacía con los nombres de columna adecuados
-TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],[],[],[],[],[],[],...
+TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],[],[],[],[],[],[],[],[],...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
     'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
     'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman', 'Paradas', 'Porcentaje paradas', ...
-    'PromedioDuracionApertura', 'PromedioDuracionParadas'});
+    'PromedioDuracionApertura', 'PromedioDuracionParadas', 'regeneracionEnergia', 'consumoEnergia'});
 
 
 
@@ -361,6 +361,51 @@ PromedioDuracionApertura = mean(valores(valores > 0 & valores <= 90), 'omitnan')
                     consumo_recorrido = NaN; % O cualquier valor/fórmula por defecto
                     warning('No existe la columna "consumo" en P60 para %s - %s.', bus, fecha);
                 end
+                
+                % Calcular diferencia de regeneracionEnergia (última - primera muestra)
+                try
+                    if ismember('regeneracionEnergia', datosBuses.(bus).(fecha).segmentoP60{k}.Properties.VariableNames)
+                        regeneracionEnergia_vals = datosBuses.(bus).(fecha).segmentoP60{k}.regeneracionEnergia;
+                        if length(regeneracionEnergia_vals) > 1
+                            primeraMuestra = regeneracionEnergia_vals(1);
+                            ultimaMuestra = regeneracionEnergia_vals(end);
+                            if ~isnan(primeraMuestra) && ~isnan(ultimaMuestra)
+                                regeneracionEnergia = ultimaMuestra - primeraMuestra;
+                            else
+                                regeneracionEnergia = NaN;
+                            end
+                        else
+                            regeneracionEnergia = NaN;
+                        end
+                    else
+                        regeneracionEnergia = NaN;
+                    end
+                catch
+                    regeneracionEnergia = NaN;
+                end
+                
+                % Calcular diferencia de consumoEnergia (última - primera muestra)
+                try
+                    if ismember('consumoEnergia', datosBuses.(bus).(fecha).segmentoP60{k}.Properties.VariableNames)
+                        consumoEnergia_vals = datosBuses.(bus).(fecha).segmentoP60{k}.consumoEnergia;
+                        if length(consumoEnergia_vals) > 1
+                            primeraMuestra = consumoEnergia_vals(1);
+                            ultimaMuestra = consumoEnergia_vals(end);
+                            if ~isnan(primeraMuestra) && ~isnan(ultimaMuestra)
+                                consumoEnergia = ultimaMuestra - primeraMuestra;
+                            else
+                                consumoEnergia = NaN;
+                            end
+                        else
+                            consumoEnergia = NaN;
+                        end
+                    else
+                        consumoEnergia = NaN;
+                    end
+                catch
+                    consumoEnergia = NaN;
+                end
+                
                 promriesgo=nanmean(riesgo);
                 % Definir los datos de una nueva fila
                 nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
@@ -368,13 +413,13 @@ PromedioDuracionApertura = mean(valores(valores > 0 & valores <= 90), 'omitnan')
                     indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
                     rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo},promriesgo, consumo_recorrido,...
                     consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k), {rutadato.trayectoriaFiltrada(k).curvas}, rutadato.segmentoP60(k), rutadato.segmentoP20(k),{curva_kalman},...
-                    mean(cell2mat(curva_kalman)), Paradas, PorcentajeParadas,PromedioDuracionApertura,PromedioDuracionParadas,...
+                    mean(cell2mat(curva_kalman)), Paradas, PorcentajeParadas,PromedioDuracionApertura,PromedioDuracionParadas,regeneracionEnergia,consumoEnergia,...
                     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                     'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
                     'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas',...
                     'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman', 'Paradas',  'Porcentaje paradas', ...
-                    'PromedioDuracionApertura', 'PromedioDuracionParadas'});
+                    'PromedioDuracionApertura', 'PromedioDuracionParadas', 'regeneracionEnergia', 'consumoEnergia'});
 
 
                 % Agregar la nueva fila a la tabla
