@@ -265,7 +265,7 @@ TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
     'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
     'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman', 'Paradas', 'Porcentaje paradas', ...
-    'PromedioDuracionParadas', 'PromedioDuracionApertura'});
+    'PromedioDuracionApertura', 'PromedioDuracionParadas'});
 
 
 
@@ -320,15 +320,15 @@ for i = 1:numel(buses)
                 %c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
                 valores = rutadato.segmentoEV2{k}.DuracionAperturaSeg;
 
-PromedioDuracionParadas = mean(valores(valores > 0 & valores <= 90), 'omitnan');
+PromedioDuracionApertura = mean(valores(valores > 0 & valores <= 90), 'omitnan');
 
-                % Calcular PromedioDuracionApertura desde InfoParadas ignorando los 0
+                % Calcular PromedioDuracionParadas desde InfoParadas ignorando los 0
                 try
                     duracionParada = rutadato.tiempoRuta.InfoParadas{k,1}.DuracionParada;
                     valoresNoCero = duracionParada(duracionParada ~= 0);
-                    PromedioDuracionApertura = mean(valoresNoCero, 'omitnan');
+                    PromedioDuracionParadas = mean(valoresNoCero, 'omitnan');
                 catch
-                    PromedioDuracionApertura = NaN;
+                    PromedioDuracionParadas = NaN;
                 end
 
 
@@ -368,13 +368,13 @@ PromedioDuracionParadas = mean(valores(valores > 0 & valores <= 90), 'omitnan');
                     indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
                     rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo},promriesgo, consumo_recorrido,...
                     consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k), {rutadato.trayectoriaFiltrada(k).curvas}, rutadato.segmentoP60(k), rutadato.segmentoP20(k),{curva_kalman},...
-                    mean(cell2mat(curva_kalman)), Paradas, PorcentajeParadas,PromedioDuracionParadas,PromedioDuracionApertura,...
+                    mean(cell2mat(curva_kalman)), Paradas, PorcentajeParadas,PromedioDuracionApertura,PromedioDuracionParadas,...
                     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                     'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
                     'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas',...
                     'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman', 'Paradas',  'Porcentaje paradas', ...
-                    'PromedioDuracionParadas', 'PromedioDuracionApertura'});
+                    'PromedioDuracionApertura', 'PromedioDuracionParadas'});
 
 
                 % Agregar la nueva fila a la tabla
