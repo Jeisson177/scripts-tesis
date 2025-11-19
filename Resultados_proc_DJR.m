@@ -111,11 +111,12 @@ t1 = [t(t.Sexo == 'H',:); t(t.Sexo == 'M',:)];
 t1.Sexo(t1.Sexo == 'M') = 'Female';
 t1.Sexo(t1.Sexo == 'H') = 'Male';
 figure
-subplot(1,5,5), boxplot(t1.Desv_S_Score(t1.Ruta == 'A601'), categorical(t1.Sexo(t1.Ruta == 'A601')))
-subplot(1,5,1), boxplot(t1.Desv_S_Score(t1.Ruta == 'A601'), categorical(t1.Sexo(t1.Ruta == 'A601')))
-subplot(1,5,2), boxplot(t1.Desv_S_Score(t1.Ruta == 'A617'), categorical(t1.Sexo(t1.Ruta == 'A617')))
-subplot(1,5,3), boxplot(t1.Desv_S_Score(t1.Ruta == 'H613'), categorical(t1.Sexo(t1.Ruta == 'H613')))
-subplot(1,5,4), boxplot(t1.Desv_S_Score(t1.Ruta == 'H617'), categorical(t1.Sexo(t1.Ruta == 'H617')))
+subplot(1,6,1), boxplot(t1.Desv_S_Score(t1.Ruta == 'A601'), categorical(t1.Sexo(t1.Ruta == 'A601')))
+subplot(1,6,2), boxplot(t1.Desv_S_Score(t1.Ruta == 'A617'), categorical(t1.Sexo(t1.Ruta == 'A617')))
+subplot(1,6,3), boxplot(t1.Desv_S_Score(t1.Ruta == 'H601'), categorical(t1.Sexo(t1.Ruta == 'H601')))
+subplot(1,6,4), boxplot(t1.Desv_S_Score(t1.Ruta == 'H613'), categorical(t1.Sexo(t1.Ruta == 'H613')))
+subplot(1,6,5), boxplot(t1.Desv_S_Score(t1.Ruta == 'H617'), categorical(t1.Sexo(t1.Ruta == 'H617')))
+subplot(1,6,6), boxplot(t1.Desv_S_Score(t1.Ruta == 'L613'), categorical(t1.Sexo(t1.Ruta == 'L613')))
 % Luego se calculan las medias de las desviaciones y luego se multiplica
 % por el rango de velocidades
 range(T.Speed(T.Ruta == 'H617'))*abs(mean(t1.Desv_S_Score(t1.Ruta == 'H617' & t1.Sexo == 'Female')) - mean(t1.Desv_S_Score(t1.Ruta == 'H617' & t1.Sexo == 'Male')))
@@ -586,7 +587,30 @@ Tsex = T(T.Sexo~='NA',:);
 
 figure, boxplot(Tsex.Cons_km, categorical([string(Tsex.Ruta) Tsex.Sexo]))
 
+%% Regeneración
+load TablaLast.mat
+T = T(T.Sexo~='NA',:);
+t = T(T.Ruta == 'A601' | T.Ruta == 'A617' | T.Ruta == 'H601' | T.Ruta == 'H617' | T.Ruta == 'L613' | T.Ruta == 'H613' | T.Ruta == 'H636',:);
+% Luego se filtran aquellos que no tienen sexo 'NA'
+t1 = [t(t.Sexo == 'H',:); t(t.Sexo == 'M',:)];
+t1.Sexo(t1.Sexo == 'M') = 'Female';
+t1.Sexo(t1.Sexo == 'H') = 'Male';
+figure
+subplot(1,6,1), boxplot(t1.Regen(t1.Ruta == 'A601')./t1.kmRuta(t1.Ruta == 'A601'), categorical(t1.Sexo(t1.Ruta == 'A601')))
+subplot(1,6,2), boxplot(t1.Regen(t1.Ruta == 'A617')./t1.kmRuta(t1.Ruta == 'A617'), categorical(t1.Sexo(t1.Ruta == 'A617')))
+subplot(1,6,3), boxplot(t1.Regen(t1.Ruta == 'H601')./t1.kmRuta(t1.Ruta == 'H601'), categorical(t1.Sexo(t1.Ruta == 'H601')))
+subplot(1,6,4), boxplot(t1.Regen(t1.Ruta == 'H613')./t1.kmRuta(t1.Ruta == 'H613'), categorical(t1.Sexo(t1.Ruta == 'H613')))
+subplot(1,6,5), boxplot(t1.Regen(t1.Ruta == 'H617')./t1.kmRuta(t1.Ruta == 'H617'), categorical(t1.Sexo(t1.Ruta == 'H617')))
+subplot(1,6,6), boxplot(t1.Regen(t1.Ruta == 'L613')./t1.kmRuta(t1.Ruta == 'L613'), categorical(t1.Sexo(t1.Ruta == 'L613')))
+% Luego se calculan las medias de las desviaciones y luego se multiplica
+% por el rango de velocidades
 
+plot([1,2],[mean(t1.Regen(t1.Ruta == 'A601' & t1.Sexo == 'Female')./t1.kmRuta(t1.Ruta == 'A601' & t1.Sexo == 'Female'),'omitmissing') mean(t1.Regen(t1.Ruta == 'A601' & t1.Sexo == 'Male')./t1.kmRuta(t1.Ruta == 'A601' & t1.Sexo == 'Male'),'omitmissing')],'p--')
+plot([1,2],[mean(t1.Regen(t1.Ruta == 'A617' & t1.Sexo == 'Female')./t1.kmRuta(t1.Ruta == 'A617' & t1.Sexo == 'Female'),'omitmissing') mean(t1.Regen(t1.Ruta == 'A617' & t1.Sexo == 'Male')./t1.kmRuta(t1.Ruta == 'A617' & t1.Sexo == 'Male'),'omitmissing')],'p--')
+plot([1,2],[mean(t1.Regen(t1.Ruta == 'H601' & t1.Sexo == 'Female')./t1.kmRuta(t1.Ruta == 'H601' & t1.Sexo == 'Female'),'omitmissing') mean(t1.Regen(t1.Ruta == 'H601' & t1.Sexo == 'Male')./t1.kmRuta(t1.Ruta == 'H601' & t1.Sexo == 'Male'),'omitmissing')],'p--')
+plot([1,2],[mean(t1.Regen(t1.Ruta == 'H613' & t1.Sexo == 'Female')./t1.kmRuta(t1.Ruta == 'H613' & t1.Sexo == 'Female'),'omitmissing') mean(t1.Regen(t1.Ruta == 'H613' & t1.Sexo == 'Male')./t1.kmRuta(t1.Ruta == 'H613' & t1.Sexo == 'Male'),'omitmissing')],'p--')
+plot([1,2],[mean(t1.Regen(t1.Ruta == 'H617' & t1.Sexo == 'Female')./t1.kmRuta(t1.Ruta == 'H617' & t1.Sexo == 'Female'),'omitmissing') mean(t1.Regen(t1.Ruta == 'H617' & t1.Sexo == 'Male')./t1.kmRuta(t1.Ruta == 'H617' & t1.Sexo == 'Male'),'omitmissing')],'p--')
+plot([1,2],[mean(t1.Regen(t1.Ruta == 'L613' & t1.Sexo == 'Female')./t1.kmRuta(t1.Ruta == 'L613' & t1.Sexo == 'Female'),'omitmissing') mean(t1.Regen(t1.Ruta == 'L613' & t1.Sexo == 'Male')./t1.kmRuta(t1.Ruta == 'L613' & t1.Sexo == 'Male'),'omitmissing')],'p--')
 
 %% Fre/km vs Ace/km vs Speed
 % figure
