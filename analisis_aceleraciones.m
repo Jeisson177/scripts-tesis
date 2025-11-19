@@ -256,13 +256,16 @@ Tabla = superTabla(datosBuses,PosCurvas);
 
 function TABLA = superTabla(datosBuses, PosCurvas)
 
+warnState = warning('off', 'MATLAB:singularMatrix');
+warnState2 = warning('off', 'MATLAB:nearlySingularMatrix');
 
 % Crear la tabla vacía con los nombres de columna adecuados
-TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],[],[],...
+TABLA = table([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[],[],[],[],[],[],[],[],[], [], [],[],[],[],[],[],[],[],[],[],[],[],[],[],...
     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', ...
     'AcelePorcen1', 'AcelePorcen2', 'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', 'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km', ...
-    'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman'});
+    'Curvas','PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman', 'Paradas', 'Porcentaje paradas', ...
+    'PromedioDuracionApertura', 'PromedioDuracionParadas', 'regeneracionEnergia', 'consumoEnergia'});
 
 
 
@@ -298,18 +301,37 @@ for i = 1:numel(buses)
                 hora_inicio = rutadato.tiempoRuta.Inicio_Ruta(k);
                 hora_final = rutadato.tiempoRuta.Fin_Ruta(k);
                 distancia = {rutadato.datosSensorRuta{k, 2}.distancia};
-                acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>0);
-                acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}>0);
-                frepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}<-1)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}<0);
-                frepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}<-2)/sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}<0);
+                acelepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>1)/...
+                sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>0);
+                acelepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>2)/...
+                    sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 5}{1}>0);
+                frepercent1 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}{1}<-1)/...}
+                    sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}{1}<0);
+                frepercent2 = sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}{1}<-2)/...
+                    sum(datosBuses.(bus).(fecha).indicesAceleracionRuta{k, 6}{1}<0);
                 tiempo = {rutadato.datosSensorRuta{k,2}.deltaTiempo};
                 velocidad = rutadato.velocidadRuta(k,2);
-                num_Acc = cell2mat(cellfun(@size, indicesAceleracion(k,1), 'UniformOutput', false));
-                num_Fre = cell2mat(cellfun(@size, indicesAceleracion(k,2), 'UniformOutput', false));
+                num_Acc = cell2mat(cellfun(@size, indicesAceleracion{k,1}, 'UniformOutput', false));
+                num_Fre = cell2mat(cellfun(@size, indicesAceleracion{k,2}, 'UniformOutput', false));
                 Acc_km = num_Acc(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
                 Fre_km = num_Fre(:,1)/rutadato.tiempoRuta.Kilometros_Ida(k);
+                Paradas = rutadato.tiempoRuta.ParadasVisitadas(k);
+                PorcentajeParadas = ( sum(Paradas{1}) / numel(Paradas{1})) * 100;
                 %c=Calculos.riesgoCurva(datosBuses.(bus).(fecha).datosSensorRuta{k,2},datosBuses.(bus).(fecha).tiempoRuta.Inicio_Ruta(k),datosBuses.(bus).(fecha).tiempoRuta.Fin_Ruta(k));
-                
+                valores = rutadato.segmentoEV2{k}.DuracionAperturaSeg;
+
+PromedioDuracionApertura = mean(valores(valores > 0 & valores <= 90), 'omitnan');
+
+                % Calcular PromedioDuracionParadas desde InfoParadas ignorando los 0
+                try
+                    duracionParada = rutadato.tiempoRuta.InfoParadas{k,1}.DuracionParada;
+                    valoresNoCero = duracionParada(duracionParada ~= 0);
+                    PromedioDuracionParadas = mean(valoresNoCero, 'omitnan');
+                catch
+                    PromedioDuracionParadas = NaN;
+                end
+
+
 
 
                 curva_kalman  = {rutadato.trayectoriaFiltrada(k).curvas.v2_sobre_R_p80};
@@ -339,6 +361,51 @@ for i = 1:numel(buses)
                     consumo_recorrido = NaN; % O cualquier valor/fórmula por defecto
                     warning('No existe la columna "consumo" en P60 para %s - %s.', bus, fecha);
                 end
+                
+                % Calcular diferencia de regeneracionEnergia (última - primera muestra)
+                try
+                    if ismember('regeneracionEnergia', datosBuses.(bus).(fecha).segmentoP60{k}.Properties.VariableNames)
+                        regeneracionEnergia_vals = datosBuses.(bus).(fecha).segmentoP60{k}.regeneracionEnergia;
+                        if length(regeneracionEnergia_vals) > 1
+                            primeraMuestra = regeneracionEnergia_vals(1);
+                            ultimaMuestra = regeneracionEnergia_vals(end);
+                            if ~isnan(primeraMuestra) && ~isnan(ultimaMuestra)
+                                regeneracionEnergia = ultimaMuestra - primeraMuestra;
+                            else
+                                regeneracionEnergia = NaN;
+                            end
+                        else
+                            regeneracionEnergia = NaN;
+                        end
+                    else
+                        regeneracionEnergia = NaN;
+                    end
+                catch
+                    regeneracionEnergia = NaN;
+                end
+                
+                % Calcular diferencia de consumoEnergia (última - primera muestra)
+                try
+                    if ismember('consumoEnergia', datosBuses.(bus).(fecha).segmentoP60{k}.Properties.VariableNames)
+                        consumoEnergia_vals = datosBuses.(bus).(fecha).segmentoP60{k}.consumoEnergia;
+                        if length(consumoEnergia_vals) > 1
+                            primeraMuestra = consumoEnergia_vals(1);
+                            ultimaMuestra = consumoEnergia_vals(end);
+                            if ~isnan(primeraMuestra) && ~isnan(ultimaMuestra)
+                                consumoEnergia = ultimaMuestra - primeraMuestra;
+                            else
+                                consumoEnergia = NaN;
+                            end
+                        else
+                            consumoEnergia = NaN;
+                        end
+                    else
+                        consumoEnergia = NaN;
+                    end
+                catch
+                    consumoEnergia = NaN;
+                end
+                
                 promriesgo=nanmean(riesgo);
                 % Definir los datos de una nueva fila
                 nuevaFila = table(string(bus), string(fecha), k, id, string(sexo), hora_inicio, hora_final, acelepercent1, acelepercent2, frepercent1,frepercent2, ...
@@ -346,12 +413,13 @@ for i = 1:numel(buses)
                     indicesAceleracion(k,5), indicesAceleracion(k,6), indicesAceleracion(k,7), indicesAceleracion(k,8) , string(rutadato.tiempoRuta.HorarioRuta(k)), ...
                     rutadato.tiempoRuta.Kilometros_Ida(k), rutadato.tiempoRuta.Ruta(k), distancia, tiempo, velocidad, Fre_km, Acc_km, {riesgo},promriesgo, consumo_recorrido,...
                     consumo_recorrido/rutadato.tiempoRuta.Kilometros_Ida(k), {rutadato.trayectoriaFiltrada(k).curvas}, rutadato.segmentoP60(k), rutadato.segmentoP20(k),{curva_kalman},...
-                    mean(cell2mat(curva_kalman)),...
+                    mean(cell2mat(curva_kalman)), Paradas, PorcentajeParadas,PromedioDuracionApertura,PromedioDuracionParadas,regeneracionEnergia,consumoEnergia,...
                     'VariableNames', {'Bus', 'Fecha', 'Recorrido', 'ID', 'Sexo', 'HoraInicio', 'HoraFin', 'AcelePorcen1', 'AcelePorcen2', ...
                     'FrePorcen1', 'FrePorcen2', 'MagPosMean', 'MagNegMean', 'DurPosMean', ...
                     'DurNegMean', 'MagPosMax', 'MagNegMax', 'DurPosMax', 'DurNegMax', 'HorarioRuta', ...
                     'KilometrosRuta', 'NombreRuta', 'Distancia', 'Tiempo', 'Velocidad','Fre_km','Acc_km','Curvas',...
-                    'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman'});
+                    'PromRiesgo', 'Consumo', 'consumoPorKilometro', 'curvas_kalman', 'P60', 'P20', 'riesgoCurvaP80', 'Promedio_riesgo_kalman', 'Paradas',  'Porcentaje paradas', ...
+                    'PromedioDuracionApertura', 'PromedioDuracionParadas', 'regeneracionEnergia', 'consumoEnergia'});
 
 
                 % Agregar la nueva fila a la tabla
@@ -360,13 +428,13 @@ for i = 1:numel(buses)
 
             end
         catch ME
-    fprintf('Error encontrado: %s\n', ME.message);
-    if ~isempty(ME.stack)
-        fprintf('Archivo: %s\n', ME.stack(1).file);
-        fprintf('Función: %s\n', ME.stack(1).name);
-        fprintf('Línea: %d\n', ME.stack(1).line);
-    end
-end
+            fprintf('Error encontrado: %s\n', ME.message);
+            if ~isempty(ME.stack)
+                fprintf('Archivo: %s\n', ME.stack(1).file);
+                fprintf('Función: %s\n', ME.stack(1).name);
+                fprintf('Línea: %d\n', ME.stack(1).line);
+            end
+        end
 
 
     end
@@ -394,6 +462,62 @@ function exportarColumnasPorIndice(tabla, indicesColumnas, nombreArchivo)
         writetable(tablaReducida, nombreArchivo);
         fprintf('Exportación exitosa a "%s"\n', nombreArchivo);
     catch ME
-        warning('Error al exportar: %s', ME.message);
+            fprintf('Error encontrado: %s\n', ME.message);
+            if ~isempty(ME.stack)
+                fprintf('Archivo: %s\n', ME.stack(1).file);
+                fprintf('Función: %s\n', ME.stack(1).name);
+                fprintf('Línea: %d\n', ME.stack(1).line);
+            end
+        end
+end
+
+%% Resumen paradas
+
+
+function resumen = contarParadasPorRuta(TABLA)
+% TABLA: tabla devuelta por superTabla
+% Se asume que TABLA.Paradas es un vector lógico (bool) por fila
+
+RutaParada = table();
+
+for i = 1:height(TABLA)
+    ruta = TABLA.NombreRuta{i};
+    bools = TABLA.Paradas{i};   % vector lógico de paradas
+    
+    % Índices de las paradas que fueron visitadas
+    idxParadas = find(bools);
+    
+    if ~isempty(idxParadas)
+        % Crear tabla auxiliar con una fila por parada visitada
+        tAux = table(repmat({ruta}, numel(idxParadas), 1), ...
+                     idxParadas(:), ...
+                     'VariableNames', {'Ruta', 'Parada'});
+        RutaParada = [RutaParada; tAux];
     end
 end
+
+% Contar recorridos por ruta y parada
+conteo = varfun(@numel, RutaParada, ...
+    'InputVariables','Parada', ...
+    'GroupingVariables',{'Ruta','Parada'});
+conteo.Properties.VariableNames{'numel_Parada'} = 'NumRecorridos';
+
+% Ahora agrupar por Ruta, y dejar las paradas como sub-tablas
+rutas = unique(conteo.Ruta);
+resumen = table();
+
+for i = 1:numel(rutas)
+    ruta = rutas{i};
+    sub = conteo(strcmp(conteo.Ruta,ruta), {'Parada','NumRecorridos'});
+    
+    % Guardar tabla de paradas dentro de una celda
+    resumen = [resumen; table({ruta}, {sub}, ...
+        'VariableNames', {'Ruta','ParadasResumen'})];
+end
+
+end
+
+
+
+resumenParadas = contarParadasPorRuta(Tabla);
+disp(resumenParadas);

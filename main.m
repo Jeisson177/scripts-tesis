@@ -20,6 +20,7 @@ curva4012=Calculos.riesgoCurva(datosBuses.bus_4012.f_03_07_2024.datosSensorRuta{
 %% Cargar datos
 Conductores = ImportarDatos.importarCSV("conductores_LaRolita.csv");
 load Rutas.mat
+load DatosBuses.mat
 
 %% Importar todos los datos
 datosBuses = ImportarDatos.importarTodosLosDatos('Datos'); %#ok<NASGU>
@@ -27,22 +28,23 @@ datosBuses = ImportarDatos.importarTodosLosDatos('Datos'); %#ok<NASGU>
 %% Importar una muestra de datos
 clc
 datosBuses = ImportarDatos.importarMuestra('Datos', 3);
-%% Segmenta la ruta, optiene en nombre de la ruta y tiempos
+%% Segmenta la ruta, optiene en nombre de la ruta y tiempos (Deben procesarse juntos)
 datosBuses = Calcular.tiemposRutas(datosBuses, rutas, Conductores);
 
+%%
+datosBuses = Calcular.ClasificarHorarioRuta(datosBuses);
 %% Muestra un resumen de los datos totales a procesar
 Calcular.resumenRecorridosPorRuta(datosBuses);
 
 %% Calcular los kilometros por ruta
 % Extrer datos sensor por ruta
-% Extraer datos P60
+% Extraer datos P6
+% Extraer P20
+
 datosBuses = Calcular.extraerDatosSensorPorRutas(datosBuses);
 datosBuses = Calculos.extraerP60(datosBuses);
-datosBuses = Calcular.calcularKilometroRutas(datosBuses);
-%% Extraer P20
-
 datosBuses = Calculos.extraerP20(datosBuses);
-
+datosBuses = Calcular.calcularKilometroRutas(datosBuses);
 %% Calcular velocidad por ruta
 % Calcula la velocidad, solo durante el tiempo de la ruta
 datosBuses = Calcular.calcularVelocidadPorRutas(datosBuses);
@@ -56,6 +58,7 @@ datosBuses = Calcular.corregirAceleracionPorRutas(datosBuses);
 %%
 datosBuses = Calcular.corregirAceleracionPorRutasMax(datosBuses);
 %% Aceleraciones por kilometro
+% Posiblemente este mal
 datosBuses = Calcular.aceleracionesKilometroRutas(datosBuses);
 
 %% Velocidad vs distancia
@@ -82,6 +85,9 @@ datosBuses = Calcular.aproximarNivelBateriaPorRutas(datosBuses);
 %% Calcula el consumo electrico kw/h
 datosBuses = Calcular.ConsumoPorRuta(datosBuses, 280);
 
+%% Calcula la regeneracion de energia
+datosBuses = Calcular.regeneracionEnergia(datosBuses);
+
 %% Riesgo curva 
 datosBuses = Calcular.RiesgoCurvaTodasRutas(datosBuses, PosCurvas);
 
@@ -89,25 +95,36 @@ datosBuses = Calcular.RiesgoCurvaTodasRutas(datosBuses, PosCurvas);
 datosBuses = Calcular.PorcentajesAceleracion(datosBuses);
 
 %%
-datosBuses = Calcular.ClasificarHorarioRuta(datosBuses);
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses,@Calcular.GenerarSegmentos);
 
+%%
+
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses,@Calcular.GenerarSegmentosEquilibrados,8);
+
+%%
+datosBuses = Calcular.iterarSobreBusesYFechas(datosBuses, @Calcular.DuracionParadas, 2);
+
+%%
+datosBuses = Calcular.EventosRutas(datosBuses);
 
 
 %% Graficar----------------------------------------------------------------
 
-Graficar.rutaMapa(datosBuses,"bus_4012" ,"f_03_07_2024")
+Graficar.rutaMapa(datosBuses,rutas,"bus_4012" ,"f_03_07_2024", 1)
 
 %%
-Graficar.rutaPorTiempo(datosBuses,"bus_4012" ,"f_10_07_2024", datetime(2024,7,10,14,25,0), datetime(2024,7,10,15,42,0), rutas(12).stops)
+Graficar.rutaMapa(datosBuses, rutas, [], [], [], "L613")
+
 
 %%
-Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
+Graficar.rutaPorTiempo(datosBuses,"bus_4025" ,"f_04_07_2024", datetime(2024,7,4,11,39,0), datetime(2024,7,4,13,29,0), rutas(4).stops)
+
+%%
+Graficar.graficarVelocidadPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1, 'ambas')
 
 %%
 
 Graficar.graficarRutasPorBus(datosBuses, 'bus_4012', 'f_03_07_2024');
-
-
 %%
 Graficar.aceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024")
 
@@ -117,7 +134,7 @@ Graficar.graficarMagnitudesVsDuraciones(datosBuses, 'bus_4012', 'f_03_07_2024', 
 Graficar.HistogramasMagnitudesVsDuraciones(datosBuses, 'bus_4012', 'f_03_07_2024', 1);
 
 %%
-Graficar.velocidadvsdistancia(datosBuses, 'bus_4012', 'f_03_07_2024');
+Graficar.velocidadvsdistancia(datosBuses, 'bus_4012', 'f_03_07_2024', 1, false, true, rutas);
 
 %% ---------------Funciones viejas--------------------------
 
