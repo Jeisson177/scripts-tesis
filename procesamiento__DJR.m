@@ -57,7 +57,7 @@ for ii = 1:length(rutas)
     % 1- Se normaliza por el rango del segmento (formado por todos los
     % recorridos de una ruta en ese segmento)
     % 2- Se promedia el valor normalizado, entre todos los 9 segmentos
-    speed = mean(vel_,2,'omitmissing');
+    speed = mean(vel_,2,'omitmissing'); % velocidad promedio en movimiento
     speed_score = mean((vel_ - min(vel_))./range(vel_),2,'omitmissing');
     idx = find(T.Ruta == rutas(ii));
     T.Speed(idx) = speed;
@@ -83,10 +83,14 @@ for ii = 1:length(rutas)
 
     % Se crea un arreglo [hora de inicio, speed_score, 1:rutas], ordenado
     % por speed_score ascendente
-    tmp = sortrows([hours(hours(hour(t_.(rutas(ii)).HoraInicio))+r)  speed_score (1:numel(t_.(rutas(ii)).HoraInicio))'],2);
+    tmp = sortrows([hours(hours(hour(t_.(rutas(ii)).HoraInicio))+r)  speed_score  (1:numel(t_.(rutas(ii)).HoraInicio))'],2);
+    % Se crea un arreglo [hora de inicio, speed, 1:rutas], ordenado
+    % por speed ascendente
+    tmp2 = sortrows([hours(hours(hour(t_.(rutas(ii)).HoraInicio))+r)  speed  (1:numel(t_.(rutas(ii)).HoraInicio))'],2);
     hrs = unique(tmp(:,1));
     % Se calcula por cada hora del día, el promedio del speed_score
-    avg_speed_hr = accumarray(tmp(:,1),tmp(:,2),[],@mean);
+    avg_speed_sco_hr = accumarray(tmp(:,1),tmp(:,2),[],@mean);
+    avg_speed_hr = accumarray(tmp2(:,1),tmp2(:,2),[],@mean);
     tmp(:,4) = nan*ones(size(tmp,1),1);
     for jj = 1:numel(hrs)        
         % El cum_score es el acumulado de la diff de speed_score de cada
@@ -95,14 +99,14 @@ for ii = 1:length(rutas)
         % número de muestras en cada hora
         cum_score = cumsum([0; diff(tmp(tmp(:,1)==hrs(jj),2))]);
         tmp(tmp(:,1)==hrs(jj),4) = cum_score;
-        tmp(tmp(:,1)==hrs(jj),5) = avg_speed_hr(hrs(jj));
+        tmp(tmp(:,1)==hrs(jj),5) = avg_speed_sco_hr(hrs(jj));
     end
     tmp = sortrows(tmp,3); % organizar según orden inicial en la columna 3
     T.Cum_S_Score(idx) = tmp(:,4); % Cumulative speed score (compared to other scores in the same route, same start hour)
     % El cum_score, castiga estar lejos de mínimo en cada hora de inicio.
     % Pero cuando hay pocas muestras, puede ser muy sesgado.
 
-    %% Des_S_Score
+    %% Desv_S_Score
     % Puede ser mejor revisar la desviación del speed_score de un
     % recorrido vs la media del speed_score para esa hora de inicio.
     % Eso es el Desv_s_score.
@@ -111,16 +115,50 @@ for ii = 1:length(rutas)
     % s = scatter(hours(hour(t_.(rutas(ii)).HoraInicio))+r,speed_score,'DisplayName',rutas(ii));
     % plot(hours(unique(tmp(:,1))),nonzeros(avg_speed_hr),'DisplayName',rutas(ii),'Color',s.CData,'LineStyle','-')
 
-    %% Gráficas de análisis preliminares
     % hold on
-    % scatter(t_.(rutas(ii)).consumoPorKilometro,speed,'DisplayName',rutas(ii))
-    % scatter(t_.(rutas(ii)).consumoPorKilometro,T.Ace_km(idx),'DisplayName',rutas(ii))
+    % s = scatter(hours(hour(t_.(rutas(ii)).HoraInicio))+r,speed,'DisplayName',rutas(ii));
+    % plot(hours(unique(tmp(:,1))),nonzeros(avg_speed_hr),'DisplayName',rutas(ii),'Color',s.CData,'LineStyle','-')
+
+
+    %% Gráficas de análisis preliminares
+    hold on
+
+    % points = scatter(t_.(rutas(ii)).consumoPorKilometro,speed,'DisplayName',rutas(ii));
+    % scatter(mean(t_.(rutas(ii)).consumoPorKilometro),mean(speed),'Marker','pentagram','MarkerFaceColor',points.CData); %,'HandleVisibility','off'
+    % x = t_.(rutas(ii)).consumoPorKilometro;
+    % y = speed;
+    % A = [x(:) ones(length(x),1)];
+    % coeff = A \ y(:);
+    % m = coeff(1);   % slope
+    % b = coeff(2);   % intercept
+    % y_fit = m*x + b; % Aproximación lineal de los puntos del scatter
+    % plot(x,y_fit)
+
+    % rho = corr(t_.(rutas(ii)).consumoPorKilometro,3.6*cellfun(@mean,t_.(rutas(ii)).Velocidad));
+    % v_c = mean(3.6*cellfun(@mean,t_.(rutas(ii)).Velocidad));
+    % dipsN = [char(rutas(ii)) ', \rho = ' num2str(round(rho,2)) ', v_{com} = ' num2str(round(v_c,1))];
+    % points = scatter(t_.(rutas(ii)).consumoPorKilometro,3.6*cellfun(@mean,t_.(rutas(ii)).Velocidad),'DisplayName',dipsN);
+    % scatter(mean(t_.(rutas(ii)).consumoPorKilometro),mean(3.6*cellfun(@mean,t_.(rutas(ii)).Velocidad)),'Marker','pentagram','MarkerFaceColor',points.CData); %,'HandleVisibility','off'
+    % 
+    
+    rho = corr(t_.(rutas(ii)).consumoPorKilometro,T.Ace_km(idx));
+    dispN = [char(rutas(ii)) ', \rho = ' num2str(round(rho,2)) ', Acc+/km = ' num2str(round(mean(T.Ace_km(idx)),1))];
+    points = scatter(t_.(rutas(ii)).consumoPorKilometro,T.Ace_km(idx),'DisplayName',dispN);
+    x = t_.(rutas(ii)).consumoPorKilometro;
+    y = T.Ace_km(idx);
+    A = [x(:) ones(length(x),1)];
+    coeff = A \ y(:);
+    m = coeff(1);   % slope
+    b = coeff(2);   % intercept
+    y_fit = m*x + b; % Aproximación lineal de los puntos del scatter
+    plot(x,y_fit,'Color',points.CData)
+
     % scatter(t_.(rutas(ii)).PromRiesgo,T.Cum_S_Score(idx),'DisplayName',rutas(ii))
     % scatter(t_.(rutas(ii)).consumoPorKilometro,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
     % scatter(t_.(rutas(ii)).Promedio_riesgo_kalman,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
-    hold on
-    scatter(t_.(rutas(ii)).PromRiesgo,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
-    corr(t_.(rutas(ii)).PromRiesgo,T.Desv_S_Score(idx)),['DisplayName',rutas(ii)]
+    % hold on
+    % scatter(t_.(rutas(ii)).PromRiesgo,T.Desv_S_Score(idx),'DisplayName',rutas(ii))
+    % corr(t_.(rutas(ii)).PromRiesgo,T.Desv_S_Score(idx)),['DisplayName',rutas(ii)]
     
 end
 T.Cum_S_Score(T.Cum_S_Score==0) = NaN;
