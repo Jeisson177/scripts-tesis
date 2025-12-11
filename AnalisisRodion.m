@@ -16,14 +16,14 @@ Graficar.graficarHistogramaMuestreo(datosBuses);
 %   indiceRuta (num; opcional; [] = todas las rutas).
 %   nombreRutaFiltro (string exacto; opcional; [] = sin filtro).
 %   mostrarNombresParadas (logical; opcional; por defecto false).
-Graficar.rutaMapa(datosBuses,rutas,"bus_4012" ,"f_03_07_2024", 1,[], true)
+Graficar.rutaMapa(datosBuses,rutas,"bus_4025" ,"f_12_06_2024", 5,[], true)
 
 %% Ver velocidad mapa de calor
 % Graficar.graficarVelocidadMapa(datosBuses, rutas, busID, fecha, indiceRuta, tipoVelocidad, mostrarParadas)
 %   datosBuses, rutas, busID (string "bus_XXXX"), fecha ('f_DD_MM_YYYY'), indiceRuta (num) requeridos.
 %   tipoVelocidad ('filtrada'/'cruda'/'ambas'; opcional; por defecto 'filtrada').
 %   mostrarParadas (logical; opcional; por defecto false).
-Graficar.graficarVelocidadMapa(datosBuses, rutas, "bus_4012", "f_10_07_2024", 8, 'ambas', false);
+Graficar.graficarVelocidadMapa(datosBuses, rutas, "bus_4025", "f_12_06_2024", 8, 'ambas', true);
 
 %% Ver velocidad
 % Graficar.graficarVelocidadPorRutas(datosBuses, busID, fecha, indiceRuta, tipoVelocidad, mostrarParadas, paradasStruct)
