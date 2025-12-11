@@ -96,3 +96,14 @@ Graficar.graficarDistribucionGenero(datosBuses, "promedioVelocidad", [], 'empiri
 %   fecha (string 'f_DD_MM_YYYY'; opcional; [] = todas las fechas).
 %   rutaFiltro (string exacto; opcional; [] = sin filtro).
 Graficar.graficarVelocidadPromedioDia(datosBuses, [], [], []);
+
+%% Consumo: antes y después de suavizado/sobremuestreo
+% Graficar.consumoSuavizadoYSobremuestreo(datosBuses, busID, fecha, indiceRuta, capacidadBateria_kWh, factorSobremuestreo)
+%   datosBuses (requerido).
+%   busID (string "bus_XXXX"; requerido).
+%   fecha (string 'f_DD_MM_YYYY'; requerido).
+%   indiceRuta (num; requerido; índice dentro de segmentoP60).
+%   capacidadBateria_kWh (num; opcional; por defecto 280).
+%   factorSobremuestreo (num > 1; opcional; por defecto 4).
+%   Grafica nivel de batería y consumo original vs suavizado y suavizado+sobremuestreo.
+Graficar.consumoSuavizadoYSobremuestreo(datosBuses, "bus_4012", "f_03_07_2024", 1, 280, 4);
