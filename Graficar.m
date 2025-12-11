@@ -626,7 +626,7 @@ end
             end
         end
 
-function graficarAceleracionPorRutas(datosBuses, busID, fecha, indiceRuta, nombreRutaFiltro)
+function graficarAceleracionPorRutas(datosBuses, busID, fecha, indiceRuta, nombreRutaFiltro, mostrarRectangulos)
     % graficarAceleracionPorRutas
     % ---------------------------------------------------------------
     % Grafica la aceleración (m/s²) en función del tiempo para rutas 
@@ -638,11 +638,19 @@ function graficarAceleracionPorRutas(datosBuses, busID, fecha, indiceRuta, nombr
     %   fecha (opcional)  -> fecha específica (string)
     %   indiceRuta (opt.) -> índice numérico de ruta
     %   nombreRutaFiltro  -> nombre exacto de ruta a graficar
+    %   mostrarRectangulos-> lógico, si true pinta los tramos constantes
+    %                        detectados con el mismo umbral que
+    %                        corregirAceleracionPorRutas (default: false)
     %
     % Ejemplo:
     %   graficarAceleracionPorRutas(datosBuses, "bus_4012", "f_03_07_2024", 1, "P60A")
     %
     % ---------------------------------------------------------------
+
+    % ---------------------------------------------------------------
+    if nargin < 6 || isempty(mostrarRectangulos)
+        mostrarRectangulos = false;
+    end
 
     % ---------------------------------------------------------------
     % Validaciones iniciales
@@ -726,11 +734,67 @@ function graficarAceleracionPorRutas(datosBuses, busID, fecha, indiceRuta, nombr
                 aceleracion = aceleracion(1:n);
                 tiempos = tiempos(1:n);
 
+                % Convertir tiempo a vector numérico (segundos desde inicio) para
+                % evitar problemas de concatenación con datetime/duration.
+                [tNum, ~] = Graficar.convertirTiempoANumerico(tiempos);
+
+                % Fuente para rectángulos: preferir la señal corregida si existe
+                tRectSrc = tiempos;
+                accRectSrc = aceleracion;
+                if size(aceleracionRutas, 2) >= 6
+                    tRectCand = aceleracionRutas{k,5};
+                    accRectCand = aceleracionRutas{k,6};
+                    if ~isempty(tRectCand) && ~isempty(accRectCand)
+                        m = min(numel(tRectCand), numel(accRectCand));
+                        tRectSrc = tRectCand(1:m);
+                        accRectSrc = accRectCand(1:m);
+                    end
+                end
+                [tRectNum, ~] = Graficar.convertirTiempoANumerico(tRectSrc);
+
                 % ---------------------------------------------------------------
                 % Graficar
                 % ---------------------------------------------------------------
                 figure; hold on;
-                plot(tiempos, aceleracion, 'k-', 'LineWidth', 1.2);
+                hLine = plot(tNum, aceleracion, 'k-', 'LineWidth', 1.2);
+
+                % ---------------------------------------------------
+                % Rectángulos de tramos constantes (opcional)
+                % ---------------------------------------------------
+                legendHandles = hLine;
+                legendLabels  = {'Aceleración'};
+
+                if mostrarRectangulos
+                    rectas = Graficar.construirRectangulosAceleracion(tRectNum, accRectSrc);
+
+                    % Pintar cada tramo como un rectángulo.
+                    for r = 1:size(rectas, 1)
+                        t0 = rectas(r, 1);
+                        t1 = rectas(r, 2);
+                        h  = rectas(r, 3);
+
+                        if h > 0
+                            fillColor = [0 0.6 0];
+                        else
+                            fillColor = [0.8 0 0];
+                        end
+
+                        patch([t0 t1 t1 t0], [0 0 h h], fillColor, ...
+                              'FaceAlpha', 0.2, 'EdgeColor', 'none');
+                    end
+
+                    % Agregar entradas a la leyenda (sin re-plotear)
+                    if any(rectas(:,3) > 0)
+                        hPos = patch(NaN, NaN, [0 0.6 0], 'FaceAlpha', 0.2, 'EdgeColor', 'none');
+                        legendHandles(end+1) = hPos; %#ok<AGROW>
+                        legendLabels{end+1} = 'Rectángulos +';
+                    end
+                    if any(rectas(:,3) < 0)
+                        hNeg = patch(NaN, NaN, [0.8 0 0], 'FaceAlpha', 0.2, 'EdgeColor', 'none');
+                        legendHandles(end+1) = hNeg; %#ok<AGROW>
+                        legendLabels{end+1} = 'Rectángulos -';
+                    end
+                end
 
                 % Título formateado
                 rutaEsc = strrep(nombreRuta, '_', '\_');
@@ -739,13 +803,58 @@ function graficarAceleracionPorRutas(datosBuses, busID, fecha, indiceRuta, nombr
 
                 title(sprintf('Aceleración vs Tiempo - %s (Ruta %d) %s %s', ...
                     rutaEsc, k, busEsc, fechaEsc), 'Interpreter','none');
-                xlabel('Tiempo');
+                xlabel('Tiempo (s desde inicio)');
                 ylabel('Aceleración (m/s²)');
                 grid on;
-                legend('Aceleración', 'Location', 'best');
+                legend(legendHandles, legendLabels, 'Location', 'best');
                 hold off;
             end
         end
+    end
+end
+
+function rectas = construirRectangulosAceleracion(tiemposNum, aceleracion)
+    % Usa el mismo criterio de corregirAceleracionPorRutas para segmentar
+    % y devuelve [t_inicio, t_fin, altura] por tramo distinto de cero.
+    % tiemposNum debe ser numérico (p.ej., segundos desde el inicio).
+
+    acc = aceleracion;
+    acc(abs(acc) <= 0.3) = 0;  % umbral de ruido
+
+    rectas = [];
+    idx = 1;
+
+    while idx <= numel(acc)
+        if acc(idx) > 0
+            fin = find(acc(idx:end) <= 0, 1) + idx - 2;
+            if isempty(fin); fin = numel(acc); end
+            altura = mean(acc(idx:fin));
+        elseif acc(idx) < 0
+            fin = find(acc(idx:end) >= 0, 1) + idx - 2;
+            if isempty(fin); fin = numel(acc); end
+            altura = mean(acc(idx:fin));
+        else
+            fin = find(acc(idx:end) ~= 0, 1) + idx - 2;
+            if isempty(fin); fin = numel(acc); end
+            idx = fin + 1;
+            continue;
+        end
+
+        rectas = [rectas; tiemposNum(idx) tiemposNum(fin) altura]; %#ok<AGROW>
+        idx = fin + 1;
+    end
+end
+
+function [tNum, baseTime] = convertirTiempoANumerico(tiempos)
+    % Convierte un vector de tiempo (datetime, duration o numérico)
+    % a segundos desde el primer valor. Devuelve tNum (double) y la base.
+    baseTime = tiempos(1);
+    if isdatetime(tiempos)
+        tNum = seconds(tiempos - baseTime);
+    elseif isduration(tiempos)
+        tNum = seconds(tiempos - baseTime);
+    else
+        tNum = tiempos - baseTime;
     end
 end
 
