@@ -445,7 +445,7 @@ end
 % Tabla = superTabla(datosBuses);
 
 %%
-cols = [1, 2, 4, 5, 6, 7, 8, 9 10, 11,20, 21, 22, 26, 27, 30, 31, 36];  
+cols = [1, 2,3,  4, 5, 6, 7, 8, 9 10, 11,20, 21, 22, 26, 27, 29, 30, 31, 36, 38, 39, 40, 41, 42];  
 exportarColumnasPorIndice(Tabla, cols, 'tabla_final.xlsx');
 
 function exportarColumnasPorIndice(tabla, indicesColumnas, nombreArchivo)
