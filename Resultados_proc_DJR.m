@@ -183,6 +183,37 @@ v = 8;
 text(linspace(.08,.93,v), repmat(-.1,1,v), varNames, 'FontSize',8);
 text(repmat(-.12,1,v), linspace(.96,.02,v), varNames, 'FontSize',8, 'Rotation',90);
 
+% load TablaLast.mat
+mMagPos_H_4012 = cellfun(@mean,TablaLast.MagPosMean(TablaLast.Sexo =="H" & TablaLast.Bus == "bus_4012"));
+mMagPos_M_4012 = cellfun(@mean,TablaLast.MagPosMean(TablaLast.Sexo =="M" & TablaLast.Bus == "bus_4012"));
+% mMagPos_H_4025 = cellfun(@mean,TablaLast.MagPosMean(TablaLast.Sexo =="H" & TablaLast.Bus == "bus_4025"));
+% mMagPos_M_4025 = cellfun(@mean,TablaLast.MagPosMean(TablaLast.Sexo =="M" & TablaLast.Bus == "bus_4025"));
+mMagPos_H_4025 = cellfun(@mean,TablaLast.MagPosMean(TablaLast.Sexo =="H" & TablaLast.Bus ~= "bus_4012"));
+mMagPos_M_4025 = cellfun(@mean,TablaLast.MagPosMean(TablaLast.Sexo =="M" & TablaLast.Bus ~= "bus_4012"));
+[mean(mMagPos_M_4025) mean(mMagPos_H_4025)]
+[mean(mMagPos_M_4012) mean(mMagPos_H_4012)]
+
+mMagNeg_H_4012 = cellfun(@mean,TablaLast.MagNegMean(TablaLast.Sexo =="H" & TablaLast.Bus == "bus_4012"));
+mMagNeg_M_4012 = cellfun(@mean,TablaLast.MagNegMean(TablaLast.Sexo =="M" & TablaLast.Bus == "bus_4012"));
+mMagNeg_H_4025 = cellfun(@mean,TablaLast.MagNegMean(TablaLast.Sexo =="H" & TablaLast.Bus == "bus_4025"));
+mMagNeg_M_4025 = cellfun(@mean,TablaLast.MagNegMean(TablaLast.Sexo =="M" & TablaLast.Bus == "bus_4025"));
+[mean(mMagNeg_M_4012) mean(mMagNeg_H_4012)]
+[mean(mMagNeg_M_4025) mean(mMagNeg_H_4025)]
+
+mDurPos_H_4012 = cellfun(@mean,TablaLast.DurPosMean(TablaLast.Sexo =="H" & TablaLast.Bus == "bus_4012"));
+mDurPos_M_4012 = cellfun(@mean,TablaLast.DurPosMean(TablaLast.Sexo =="M" & TablaLast.Bus == "bus_4012"));
+mDurPos_H_4025 = cellfun(@mean,TablaLast.DurPosMean(TablaLast.Sexo =="H" & TablaLast.Bus == "bus_4025"));
+mDurPos_M_4025 = cellfun(@mean,TablaLast.DurPosMean(TablaLast.Sexo =="M" & TablaLast.Bus == "bus_4025"));
+milliseconds([mean(mDurPos_M_4025) mean(mDurPos_H_4025)])
+milliseconds([mean(mDurPos_M_4012) mean(mDurPos_H_4012)])
+
+mDurNeg_H_4012 = cellfun(@mean,TablaLast.DurNegMean(TablaLast.Sexo =="H" & TablaLast.Bus == "bus_4012"));
+mDurNeg_M_4012 = cellfun(@mean,TablaLast.DurNegMean(TablaLast.Sexo =="M" & TablaLast.Bus == "bus_4012"));
+mDurNeg_H_4025 = cellfun(@mean,TablaLast.DurNegMean(TablaLast.Sexo =="H" & TablaLast.Bus == "bus_4025"));
+mDurNeg_M_4025 = cellfun(@mean,TablaLast.DurNegMean(TablaLast.Sexo =="M" & TablaLast.Bus == "bus_4025"));
+milliseconds([mean(mDurNeg_M_4012) mean(mDurNeg_H_4012)])
+milliseconds([mean(mDurNeg_M_4025) mean(mDurNeg_H_4025)])
+
 %% 2-4 # fre/km vs Duración de frenadas
 % Tampoco se diferencian H vs M
 figure, scatter(Tsex.DurFre(Tsex.Sexo == 'H' & Tsex.BusID=='bus_4012' & Tsex.Ruta == 'A617'),Tsex.Fre_km(Tsex.Sexo == 'H' & Tsex.BusID=='bus_4012' & Tsex.Ruta == 'A617'))
